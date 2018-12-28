@@ -5,3 +5,7 @@ Makefile
 .deps/
 /libtool
 /stamp-h1
+*.o
+*.lo
+/autom4te.cache
+lib*.a
