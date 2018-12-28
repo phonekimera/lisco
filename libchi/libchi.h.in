@@ -1,0 +1,297 @@
+/* libch.h - Include file for libchi. -*- c -*-
+ * Copyright (C) 2002 Guido Flohr (guido@imperia.net)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
+ *
+ * This file is generated from libchi.h.in, do not edit!
+ */
+
+#ifndef LIBCHI_H
+# define LIBCHI_H        /* Allow multiple inclusion.  */
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
+#include <system.h>
+
+typedef @BITV64@ bitv64;
+
+#define CHI_VERSION "@VERSION@"
+
+#if defined (__GNUC__) || __STDC__ || defined (_AIX) || \
+             (defined (__mips) && defined (_SYSTYPE_SVR4)) || \
+             defined(WIN32) || defined(__cplusplus)
+# define CHI_PARAMS(args) args
+#else
+# define CHI_PARAMS(args) ()
+#endif
+
+#ifdef __cplusplus
+# define CHI_BEGIN_DECLS extern "C" {
+# define CHI_END_DECLS }
+#else
+# define CHI_BEGIN_DECLS /* empty */
+# define CHI_END_DECLS /* empty */
+#endif
+
+/* Error codes.  */
+#define CHI_ERR_SUCCESS    0
+/* Out of memory.  */
+#define CHI_ERR_ENOMEM     1
+/* Generic parsing error.  */
+#define CHI_ERR_PARSER     2
+/* Move from an empty square.  */
+#define CHI_ERR_EMPTY_SQUARE 3
+/* Illegal library usage (NULL pointers, etc.).  */
+#define CHI_ERR_YOUR_FAULT 4
+/* End marker.  */
+#define CHI_ERRMAX      CHI_ERR_YOUR_FAULT
+
+/* Bit masks for files and ranks of the chess board.  */
+#define CHI_A_MASK ((bitv64) 0x8080808080808080)
+#define CHI_B_MASK ((bitv64) 0x4040404040404040)
+#define CHI_C_MASK ((bitv64) 0x2020202020202020)
+#define CHI_D_MASK ((bitv64) 0x1010101010101010)
+#define CHI_E_MASK ((bitv64) 0x0808080808080808)
+#define CHI_F_MASK ((bitv64) 0x0404040404040404)
+#define CHI_G_MASK ((bitv64) 0x0202020202020202)
+#define CHI_H_MASK ((bitv64) 0x0101010101010101)
+
+#define CHI_1_MASK ((bitv64) 0x00000000000000ff)
+#define CHI_2_MASK ((bitv64) 0x000000000000ff00)
+#define CHI_3_MASK ((bitv64) 0x0000000000ff0000)
+#define CHI_4_MASK ((bitv64) 0x00000000ff000000)
+#define CHI_5_MASK ((bitv64) 0x000000ff00000000)
+#define CHI_6_MASK ((bitv64) 0x0000ff0000000000)
+#define CHI_7_MASK ((bitv64) 0x00ff000000000000)
+#define CHI_8_MASK ((bitv64) 0xff00000000000000)
+
+#define CHI_FILE_A (0)
+#define CHI_FILE_B (1)
+#define CHI_FILE_C (2)
+#define CHI_FILE_D (3)
+#define CHI_FILE_E (4)
+#define CHI_FILE_F (5)
+#define CHI_FILE_G (6)
+#define CHI_FILE_H (7)
+   
+#define CHI_RANK_1 (0)
+#define CHI_RANK_2 (1)
+#define CHI_RANK_3 (2)
+#define CHI_RANK_4 (3)
+#define CHI_RANK_5 (4)
+#define CHI_RANK_6 (5)
+#define CHI_RANK_7 (6)
+#define CHI_RANK_8 (7)
+
+/* Commonly used piece values in millipawns.  */
+#define CHI_VALUE_EMPTY      0
+#define CHI_VALUE_PAWN    1000
+#define CHI_VALUE_KNIGHT  3000
+#define CHI_VALUE_BISHOP  3000
+#define CHI_VALUE_ROOK    5000
+#define CHI_VALUE_QUEEN   9000
+
+/* The minimum number of a move array (must be capable of storing all
+   legal moves from one position.  I think the theoretical maximum is 76, 
+   the practical will be only half of it.  */
+#define CHI_MAX_MOVES 80
+
+typedef enum {
+	chi_white = 0,
+#define chi_white chi_white
+	chi_black = !chi_white,
+#define chi_black chi_black
+} chi_color_t;
+
+typedef enum {
+	empty = 0,
+#define empty empty
+	pawn = 1,
+#define pawn pawn
+	knight = 2,
+#define knight knight
+	bishop = 3,
+#define bishop bishop
+	rook = 4,
+#define rook rook
+	queen = 5,
+#define queen queen
+	king = 6,
+#define king king
+} chi_piece_t;
+
+typedef struct {
+	bitv64 w_pieces;
+	bitv64 b_pieces;
+	
+	bitv64 w_pawns;
+	bitv64 w_knights;
+	bitv64 w_bishops;
+	bitv64 w_rooks;
+	bitv64 w_kings;
+	
+	bitv64 b_pawns;
+	bitv64 b_knights;
+	bitv64 b_bishops;
+	bitv64 b_rooks;
+	bitv64 b_kings;
+
+	unsigned int half_move_clock;
+	unsigned int half_moves;
+        chi_color_t  to_move;
+
+#define chi_flags(p) ((p)->union_flags.flags)
+#define chi_wk_castle(p) ((p)->union_flags.sflags.wk_castle)
+#define chi_wq_castle(p) ((p)->union_flags.sflags.wq_castle)
+#define chi_bk_castle(p) ((p)->union_flags.sflags.bk_castle)
+#define chi_bq_castle(p) ((p)->union_flags.sflags.bq_castle)
+#define chi_ep(p) ((p)->union_flags.sflags.ep)
+#define chi_ep_file(p) ((p)->union_flags.sflags.ep_file)
+#define chi_to_move(p) ((p)->to_move)
+#define chi_ep_row(p) (chi_to_move(p) ? \
+			  CHI_RANK_6 : CHI_RANK_3)
+
+	union {
+		unsigned char flags;
+		struct {
+			unsigned wk_castle: 1;
+			unsigned wq_castle: 1;
+			unsigned bk_castle: 1;
+			unsigned bq_castle: 1;
+			unsigned ep: 1;
+			unsigned ep_file: 3;
+		} sflags;
+	} union_flags;
+} chi_pos;
+
+typedef union {
+        /* Assigning to chi_packed(move) will clear/initialize to
+	   move (and if carefully chosen) set fields.from at the
+	   same time.  */
+#define chi_packed(m) ((m).packed)
+	unsigned int packed;
+#define chi_from(m) ((m).fields.from)
+#define chi_to(m) ((m).fields.to)
+#define chi_promote(m) ((m).fields.promote)
+#define chi_material(m) ((m).fields.material)
+	struct {
+#ifdef WORDS_BIGENDIAN
+		/* Raw material gain by this move (in pawns).  */
+		unsigned char material;
+		/* Promotion piece.  */
+		unsigned char promote;
+		/* Offset of destination square.  Negative for unknown
+		   shift.  */
+		char to;
+		/* Offset of source square.  Negative for unknown shift.  */
+		char from;
+#else
+		/* Offset of source square.  Negative for unknown shift.  */
+		char from;
+		/* Offset of destination square.  Negative for unknown
+		   shift.  */
+		char to;
+		/* Promotion piece.  */
+		unsigned char promote;
+		/* Raw material gain by this move (in pawns).  */
+		unsigned char material;
+#endif
+	} fields;
+} chi_move;
+
+/* Function like macros.  */
+#define chi_file2char(f) ((f) + 'a')
+#define chi_rank2char(r) ((r) + '1')
+#define chi_coords2shift(f, r) ((r) * 8 + (7 - (f)))
+
+/* Bit twiddling part 1: Clear all but the least significant bit.  */
+#define chi_clear_but_least_set(b) ((b) & -(b))
+
+/* Bit twiddling part 2: Clear only the least significant bit.  */
+#define chi_clear_least_set(b) ((b) & ((b) - 1))
+
+CHI_BEGIN_DECLS
+
+/* Return a descriptive (English!) error message for the given error.  */
+const char* chi_strerror CHI_PARAMS ((int chi_arg_errnum));
+
+/* Set a board to the initial chess position.  */
+void chi_init_position CHI_PARAMS ((chi_pos* chi_arg_pos));
+
+/* Set a position to empty (no pieces), unset all flags etc.  */
+void chi_clear_position CHI_PARAMS ((chi_pos* chi_arg_pos));
+
+/* Place a piece (also empty!) of given color on board.  Will not update
+   en_passant state, castling state, move clocks etc.  */
+int chi_set_piece CHI_PARAMS ((chi_pos* chi_arg_pos, chi_piece_t chi_arg_piece,
+			       chi_color_t chi_arg_color,
+			       int chi_arg_file, int chi_arg_rank));
+
+/* Dumps piece characters into a string.  The second argument is a buffer
+   allocated with malloc(), the third argument must point to the buffer's 
+   size.  You can safely pass a NULL pointer for the buffer address,
+   in which case libchi will allocate a buffer for you.  */
+int chi_dump_pieces CHI_PARAMS ((chi_pos* chi_arg_pos, char** chi_arg_buf, 
+				 unsigned int* chi_arg_bufsize));
+
+/* Return the label ("a1", "a2", ...) for given coordinates.  */
+const char* chi_coords2label CHI_PARAMS ((unsigned int chi_arg_file, 
+					  unsigned int chi_arg_rank));
+
+/* Return the label ("a1", "a2", ...) for given shift.  */
+const char* chi_shift2label CHI_PARAMS ((unsigned int chi_arg_shift));
+
+/* Return a letter for a given piece (including pawn!).  */
+const char chi_piece2char CHI_PARAMS ((chi_piece_t chi_arg_piece));
+
+/* Parse the move string and place the result into the structure.
+   Returns a non-zero error code in case of failure.  */
+int chi_parse_move CHI_PARAMS ((chi_pos* chi_arg_pos, chi_move* chi_arg_move,
+				const char* chi_arg_movestr));
+
+/* Place a string describing the move in the output buffer.  */
+int chi_print_move CHI_PARAMS ((chi_pos* chi_arg_pos, chi_move chi_arg_move, 
+				char** chi_arg_buf, 
+				unsigned int* chi_arg_bufsize, 
+				int chi_arg_san));
+
+/* (Lazily) apply a move to a given position.  */
+int chi_make_move CHI_PARAMS ((chi_pos* chi_arg_pos, chi_move chi_arg_move));
+
+/* Generate all pseudo-legal captures for a given position.  */
+chi_move* chi_generate_captures CHI_PARAMS ((chi_pos* chi_arg_pos, 
+					     chi_move* chi_arg_movestack));
+
+/* Generate all pseudo-legal non-captures for a given position.  */
+chi_move* chi_generate_non_captures CHI_PARAMS ((chi_pos* chi_arg_pos, 
+						 chi_move* chi_arg_movestack));
+
+/* For bitboards with exactly one bit set.  */
+unsigned int chi_bitv2shift CHI_PARAMS ((bitv64 chi_arg_bitv));
+
+CHI_END_DECLS
+
+#endif
+
+/*
+Local Variables:
+mode: c
+c-style: K&R
+c-basic-shift: 8
+End:
+*/
