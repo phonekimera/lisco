@@ -23,7 +23,7 @@
 
 #include <libchi.h>
 
-char
+const char
 chi_piece2char (piece)
      chi_piece_t piece;
 {
