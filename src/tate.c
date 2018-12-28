@@ -134,10 +134,10 @@ static void
 greeting ()
 {
     fprintf (stdout, "\
-%s %s (libchi %s)\n
-Copyright (C) 2002, Guido Flohr <guido@imperia.net>.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+%s %s (libchi %s)\n\
+Copyright (C) 2002, Guido Flohr <guido@imperia.net>.\n\
+This is free software; see the source for copying conditions.  There is NO\n\
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
 Written by Guido Flohr.\n\n", PACKAGE, VERSION, CHI_VERSION);
 
     fprintf (stdout, "Type 'help' for help.\n\n");

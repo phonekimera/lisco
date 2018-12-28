@@ -23,9 +23,8 @@ CFLAGS = -Wall @CFLAGS@
 
 noinst_LIBRARIES = libutil.a
 
-libutil_a_SOURCES = xmalloc.c xstrdup.c
+libutil_a_SOURCES = error.c xmalloc.c xstrdup.c
 LIBADD_SOURCE =  \
-    error.c error.h \
     getline.c getline.h \
     memset.c \
     strcasecmp.c strncasecmp.c
