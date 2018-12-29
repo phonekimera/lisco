@@ -1,4 +1,4 @@
-/* set_position.c - Set a position according to a full FEN position
+/* parse_epd.c - Parse an EPD line and set a test position.
  * Copyright (C) 2002 Guido Flohr (guido@imperia.net)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,23 +26,26 @@
 #include <libchi.h>
 
 int
-chi_set_position (argpos, fen)
-     chi_pos* argpos;
-     const char* fen;
+chi_parse_epd (epd, epdstr)
+     chi_epd_pos* epd;
+     const char* epdstr;
 {
-    const char* ptr = fen;
+    const char* ptr = epdstr;
     int ep_file = -1;
-    unsigned long num;
     const char* end_ptr;
-    char* num_end_ptr;
     chi_pos tmp_pos;
     chi_pos* pos = &tmp_pos;
     int errnum;
+    int avoid;
+    chi_move solution;
+    char* id = NULL;
 
-    if (!argpos || !fen)
+    if (!epd || !epdstr)
 	return CHI_ERR_YOUR_FAULT;
 
-    errnum = chi_parse_fen_position (pos, fen, &end_ptr);
+    memset (epd, 0, sizeof *epd);
+
+    errnum = chi_parse_fen_position (pos, epdstr, &end_ptr);
 
     if (errnum)
 	return errnum;
@@ -145,28 +148,6 @@ chi_set_position (argpos, fen)
     while (*ptr == ' ' || *ptr == '\t')
 	++ptr;
 
-    num = strtoul (ptr, &num_end_ptr, 10);
-    if (num_end_ptr == ptr)
-	return CHI_ERR_ILLEGAL_FEN;
-    pos->half_move_clock = num;
-    ptr = num_end_ptr;
-
-    while (*ptr == ' ' || *ptr == '\t')
-	++ptr;
-
-    num = strtoul (ptr, &num_end_ptr, 10);
-    if (num_end_ptr == ptr)
-	return CHI_ERR_ILLEGAL_FEN;
-    pos->half_moves = num;
-    ptr = num_end_ptr;
-
-    while (*ptr == ' ' || *ptr == '\t' || *ptr == '\r' || *ptr == '\n')
-	++ptr;
-
-    /* Trailing garbage? */
-    if (*ptr)
-	return CHI_ERR_ILLEGAL_FEN;
-
     /* Side not to move in check? */
     chi_on_move (pos) = !chi_on_move (pos);
     if (chi_check_check (pos))
@@ -207,9 +188,91 @@ chi_set_position (argpos, fen)
 	}
     }
 
-    *argpos = *pos;
+    /* Best move or avoid move?  */
+    if (*ptr == 'b' || *ptr == 'B')
+	avoid = 0;
+    else if (*ptr == 'a' || *ptr == 'A')
+	avoid = 1;
+    else
+	return CHI_ERR_ILLEGAL_EPD;
+    ++ptr;
+
+    if (*ptr != 'm' && *ptr != 'M')
+	return CHI_ERR_ILLEGAL_EPD;
+    ++ptr;
+
+    /* Parse solution.  */
+    while (*ptr == ' ' || *ptr == '\t')
+	++ptr;
+    errnum = chi_parse_move (pos, &solution, ptr);
+    if (errnum)
+	return errnum;
+
+    while (*ptr) {
+	int is_id_string;
+	const char* qstart;
+
+	while ((*ptr != ';') && *ptr)
+	    ++ptr;
+	if (!*ptr)
+	    break;
+	++ptr;
+
+	while (*ptr == ' ' || *ptr == '\t')
+	    ++ptr;
+	if (!*ptr)
+	    break;
+
+	is_id_string = 0;
+
+	if ((ptr[0] && (ptr[0] == 'i' || ptr[0] == 'I')) && 
+	    (ptr[1] && (ptr[1] == 'd' || ptr[1] == 'D')))
+	    is_id_string = 1;
+
+	while (*ptr && (*ptr != ' ') && (*ptr != '\t'))
+	    ++ptr;
+	if (!*ptr)
+	    break;
+
+	while (*ptr && (*ptr == ' ' || *ptr == '\t'))
+	    ++ptr;
+	if (!*ptr)
+	    break;
+
+	if (*ptr != '\"')
+	    continue;
+	++ptr;
+
+	qstart = ptr;
+
+	while (*ptr && *ptr != '"')
+	    ++ptr;
+	if (!*ptr)
+	    break;
+
+	if (is_id_string && !id) {
+	    id = strdup (qstart);
+	    if (!id)
+		return CHI_ERR_ENOMEM;
+	    id[ptr - qstart] = '\0';
+	}
+    }
+
+    epd->id = id;
+    epd->pos = *pos;
+    epd->avoid = avoid;
+    epd->solution = solution;
 
     return 0;
+}
+
+void
+chi_free_epd (epd)
+     chi_epd_pos* epd;
+{
+    if (epd && epd->id) {
+	free (epd->id);
+    }
 }
 
 /*

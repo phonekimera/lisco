@@ -46,11 +46,11 @@ print_pv (tree, score, whisper, ply)
     chi_move hashed_move;
     int printed = 0;
 
-    tree->pv_printed = tree->iteration_depth;
+    tree->pv_printed = tree->iteration_sdepth;
 
     if (!whisper)
-	printed += fprintf (stdout, "%3d %5d %7ld %8ld  ",
-			    tree->iteration_depth, 
+	printed += fprintf (stdout, "%3d %5d %7ld %10ld ",
+			    tree->iteration_sdepth, 
 			    chi_value2centipawns (score), 
 			    elapsed, tree->nodes);
     
@@ -65,14 +65,15 @@ print_pv (tree, score, whisper, ply)
 	if (printed >= 4000)
 	    break;
 
-	if (seen_size < 8) {
-	    seen_size += 8;
+	while (i >= seen_size) {
+	    seen_size += 5;
 	    seen = xrealloc (seen, seen_size * sizeof signature);
 	}
 
 	seen[i] = signature;
 
-	errnum = chi_print_move (&tmp_pos, tree->pv[0].moves[i], &buf, &bufsize, 0);
+	errnum = chi_print_move (&tmp_pos, tree->pv[0].moves[i], 
+				 &buf, &bufsize, 1);
 	errnum |= chi_apply_move (&tmp_pos, tree->pv[0].moves[i]);
 	
 	if (chi_on_move (&tmp_pos) != chi_white)
@@ -97,12 +98,12 @@ print_pv (tree, score, whisper, ply)
 	if (printed >= 4000)
 	    break;
 
-	if (seen_size < 8) {
-	    seen_size += 8;
+	if (seen_size < 5) {
+	    seen_size += 5;
 	    seen = xrealloc (seen, seen_size * sizeof signature);
 	}
 
-	if (chi_print_move (&tmp_pos, hashed_move, &buf, &bufsize, 0))
+	if (chi_print_move (&tmp_pos, hashed_move, &buf, &bufsize, 1))
 	    break;
 
 	switch (probe_tt (&tmp_pos, signature, 0, &alpha, &beta)) {
@@ -145,8 +146,37 @@ print_pv (tree, score, whisper, ply)
     if (printed >= 4000)
 	fprintf (stdout, " {cut}");
 
-    fprintf (stdout, "\n");
+    if (tree->epd) {
+	chi_epd_pos* epd = tree->epd;
+	int solved_before = epd->solution == epd->suggestion;
+	int solved_after = epd->solution == tree->best_move;
+	
+#if 0
+	fprintf (stderr, "Solution: %s-%s\n", 
+		 chi_shift2label (chi_move_from (epd->solution)),
+		 chi_shift2label (chi_move_to (epd->solution)));
+	fprintf (stderr, "Best move: %s-%s\n", 
+		 chi_shift2label (chi_move_from (tree->best_move)),
+		 chi_shift2label (chi_move_to (tree->best_move)));
+#endif
 
+	if (solved_before != solved_after) {
+	    long int elapsed = rdifftime (rtime (), start_time);
+
+	    if (solved_after) {
+		epd->cs_stable_solution = elapsed;
+		epd->depth_stable_solution = tree->iteration_sdepth;
+		fprintf (stdout, " :-)");
+	    } else {
+		epd->cs_refuted_solution = elapsed;
+		epd->depth_refuted_solution = tree->iteration_sdepth;
+		fprintf (stdout, " :-(");
+	    }
+	}
+	epd->suggestion = tree->best_move;
+    }
+
+    fprintf (stdout, "\n");
 }
 
 void dump_pv (tree)
@@ -187,8 +217,8 @@ print_fail_high (tree, score, whisper)
     static unsigned int bufsize = 0;
 
     if (!whisper)
-	fprintf (stdout, "%3d %5d %7ld %8ld  ",
-		 tree->iteration_depth, chi_value2centipawns (score), 
+	fprintf (stdout, "%3d %5d %7ld %10ld ",
+		 tree->iteration_sdepth, chi_value2centipawns (score), 
 		 elapsed, tree->nodes);
     
     if (chi_on_move (&tree->pos) != chi_white)
@@ -196,7 +226,7 @@ print_fail_high (tree, score, whisper)
     else
 	fprintf (stdout, " %d. ", 1 + tree->pos.half_moves / 2);
     
-    chi_print_move (&tree->pos, tree->pv[0].moves[0], &buf, &bufsize, 0);
+    chi_print_move (&tree->pos, tree->pv[0].moves[0], &buf, &bufsize, 1);
     fprintf (stdout, "%s!!\n", buf);
 }
 
@@ -211,8 +241,8 @@ print_fail_low (tree, score, whisper)
     static unsigned int bufsize = 0;
 
     if (!whisper)
-	fprintf (stdout, "%3d %5d %7ld %8ld  ",
-		 tree->iteration_depth, chi_value2centipawns (score), 
+	fprintf (stdout, "%3d %5d %7ld %10ld ",
+		 tree->iteration_sdepth, chi_value2centipawns (score), 
 		 elapsed, tree->nodes);
     
     if (chi_on_move (&tree->pos) != chi_white)
@@ -220,7 +250,7 @@ print_fail_low (tree, score, whisper)
     else
 	fprintf (stdout, " %d. ", 1 + tree->pos.half_moves / 2);
     
-    chi_print_move (&tree->pos, tree->pv[0].moves[0], &buf, &bufsize, 0);
+    chi_print_move (&tree->pos, tree->pv[0].moves[0], &buf, &bufsize, 1);
     fprintf (stdout, "%s??\n", buf);
 }
 

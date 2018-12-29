@@ -98,7 +98,7 @@ noinst_HEADERS = board.h brain.h tate.h edit.h book.h time_ctrl.h
 
 tate_SOURCES = tate.c board.c brain.c edit.c book.c time_ctrl.c \
 	evaluate.c next_move.c quiescence.c search.c print_pv.c \
-	tt_hash.c
+	tt_hash.c epd.c
 
 
 tate_LDADD = ../lib/libutil.a
@@ -120,7 +120,8 @@ PROGRAMS = $(bin_PROGRAMS)
 am_tate_OBJECTS = tate.$(OBJEXT) board.$(OBJEXT) brain.$(OBJEXT) \
 	edit.$(OBJEXT) book.$(OBJEXT) time_ctrl.$(OBJEXT) \
 	evaluate.$(OBJEXT) next_move.$(OBJEXT) quiescence.$(OBJEXT) \
-	search.$(OBJEXT) print_pv.$(OBJEXT) tt_hash.$(OBJEXT)
+	search.$(OBJEXT) print_pv.$(OBJEXT) tt_hash.$(OBJEXT) \
+	epd.$(OBJEXT)
 tate_OBJECTS = $(am_tate_OBJECTS)
 tate_LDFLAGS =
 
@@ -130,10 +131,11 @@ CPPFLAGS = @CPPFLAGS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 @AMDEP_TRUE@DEP_FILES = $(DEPDIR)/board.Po $(DEPDIR)/book.Po \
 @AMDEP_TRUE@	$(DEPDIR)/brain.Po $(DEPDIR)/edit.Po \
-@AMDEP_TRUE@	$(DEPDIR)/evaluate.Po $(DEPDIR)/next_move.Po \
-@AMDEP_TRUE@	$(DEPDIR)/print_pv.Po $(DEPDIR)/quiescence.Po \
-@AMDEP_TRUE@	$(DEPDIR)/search.Po $(DEPDIR)/tate.Po \
-@AMDEP_TRUE@	$(DEPDIR)/time_ctrl.Po $(DEPDIR)/tt_hash.Po
+@AMDEP_TRUE@	$(DEPDIR)/epd.Po $(DEPDIR)/evaluate.Po \
+@AMDEP_TRUE@	$(DEPDIR)/next_move.Po $(DEPDIR)/print_pv.Po \
+@AMDEP_TRUE@	$(DEPDIR)/quiescence.Po $(DEPDIR)/search.Po \
+@AMDEP_TRUE@	$(DEPDIR)/tate.Po $(DEPDIR)/time_ctrl.Po \
+@AMDEP_TRUE@	$(DEPDIR)/tt_hash.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -205,6 +207,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/book.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/brain.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/edit.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/epd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/evaluate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/next_move.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/print_pv.Po@am__quote@

@@ -39,8 +39,13 @@
 #define EVAL_BLOCKED_C_PAWN (6)
 #define EVAL_BLOCKED_CENTER_PAWN (12)
 #define EVAL_PREMATURE_QUEEN_MOVE (12)
+#if 1
 #define EVAL_NOT_CASTLED (24)
 #define EVAL_LOST_CASTLE (10)
+#else
+#define EVAL_NOT_CASTLED (48)
+#define EVAL_LOST_CASTLE (10)
+#endif
 
 static int evaluate_dev_white PARAMS ((TREE* tree, int ply));
 static int evaluate_dev_black PARAMS ((TREE* tree, int ply));
@@ -162,7 +167,7 @@ evaluate (tree, ply, alpha, beta)
      int beta;
 {
     chi_pos* pos = &tree->pos;
-    int score = 100 * pos->material;
+    int score = 100 * chi_material (pos);
     int total_white_pieces, total_black_pieces;
 
     ++tree->evals;
@@ -179,22 +184,22 @@ evaluate (tree, ply, alpha, beta)
     if (pos->half_move_clock >= 100)
 	return DRAW;
 
-    if ((abs (score - alpha) > CHI_VALUE_PAWN) &&
-	(abs (score - beta) > CHI_VALUE_PAWN)) {
+    total_white_pieces = popcount (pos->w_pieces);
+    total_black_pieces = popcount (pos->b_pieces);
+
+    if ((abs (score - alpha) > MAX_POS_SCORE) &&
+	(abs (score - beta) > MAX_POS_SCORE)) {
 	++tree->lazy_one_pawn;
-    } else {
+    } else if (total_white_pieces > 10 && total_black_pieces > 10) {
 	int root_castling_state = tree->castling_states[0];
 
-	if (root_castling_state & 0x3)
+	if (root_castling_state & 0x33) {
 	    score += evaluate_dev_white (tree, ply);
-	if (root_castling_state & 0x30)
 	    score += evaluate_dev_black (tree, ply);
+	}
     }
 
     score += evaluate_mobility (tree);
-
-    total_white_pieces = popcount (pos->w_pieces);
-    total_black_pieces = popcount (pos->b_pieces);
 
     if (total_black_pieces > 10 || 
 	((total_white_pieces + total_black_pieces) > 20)) {

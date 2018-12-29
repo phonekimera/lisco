@@ -189,7 +189,7 @@ display_board (pos)
 		printf ("Half moves: %d.", pos->half_moves);
 		break;
 	    case CHI_RANK_4:
-		printf ("Material: %+d.", pos->material);
+		printf ("Material: %+d.", chi_material (pos));
 		break;
 	    case CHI_RANK_3:
 		if (game_hist[game_hist_ply].castling_state & 0x4)
@@ -263,7 +263,7 @@ print_game ()
     for (ply = 0; ply < game_hist_ply; ++ply) {
 	unsigned int length;
 	int errnum = chi_print_move (&game_hist[ply].pos, game_hist[ply].move,
-			&buf, &bufsize, 0);
+			&buf, &bufsize, 1);
 
 	if (errnum)
 	    fprintf (stderr, "  Error: %s\n", chi_strerror (errnum));

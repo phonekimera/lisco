@@ -48,7 +48,8 @@
 #define MAX_PLY 512
 #define MATE    -9999
 #define INF     ((-(MATE)) << 1)
-#define DRAW    (0)
+// FIXME: contempt factor!
+#define DRAW    0
 
 struct game_hist_entry {
     bitv64   signature;
@@ -85,7 +86,13 @@ extern int max_ply;
 extern int event_pending;
 extern int post;
 extern int mate_announce;
+extern int current_score;
 
 extern int get_event PARAMS ((void));
+extern int handle_epd PARAMS ((const char* epdstr, unsigned long max_time,
+			       chi_epd_pos* epd));
+extern int handle_epdfile PARAMS ((const char* command, 
+				   unsigned long max_time));
+extern int handle_go PARAMS ((chi_epd_pos* epd));
 
 #endif

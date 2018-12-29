@@ -60,7 +60,6 @@ chi_init_position (pos)
 	pos->w_pieces90 = CHI_A_MASK | CHI_B_MASK;
 	pos->b_pieces90 = CHI_G_MASK | CHI_H_MASK;
 
-	pos->union_flags.flags = 0;
 	chi_wk_castle (pos) = 1;
 	chi_wq_castle (pos) = 1;
 	chi_bk_castle (pos) = 1;

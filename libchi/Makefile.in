@@ -96,7 +96,8 @@ libchi_la_SOURCES = libchi.h dump_pieces.c strerror.c make_move.c \
 	shift2label.c parse_move.c apply_move.c legal_moves.c \
 	check_legality.c illegal_move.c closest_prime.c \
 	zk_init.c zk_finish.c zk_signature.c zk_update_signature.c \
-	zk_change_side.c update_material.c set_position.c
+	zk_change_side.c update_material.c set_position.c \
+	parse_fen_position.c parse_epd.c perft.c
 
 
 libchi_la_LDFLAGS = -version-info 0:0:0
@@ -125,7 +126,8 @@ am_libchi_la_OBJECTS = dump_pieces.lo strerror.lo make_move.lo \
 	shift2label.lo parse_move.lo apply_move.lo legal_moves.lo \
 	check_legality.lo illegal_move.lo closest_prime.lo zk_init.lo \
 	zk_finish.lo zk_signature.lo zk_update_signature.lo \
-	zk_change_side.lo update_material.lo set_position.lo
+	zk_change_side.lo update_material.lo set_position.lo \
+	parse_fen_position.lo parse_epd.lo perft.lo
 libchi_la_OBJECTS = $(am_libchi_la_OBJECTS)
 noinst_PROGRAMS = genmasks$(EXEEXT) chitest$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
@@ -155,7 +157,9 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 @AMDEP_TRUE@	$(DEPDIR)/illegal_move.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/init_position.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/legal_moves.Plo $(DEPDIR)/make_move.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/movegen.Plo $(DEPDIR)/parse_move.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/movegen.Plo $(DEPDIR)/parse_epd.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/parse_fen_position.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/parse_move.Plo $(DEPDIR)/perft.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/piece2char.Plo $(DEPDIR)/print_move.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/set_piece.Plo $(DEPDIR)/set_position.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/shift2label.Plo $(DEPDIR)/strerror.Plo \
@@ -248,7 +252,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/legal_moves.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/make_move.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/movegen.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/parse_epd.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/parse_fen_position.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/parse_move.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/perft.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/piece2char.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/print_move.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/set_piece.Plo@am__quote@

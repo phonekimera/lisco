@@ -84,7 +84,7 @@ chi_update_material (pos)
 	piece_mask &= (piece_mask - 1);
     }
 
-    pos->material = score;
+    chi_material (pos) = score;
 }
 
 

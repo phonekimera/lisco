@@ -152,9 +152,9 @@ chi_illegal_move (pos, move, ext_check)
     *pos = tmp_pos;
 
     if (chi_on_move (pos) == chi_white)
-	pos->material += chi_move_material (move);
+	chi_material (pos) += chi_move_material (move);
     else
-	pos->material -= chi_move_material (move);
+	chi_material (pos) -= chi_move_material (move);
 
     chi_on_move (pos) = !chi_on_move (pos);
 

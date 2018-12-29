@@ -39,7 +39,10 @@ chi_legal_moves (pos, move_stack)
     move_ptr = chi_generate_non_captures (pos, move_ptr);
 
     for (m = moves; m < move_ptr; ++m) {
-	chi_pos tmp_pos = *pos;
+	chi_pos tmp_pos;
+
+	chi_copy_pos (&tmp_pos, pos);
+
 	if (chi_move_from (*m) == 3) {
 	    bitv64 from_mask = ((bitv64) 1) << 3;
 	    int to = chi_move_to (*m);
@@ -54,7 +57,7 @@ chi_legal_moves (pos, move_stack)
 		chi_make_move (&tmp_pos, *m);
 		if (chi_check_check (&tmp_pos))
 		    continue;
-		tmp_pos = *pos;
+		chi_copy_pos (&tmp_pos, pos);
 		chi_move_set_to (*m, to);
 	    }
 	} else if (chi_move_from (*m) == 59) {
@@ -71,13 +74,12 @@ chi_legal_moves (pos, move_stack)
 		chi_make_move (&tmp_pos, *m);
 		if (chi_check_check (&tmp_pos))
 		    continue;
-		tmp_pos = *pos;
+		chi_copy_pos (&tmp_pos, pos);
 		chi_move_set_to (*m, to);
 	    }
 	}
 
 	chi_make_move (&tmp_pos, *m);
-
 	if (chi_check_check (&tmp_pos))
 	    continue;
 

@@ -146,6 +146,50 @@ chi_print_move (pos, move, buf, bufsize, san)
 	    *ptr++ = '=';
 	    *ptr++ = chi_piece2char (chi_move_promote (move));
 	}
+    } else {
+	/* SAN.  */
+	chi_move legalmoves[CHI_MAX_MOVES];
+	chi_move* move_end = chi_legal_moves (&target_pos, legalmoves);
+	chi_move* mv;
+	int move_from_file = 7 - (chi_move_from (move) % 8);
+	int move_from_rank = chi_move_from (move) / 8;
+	int move_to = chi_move_to (move);
+	chi_piece_t attacker = chi_move_attacker (move);
+	int from_file_matches = 0;
+	int from_rank_matches = 0;
+	int is_ambiguous = 0;
+	const char* label = chi_shift2label (chi_move_from (to));
+
+	if (attacker != pawn) {
+	    for (mv = legalmoves; mv < move_end; ++mv) {
+		if (chi_move_attacker (*mv) != attacker)
+		    continue;
+		
+		if (chi_move_to (*mv) != move_to)
+		    continue;
+
+		if (move_from_file == 7 - (chi_move_from (*mv) % 8))
+		    ++from_file_matches;
+		if (move_from_rank == chi_move_from (*mv) / 8)
+		    ++from_rank_matches;
+		++is_ambiguous;
+	    }
+	}
+
+	if (attacker == pawn || ((is_ambiguous > 1) && from_file_matches <= 1))
+	    *ptr++ = 'a' + move_from_file;
+	if (attacker != pawn && (is_ambiguous > 1) && from_file_matches > 1)
+	    *ptr++ = '1' + move_from_rank;
+	if (chi_move_victim (move))
+	    *ptr++ = 'x';
+	if (attacker != pawn || chi_move_victim (move))
+	    *ptr++ = label[0];
+	*ptr++ = label[1];
+	if (chi_move_promote (move)) {
+	    *ptr++ = '=';
+	    *ptr++ = chi_piece2char (chi_move_promote (move));
+	}
+
     }
 
     chi_apply_move (&target_pos, move);

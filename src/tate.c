@@ -56,8 +56,8 @@ static int handle_usermove PARAMS ((const char* movestr));
 static int handle_legalmove PARAMS ((const char* movestr));
 static int handle_hashmove PARAMS ((void));
 static int handle_evaluate PARAMS ((const char* movestr));
-static int handle_go PARAMS ((void));
 static int handle_setboard PARAMS ((const char* fen));
+static int handle_perft PARAMS ((unsigned int depth, int post_flag));
 static void display_offsets PARAMS ((void));
 static void display_moves PARAMS ((void));
 static RETSIGTYPE sigio_handler PARAMS ((int));
@@ -87,6 +87,7 @@ int event_pending   = 0;
 int max_ply = MAX_PLY;
 
 int mate_announce = 0;
+int current_score = 0;
 
 int post = 1;
 
@@ -118,6 +119,14 @@ main (argc, argv)
     setvbuf (stderr, NULL, _IOLBF, 0);
 
     greeting ();
+
+    /* Sanity checks.  */
+    if (chi_pos_size * sizeof (bitv64) != sizeof current) {
+	error (EXIT_FAILURE, 0, "\
+data type chi_pos has incorrect size %u, this should not happen!\n\
+Please inform the author of libchi, Guido Flohr (guido@imperia.net)\n",
+	       sizeof current);
+    }
 
     chi_init_position (&current);
     errnum = chi_zk_init (&zk_handle);
@@ -234,6 +243,10 @@ get_event ()
 		if (chi_bq_castle (&current))
 		    castling_state |= 0x20;
 		game_hist[0].castling_state = castling_state;
+
+		current_score = engine_color == chi_white ?
+		    chi_material (&current) * 100 : 
+		    chi_material (&current) * -100;
 	    }
 	} else if (strcasecmp (cmd, "display") == 0) {
 	    /* Convenience.  */
@@ -258,13 +271,59 @@ get_event ()
 	   will only insert one single null-byte... */
 	char* position = linebuf + 9;
 	handle_setboard (position);
+    } else if (strcasecmp (cmd, "epd") == 0) {
+	/* This next line makes the unsafe assumption, that strtok
+	   will only insert one single null-byte... */
+	char* epdstr = linebuf + 4;
+	chi_epd_pos epd;
+	char* end_ptr;
+	long int max_time = strtoul (epdstr, &end_ptr, 10);
+    
+	if (max_time == 0 && end_ptr == epdstr) {
+	    fprintf (stdout, "error (illegal time specification): %s\n",
+		     epdstr);
+	} else {
+	    epdstr = end_ptr;
+	    if (!epdstr) {
+		fprintf (stdout, "error (no epd string): %s\n",
+			 cmd);
+	    } else {
+		retval = handle_epd (epdstr, max_time, &epd);
+		chi_free_epd (&epd);
+	    }
+	}
+    } else if (strcasecmp (cmd, "epdfile") == 0) {
+	char* filename = linebuf + 8;
+	char* end_ptr;
+	long int max_time = strtoul (filename, &end_ptr, 10);
+    
+	if (max_time == 0 && end_ptr == filename) {
+	    fprintf (stdout, "error (illegal time specification): %s\n",
+		     cmd);
+	} else {
+	    filename = end_ptr;
+	    if (!filename) {
+		fprintf (stdout, "error (no filename given): %s\n",
+			 cmd);
+	    } else {
+		while (*filename == ' ' || *filename == '\t')
+		    ++filename;
+		if (!*filename) {
+		    fprintf (stdout, "error (no filename given): %s\n",
+			     cmd);
+		} else {
+		    filename[strlen (filename) - 1] = '\0';
+		    retval = handle_epdfile (filename, max_time);
+		}
+	    }
+	}
     } else if (strcasecmp (cmd, "force") == 0) {
 	force = 1;
 	// FIXME: Stop clocks.
 	if (!force)
 	    game_over = 0;
     } else if (strcasecmp (cmd, "go") == 0) {
-	retval = handle_go ();
+	retval = handle_go (NULL);
     } else if (cmd[0] == '?' && cmd[1] == 0) {
 	retval = EVENT_MOVE_NOW;
     } else if (strcasecmp (cmd, "draw") == 0) {
@@ -310,12 +369,16 @@ get_event ()
     } else if (strcasecmp (cmd, "black") == 0) {
 	game_over = 0;
 	chi_on_move (&current) = chi_black;
+	if (engine_color != chi_white)
+	    current_score = -current_score;
 	engine_color = chi_white;
 	// FIXME: Stop clock, maybe stop thinking.
 	retval = EVENT_STOP_THINKING;
     } else if (strcasecmp (cmd, "white") == 0) {
 	game_over = 0;
 	chi_on_move (&current) = chi_white;
+	if (engine_color != chi_black)
+	    current_score = -current_score;
 	engine_color = chi_black;
 	// FIXME: Stop clock, maybe stop thinking.
 	retval = EVENT_STOP_THINKING;
@@ -390,6 +453,7 @@ get_event ()
 	go_fast = 0;
 	chi_init_position (&current);
 	engine_color = chi_black;
+	current_score = 0;
 	game_hist_ply = 0;
 	game_hist[0].pos = current;
 	game_hist[0].signature = chi_zk_signature (zk_handle, &current);
@@ -475,6 +539,26 @@ get_event ()
 	char* movestr = strtok (NULL, WHITE_SPACE);
 
 	retval = handle_evaluate (movestr);
+    } else if (strcasecmp (cmd, "perft") == 0) {
+	char* depth_str = cmd + 6;
+	char* end_ptr;
+	unsigned long int depth = strtoul (depth_str, &end_ptr, 10);
+	
+	if (depth == 0 && end_ptr == depth_str) {
+	    fprintf (stdout, "error (illegal depth): %s",
+		     depth_str);
+	}
+	retval = handle_perft (depth, 0);
+    } else if (strcasecmp (cmd, "perft_post") == 0) {
+	char* depth_str = cmd + 11;
+	char* end_ptr;
+	unsigned long int depth = strtoul (depth_str, &end_ptr, 10);
+	
+	if (depth == 0 && end_ptr == depth_str) {
+	    fprintf (stdout, "error (illegal depth): %s",
+		     depth_str);
+	}
+	retval = handle_perft (depth, 1);
     } else if (strcasecmp (cmd, "hashmove") == 0) {
 	retval = handle_hashmove ();
     } else {
@@ -614,7 +698,7 @@ display_moves ()
     mv = chi_legal_moves (&current, moves);
 
     for (mv_ptr = moves; mv_ptr < mv; ++mv_ptr) {
-	chi_print_move (&current, *mv_ptr, &buf, &bufsize, 0);
+	chi_print_move (&current, *mv_ptr, &buf, &bufsize, 1);
 	fprintf (stdout, "  Possible move: %s ", buf);
 
 	fprintf (stdout, "[%08x:", *mv_ptr);
@@ -799,7 +883,7 @@ handle_usermove (movestr)
     engine_color = !engine_color;
     thinking = 1;
 
-    return handle_go ();
+    return handle_go (NULL);
 }
 
 static int
@@ -937,8 +1021,9 @@ handle_hashmove ()
     return EVENT_CONTINUE;
 }
 
-static int
-handle_go ()
+int
+handle_go (epd)
+     chi_epd_pos* epd;
 {
     chi_move move;
     int errnum;
@@ -954,7 +1039,7 @@ handle_go ()
 
     engine_color = chi_on_move (&current);
 
-    result = think (&move);
+    result = think (&move, epd);
     if (result & EVENT_GAME_OVER)
 	return result;
     
@@ -1151,6 +1236,36 @@ handle_setboard (fen)
 	game_hist[0].castling_state |= 0x10;
     if (chi_bq_castle (&current))
 	game_hist[0].castling_state |= 0x20;
+
+    current_score = engine_color == chi_white ? 
+	chi_material (&current) * 100 : 
+	chi_material (&current) * -100;
+
+    return EVENT_CONTINUE;
+}
+
+static int
+handle_perft (depth, post)
+     unsigned int depth;
+     int post;
+{
+    rtime_t start;
+    unsigned long int elapsed;
+    unsigned long int nodes;
+
+    if (depth == 0) {
+	fprintf (stdout, "Error (zero-depth argument): %s\n",
+		 post ? "perft_post" : "perft");
+	return EVENT_CONTINUE;
+    }
+
+    start = rtime ();
+    nodes = chi_perft (&current, depth, 0);
+    elapsed = rdifftime (rtime (), start);
+
+    fprintf (stdout, "Nodes visited: %lu (%lu.%02lu s, nps: %lu)\n", 
+	     nodes, elapsed / 100, elapsed % 100,
+	     (100 * nodes) / (elapsed ? elapsed : 1));
 
     return EVENT_CONTINUE;
 }

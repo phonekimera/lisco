@@ -34,6 +34,7 @@ static const char* error_strings[] = {
     "one side has two or more kings",
     "one side has no kings",
     "illegal castling state",
+    "cannot parse EPD string",
     "illegal library usage",
 };
 

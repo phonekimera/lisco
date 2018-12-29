@@ -37,7 +37,7 @@ quiescence (tree, ply, alpha, beta)
 { 
     chi_move moves[CHI_MAX_MOVES];
     chi_move* mv;
-    chi_pos saved_pos = tree->pos;
+    chi_pos saved_pos;
     chi_pos* pos = &tree->pos;
     int pv_seen = 0;
     int standing_pat;
@@ -45,7 +45,8 @@ quiescence (tree, ply, alpha, beta)
     chi_move best_move = 0;
     int material;
     int num_moves;
-    int original_alpha = alpha;
+
+    chi_copy_pos (&saved_pos, pos);
 
     ++tree->nodes;
     ++tree->qnodes;
@@ -57,7 +58,7 @@ quiescence (tree, ply, alpha, beta)
     tree->cv.length = ply;
 
     /* Check for time control and user input.  */
-    if (tree->nodes > 0x2000) {
+    if (tree->nodes & 0x2000) {
 	if (event_pending) {
 	    int result = get_event ();
 	    if (result & EVENTMASK_ENGINE_STOP)
@@ -78,12 +79,9 @@ quiescence (tree, ply, alpha, beta)
     if (ply > tree->max_ply)
         tree->max_ply = ply;
 
-    tree->in_check[ply] = chi_check_check (pos);
-#if 0
     // FIXME: Maybe this has the opposite effect?!
     if (tree->in_check[ply])
-        return search (tree, 1, ply, alpha, beta, 1);
-#endif
+        return search (tree, ONEPLY, ply, alpha, beta, 1);
 
     best_score = standing_pat = evaluate (tree, ply, alpha, beta);
 #if DEBUG_BRAIN
@@ -120,7 +118,7 @@ quiescence (tree, ply, alpha, beta)
     tree->move_states[ply] = move_state_init;
 
     material = 100 * (chi_on_move (pos) == chi_white ? 
-		      pos->material : -pos->material);
+		      chi_material (pos) : -chi_material (pos));
 
     num_moves = 0;
 
@@ -131,10 +129,10 @@ quiescence (tree, ply, alpha, beta)
 	
 	/* Refute moves that will not bring the material balance close
 	   to alpha.  */
-	int min_material = alpha - material - 100;
+	int min_material = alpha - material - MAX_POS_SCORE;
 	int this_material = 100 * chi_move_material (*mv);
 
-	if (!(chi_move_victim (*mv)))
+	if (!(chi_move_victim (*mv)) && !(chi_move_promote (*mv)))
 	    continue;
 
 #if DEBUG_BRAIN
@@ -159,6 +157,7 @@ quiescence (tree, ply, alpha, beta)
 
 	++num_moves;
 	tree->cv.moves[ply] = *mv;
+	tree->in_check[ply + 1] = chi_check_check (pos);
 
 #if DEBUG_BRAIN
         chi_on_move (pos) = !chi_on_move (pos);
@@ -179,7 +178,7 @@ quiescence (tree, ply, alpha, beta)
 	} else {
 	    score = -quiescence (tree, ply + 1, -beta, -alpha);
 	}
-	*pos = saved_pos;
+	chi_copy_pos (pos, &saved_pos);
 
 	if (tree->status & EVENTMASK_ENGINE_STOP)
 	    return alpha;

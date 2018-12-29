@@ -34,9 +34,9 @@ chi_apply_move (pos, move)
 	return result;
 
     if (chi_on_move (pos) == chi_white)
-	pos->material += chi_move_material (move);
+	chi_material (pos) += chi_move_material (move);
     else
-	pos->material -= chi_move_material (move);
+	chi_material (pos) -= chi_move_material (move);
 
     chi_on_move (pos) = !chi_on_move (pos);
 

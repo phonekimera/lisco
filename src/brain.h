@@ -32,18 +32,33 @@
 
 #define DEBUG_BRAIN 0
 
-#define TRACK_MATERIAL 1
+#define ONEPLY (64)
+#define DEPTH2PLIES(d) (d >> 6)
+#define PLIES2DEPTH(p) (p << 6)
 
-#define TRACK_ZOBRIST 0
+#define CHECK_EXT ONEPLY
+#define MATE_EXT  (48)
 
-#define NULL_R 2
+#define FRONTIER_DEPTH PLIES2DEPTH(1)
+#define PRE_FRONTIER_DEPTH PLIES2DEPTH(2)
+#define PRE_PRE_FRONTIER_DEPTH PLIES2DEPTH(3)
+
+#define NULL_R PLIES2DEPTH(2)
+
+#define ASPIRATION_WINDOW 1
 
 #if 0
 #define MOBILITY_SHIFT 1
 #define MIN_EVAL_DIFF (1 << MOBILITY_SHIFT)
 #endif
 
-#define MIN_EVAL_DIFF 10
+#define MIN_EVAL_DIFF 50
+
+#define MAX_POS_SCORE 150
+
+#define FUTILITY_MARGIN 200
+#define EXT_FUTILITY_MARGIN 500
+#define RAZOR_MARGIN 900
 
 extern bitv64 total_nodes;
 extern bitv64 total_centiseconds;
@@ -97,6 +112,15 @@ typedef struct tree {
 
     chi_move pv_move[MAX_PLY];
 
+    /* Small hash tables for recently seen positions.  */
+#define HASH_HIST_SIZE (1023)
+    int white_game_hist[HASH_HIST_SIZE];
+    int black_game_hist[HASH_HIST_SIZE];
+    int white_tree_hist[HASH_HIST_SIZE];
+    int black_tree_hist[HASH_HIST_SIZE];
+
+    chi_move best_move;
+
     unsigned long nodes;
     unsigned long qnodes;
     unsigned long time_for_move;
@@ -109,15 +133,6 @@ typedef struct tree {
     unsigned long tt_beta_hits;
     unsigned long killers;
 
-    unsigned long tt_collisions;
-
-    unsigned long qtt_probes;
-    unsigned long qtt_hits;
-    unsigned long qtt_moves;
-    unsigned long qtt_exact_hits;
-    unsigned long qtt_alpha_hits;
-    unsigned long qtt_beta_hits;
-
     unsigned long null_moves;
     unsigned long null_fh;
     unsigned long fh;
@@ -127,6 +142,7 @@ typedef struct tree {
     unsigned long qffh;
     unsigned long qfl;
 
+    unsigned long fprunes;
     unsigned long refuted_quiescences;
 
     unsigned long evals;
@@ -135,22 +151,26 @@ typedef struct tree {
 
     int max_ply;
     int status;
-    int iteration_depth;
+    int iteration_sdepth;
     int pv_printed;
 
+    chi_epd_pos* epd;
+
     char castling_states[MAX_PLY + 1];
+
+    unsigned long marker;
 } TREE;
 
 #define HASH_UNKNOWN 0
-#define HASH_EXACT 1
-#define HASH_ALPHA 2
-#define HASH_BETA  3
+#define HASH_ALPHA 1
+#define HASH_BETA  2
+#define HASH_EXACT 3
 
 extern unsigned int history[];
 #define history_lookup(tree, move) \
     history[(move & 0xfff) + (chi_on_move (&tree->pos) << 6)]
 
-extern int think PARAMS ((chi_move* mv));
+extern int think PARAMS ((chi_move* mv, chi_epd_pos* epd));
 extern int move_now PARAMS ((chi_move* mv));
 extern void stop_thinking PARAMS ((void));
 
@@ -181,8 +201,8 @@ extern void print_fail_low PARAMS ((TREE* tree, int score, int whisper));
 extern void init_tt_hashs PARAMS ((unsigned long int memuse));
 extern void clear_tt_hashs PARAMS ((void));
 
-extern int store_tt_entry PARAMS ((chi_pos* pos,
-				   bitv64 signature, chi_move move, int depth,
+extern void store_tt_entry PARAMS ((chi_pos* pos,
+				    bitv64 signature, chi_move move, int depth,
 				    int score, int flags));
 extern int probe_tt PARAMS ((chi_pos* pos, bitv64 signature, 
 			     int depth, int* alpha,

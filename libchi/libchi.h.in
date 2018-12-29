@@ -68,8 +68,10 @@ typedef @BITV64@ bitv64;
 #define CHI_ERR_NO_KING 8
 /* Illegal castling state.  */
 #define CHI_ERR_ILLEGAL_CASTLING_STATE 9
+/* Illegal EPD string.  */
+#define CHI_ERR_ILLEGAL_EPD 10
 /* Illegal library usage (NULL pointers, etc.).  */
-#define CHI_ERR_YOUR_FAULT 10
+#define CHI_ERR_YOUR_FAULT 11
 /* End marker.  */
 #define CHI_ERRMAX      CHI_ERR_YOUR_FAULT
 
@@ -131,12 +133,9 @@ typedef @BITV64@ bitv64;
    the practical will be only half of it.  */
 #define CHI_MAX_MOVES 80
 
-typedef enum {
-	chi_white = 0,
-#define chi_white chi_white
-	chi_black = !chi_white,
-#define chi_black chi_black
-} chi_color_t;
+#define chi_white (0)
+#define chi_black (1)
+typedef unsigned char chi_color_t;
 
 typedef enum {
 	empty = 0,
@@ -175,30 +174,29 @@ typedef struct {
 
 	unsigned int half_move_clock;
 	unsigned int half_moves;
-        chi_color_t  on_move;
 
 #define chi_flags(p) ((p)->union_flags.flags)
-#define chi_wk_castle(p) ((p)->union_flags.sflags.wk_castle)
-#define chi_wq_castle(p) ((p)->union_flags.sflags.wq_castle)
-#define chi_bk_castle(p) ((p)->union_flags.sflags.bk_castle)
-#define chi_bq_castle(p) ((p)->union_flags.sflags.bq_castle)
-#define chi_ep(p) ((p)->union_flags.sflags.ep)
-#define chi_ep_file(p) ((p)->union_flags.sflags.ep_file)
-#define chi_on_move(p) ((p)->on_move)
-#define chi_ep_rank(p) (chi_to_move(p) ? \
+#define chi_wk_castle(p) ((p)->flags.wk_castle)
+#define chi_wq_castle(p) ((p)->flags.wq_castle)
+#define chi_bk_castle(p) ((p)->flags.bk_castle)
+#define chi_bq_castle(p) ((p)->flags.bq_castle)
+#define chi_ep(p) ((p)->flags.ep)
+#define chi_ep_file(p) ((p)->flags.ep_file)
+#define chi_on_move(p) ((p)->flags.on_move)
+#define chi_ep_rank(p) (chi_on_move(p) ? \
 			  CHI_RANK_6 : CHI_RANK_3)
-    
-	union {
-		unsigned char flags;
-		struct {
-			unsigned wk_castle: 1;
-			unsigned wq_castle: 1;
-			unsigned bk_castle: 1;
-			unsigned bq_castle: 1;
-			unsigned ep: 1;
-			unsigned ep_file: 3;
-		} sflags;
-	} union_flags;
+#define chi_material(p) ((p)->flags.material)
+
+        struct {
+	    unsigned wk_castle: 1;
+	    unsigned wq_castle: 1;
+	    unsigned bk_castle: 1;
+	    unsigned bq_castle: 1;
+	    unsigned ep: 1;
+	    unsigned ep_file: 3;
+	    unsigned on_move: 1;
+	    signed material: 8;
+        } flags;
     
         /* The material (p = 1, n = 3, b = 3, r = 5, q = 9) from
 	   white's point of view.  This gets updated by chi_apply_move().
@@ -206,8 +204,30 @@ typedef struct {
 	   which sums up to 103.  Luckily less than 128 which leaves
 	   us with sufficient space for the sign.
 	*/
-        char material;
+
+#define chi_pos_size (16)
+#define chi_pos_fill char reserved[4];
+        chi_pos_fill;
 } chi_pos;
+
+// FIXME: This piece of code must be generated at compile-time!
+#define chi_copy_pos(d, s) \
+    ((bitv64*) (d))[0] = ((bitv64*) (s))[0];  \
+    ((bitv64*) (d))[1] = ((bitv64*) (s))[1];  \
+    ((bitv64*) (d))[2] = ((bitv64*) (s))[2];  \
+    ((bitv64*) (d))[3] = ((bitv64*) (s))[3];  \
+    ((bitv64*) (d))[4] = ((bitv64*) (s))[4];  \
+    ((bitv64*) (d))[5] = ((bitv64*) (s))[5];  \
+    ((bitv64*) (d))[6] = ((bitv64*) (s))[6];  \
+    ((bitv64*) (d))[7] = ((bitv64*) (s))[7];  \
+    ((bitv64*) (d))[8] = ((bitv64*) (s))[8];  \
+    ((bitv64*) (d))[9] = ((bitv64*) (s))[9];  \
+    ((bitv64*) (d))[10] = ((bitv64*) (s))[10];  \
+    ((bitv64*) (d))[11] = ((bitv64*) (s))[11];  \
+    ((bitv64*) (d))[12] = ((bitv64*) (s))[12];  \
+    ((bitv64*) (d))[13] = ((bitv64*) (s))[13];  \
+    ((bitv64*) (d))[14] = ((bitv64*) (s))[14];  \
+    ((bitv64*) (d))[15] = ((bitv64*) (s))[15];
 
 /* A move is represented by 32 bits in host order:
 
@@ -264,6 +284,42 @@ typedef unsigned int chi_move;
 #define chi_move_unset_ep(m) ((m) &= ~0x1000)
 #define chi_move_set_material(m, v) ((m) = ((m) & ~0x07c00000) | ((v) << 22))
 
+/* Representation of EPD test positions.  */
+typedef struct {
+    /* The position.  */
+    chi_pos pos;
+    
+    /* Solution move.  */
+    chi_move solution;
+
+    /* Flag indicating whether the solution move has to be found or to be
+       avoided.  */
+    int avoid;
+
+    /* ID string.  */
+    char* id;
+
+    /* Maximum time for solution in centiseconds.  */
+    unsigned long fixed_time;
+
+    /* Move currently suggested by the engine.  */
+    chi_move suggestion;
+
+    /* Time elapsed in centiseconds, when the principal variation changed
+       to the solution for the last time.  */
+    unsigned long cs_stable_solution;
+    
+    /* Search depth, where the above happened.  */
+    int depth_stable_solution;
+    
+    /* Time elapsed in centiseconds, when the principal variation changed
+       from the correct solution, to another move.  */
+    unsigned long cs_refuted_solution;
+
+    /* Search depth, where the above happened.  */
+    int depth_refuted_solution;
+} chi_epd_pos;
+
 /* A handle for creating Zobrist keys.  */
 typedef @BITV64@* chi_zk_handle;
 
@@ -295,6 +351,19 @@ extern void chi_clear_position CHI_PARAMS ((chi_pos* chi_arg_pos));
 /* Set a position according to a FEN notation.  */
 extern int chi_set_position CHI_PARAMS ((chi_pos* chi_arg_pos,
 					 const char* chi_arg_fen));
+
+/* Parse only the position part of a FEN string (not parsing color on
+   move, castling state, en passant status and move counters.  */
+extern int chi_parse_fen_position CHI_PARAMS ((chi_pos* chi_arg_pos,
+					       const char* chi_arg_fen,
+					       const char** chi_arg_end_ptr));
+
+/* Fill a EPD test position from a string.  */
+extern int chi_parse_epd CHI_PARAMS ((chi_epd_pos* chi_arg_epd_pos,
+				      const char* chi_arg_epd));
+
+/* Free all resources from an EPD test position.  */
+extern void chi_free_epd CHI_PARAMS ((chi_epd_pos* chi_arg_epd_pos));
 
 /* Place a piece (also empty!) of given color on board.  Will not update
    en_passant state, castling state, move clocks etc.  */
@@ -356,6 +425,14 @@ extern chi_move* chi_generate_non_captures CHI_PARAMS ((chi_pos* chi_arg_pos,
 /* Generate all legal moves for a given position.  */
 extern chi_move* chi_legal_moves CHI_PARAMS ((chi_pos* chi_arg_pos, 
 					      chi_move* chi_arg_movestack));
+
+/* Generate and count all legal moves from a given position to a fixed
+   depth.  If the third argument is non-zero, pseudo-legal moves are
+   generated that are later checked for legality with chi_illegal_move().
+   Returns the number of moves generated.  */
+extern unsigned long int chi_perft CHI_PARAMS ((chi_pos* chi_arg_pos,
+						unsigned int chi_arg_depth,
+						int chi_arg_post_check));
 
 /* Check whether the move is illegal (will lead into a check or when
    castling, will cross attacked squares.  In case of legality, the

@@ -69,30 +69,36 @@ evaluate_move (move)
     update_castling_state (&tree, move, 0);
 
     score = -evaluate (&tree, 1, 
-		       100 * tree.pos.material, 100 * tree.pos.material);
+		       100 * chi_material (&tree.pos), 
+		       100 * chi_material (&tree.pos));
 
     fprintf (stdout, "  static score: %d\n", score);
 }
 
 int
-think (mv)
+think (mv, epd)
      chi_move* mv;
+     chi_epd_pos* epd;
 {
     chi_move moves[CHI_MAX_MOVES];
     chi_move* move_ptr;
-    int the_score = 0;
+    int the_score = current_score;
     TREE tree;
     int result = EVENT_CONTINUE;
     long int elapsed;
-    int depth;
+    int sdepth;
     int num_moves;
     int last_nodes = 0;
     long int last_elapsed = 0;
     int alpha = -INF;
     int beta = +INF;
-    chi_move best_move;
+    int i;
+    chi_color_t hash_color;
+    int three_fold = 0;
+    bitv64 this_signature = game_hist[game_hist_ply].signature;
 
     memset (&tree, 0, sizeof tree);
+    tree.marker = 0xbeefbabe;
 
     start_time = rtime ();
 
@@ -118,8 +124,31 @@ think (mv)
 	return EVENT_GAME_OVER;
     }
 
+    /* Pre-fill hash history tables.  */
+    hash_color = chi_on_move (&current);
+    for (i = 0; i <= current.half_move_clock && i <= game_hist_ply; ++i) {
+	bitv64 signature = game_hist[game_hist_ply - i].signature;
+	int hash_key = signature % HASH_HIST_SIZE;
+
+	hash_color = !hash_color;
+
+	if (signature == this_signature)
+	    ++three_fold;
+
+	if (three_fold >= 3) {
+	    fprintf (stdout, "1/2-1/2 {Three-fold repetition}\n");
+	    return EVENT_GAME_OVER;
+	}
+
+	if (hash_color == chi_white) {
+	    ++tree.white_game_hist[hash_key];
+	} else {
+	    ++tree.black_game_hist[hash_key];
+	}
+    }
+    
     /* Better than nothing ...  */
-    best_move = *mv = moves[0];
+    tree.best_move = *mv = moves[0];
     if (num_moves == 1) {
 	time_cushion += inc * 100;
 	return 0;
@@ -130,11 +159,15 @@ think (mv)
     tree.castling_states[0] = game_hist[game_hist_ply].castling_state;
 
     fprintf (stdout, "Initial castling state: 0x%x\n", tree.castling_states[0]);
+    tree.epd = epd;
+
     // FIXME: Check for book move.
 
     /* How many time will we afford ourselves? */
     if (pondering) {
 	tree.time_for_move = 0x7fffffff;
+    } else if (epd) {
+	tree.time_for_move = epd->fixed_time;
     } else {
 	if (fixed_time) {
 	    tree.time_for_move = fixed_time;
@@ -152,7 +185,7 @@ think (mv)
     }
 
     tree.pos = current;
-
+    tree.in_check[0] = chi_check_check (&tree.pos);
     fprintf (stdout, "Time for move: %ld\n", tree.time_for_move);
 
 #if DEBUG_BRAIN
@@ -160,18 +193,25 @@ think (mv)
     tree.time_for_move = 999999;
 #endif
 
-    for (depth = 1; depth <= max_ply; ++depth) {
+#if ASPIRATION_WINDOW
+    alpha = current_score - MIN_EVAL_DIFF;
+#endif
+
+    for (sdepth = 1; sdepth <= max_ply; ++sdepth) {
 	int score;
 
-	tree.iteration_depth = depth;
+	if (tree.marker != 0xbeefbabe)
+	    fprintf (stdout, "!!! Marker overwritten !!!\n");
+
+	tree.iteration_sdepth = sdepth;
 
 #if DEBUG_BRAIN
 	fprintf (stderr, "\
 Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
-		 num_moves, tree.pos.material, depth, alpha, beta);
+		 num_moves, chi_material (&tree.pos), sdepth, alpha, beta);
 #endif
 	
-	score = search (&tree, depth, 0, alpha, beta, 0);
+	score = search (&tree, PLIES2DEPTH (sdepth), 0, alpha, beta, 0);
 
 	total_nodes += tree.nodes - last_nodes;
 	last_nodes = tree.nodes;
@@ -179,8 +219,12 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 	total_centiseconds += elapsed - last_elapsed;
 	last_elapsed = elapsed;
 
+	*mv = tree.best_move;
+
 	if (tree.status & EVENTMASK_ENGINE_STOP)
 	    break;
+	
+	current_score = score;
 
 	if (score <= MATE) {
 	    print_pv (&tree, score, 0, 0);
@@ -189,7 +233,7 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 	       beat us.  */
 	    if (elapsed & 0x10) {
 		fprintf (stdout, "offer draw\n"); /* ;-) */
-	    } else if (tree.iteration_depth > 1) {
+	    } else if (tree.iteration_sdepth > 1) {
 		fprintf (stdout, "tellothers Mated in %d. :-(\n",
 			 (MATE - score) >> 1);
 	    }
@@ -218,9 +262,9 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 #if DEBUG_BRAIN
 		fprintf (stderr, "\
 Re-searching (failed low) best of %d moves in position (material %d) with depth %d [%d, %d]\n",
-			 num_moves, tree.pos.material, depth, alpha, beta);
+			 num_moves, chi_material (&tree.pos), sdepth, alpha, beta);
 #endif
-		--depth;
+		--sdepth;
 		print_fail_low (&tree, score, 0);
 		continue;
 	    } else if (score >= beta) {
@@ -228,9 +272,9 @@ Re-searching (failed low) best of %d moves in position (material %d) with depth 
 #if DEBUG_BRAIN
 		fprintf (stderr, "\
 Re-searching (failed low) best of %d moves in position (material %d) with depth %d [%d, %d]\n",
-			 num_moves, tree.pos.material, depth, alpha, beta);
+			 num_moves, chi_material (&tree.pos), sdepth, alpha, beta);
 #endif
-		--depth;
+		--sdepth;
 		print_fail_high (&tree, score, 0);
 		continue;
 	    }
@@ -240,17 +284,14 @@ Re-searching (failed low) best of %d moves in position (material %d) with depth 
 	}
 #endif
 
-	if (tree.pv[0].length)
-	    best_move = *mv = tree.pv[0].moves[0];
-
 	the_score = score;
 
-	/* if (tree.iteration_depth > tree.pv_printed) */
+	/* if (tree.iteration_sdepth > tree.pv_printed) */
 	print_pv (&tree, score, 0, 0);
 
 	/* Do not go any deeper, if we have already used up more than
 	   2/3 of our time.  */
-	if (depth > 2) {
+	if (!epd && sdepth > 2) {
 	    elapsed = rdifftime (rtime (), start_time);
 	    if (elapsed > tree.time_for_move * 2.1 / 3.0)
 		break;
@@ -285,14 +326,10 @@ Re-searching (failed low) best of %d moves in position (material %d) with depth 
 		tree.tt_hits, tree.tt_exact_hits, 
 		tree.tt_alpha_hits, tree.tt_beta_hits,
 		tree.tt_moves);
-	printf ("  TT collisions: %lu\n", tree.tt_collisions);
-	printf ("  QTT probes: %lu\n", tree.qtt_probes);
-	printf ("  QTT hits: %lu (exact: %lu, alpha: %lu, beta: %lu, moves: %lu)\n", 
-		tree.qtt_hits, tree.qtt_exact_hits, 
-		tree.qtt_alpha_hits, tree.qtt_beta_hits,
-		tree.qtt_moves);
 	printf ("  Null moves: %lu (%lu failed high)\n",
 		tree.null_moves, tree.null_fh);
+	printf ("  Futility-pruned moves: %lu\n",
+		tree.fprunes);
 	printf ("  Evaluations: %lu\n", tree.evals);
 	printf ("  One-Pawn lazy evals: %lu\n", tree.lazy_one_pawn);
 	printf ("  Two-pawn lazy evals: %lu\n", tree.lazy_two_pawns);
@@ -394,10 +431,10 @@ indent_output (TREE* tree, int ply)
     /* Assumed to be called *after* a move has been applied.  */
     if (chi_on_move (&tree->pos) != chi_white)
         fprintf (stderr, " [%s(%d)]: ", 
-		 ply < tree->iteration_depth ? "BLACK" : "black", ply);
+		 ply < tree->iteration_sdepth ? "BLACK" : "black", ply);
     else
         fprintf (stderr, " [%s(%d)]: ", 
-		 ply < tree->iteration_depth ? "WHITE" : "white", ply);
+		 ply < tree->iteration_sdepth ? "WHITE" : "white", ply);
 }
 #endif
 

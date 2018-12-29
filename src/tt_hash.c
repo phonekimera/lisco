@@ -29,49 +29,54 @@
 
 #include "brain.h"
 
-#define MIN_MTT_SIZE (sizeof (TT_Entry) * 5000000)
+#define MIN_TT_SIZE (sizeof (TT_Entry) * 5000000)
 
-// FIXME: 19 bytes is much too much!
 typedef struct tt_entry {
-    /* Used: 64, needed: 64.  */
     bitv64 signature;
-    /* Used: 32, needed: 27.  */
     chi_move best;
-    /* Used 16, needed: 15.  */
     short int score;
-    /* Used 16, needed 9 (8 for two tables).  */
     unsigned short int depth;
 } TT_Entry;
 
-/* The main transposition table.  */
-TT_Entry* mtt = NULL;
+/* The transposition table.  It is organized as follows: The first
+   half is reserved for positions with white on move, the second half
+   for positions with black on move.  For each position, the first third
+   contains a partial hash table that only gets updated when a new 
+   entry has at least the same depth as the old entry, the second and 
+   third third, will always be overwritten.  */
+TT_Entry* tt = NULL;
+TT_Entry* tt_end;
 
-unsigned long int mtt_size = 0;
-unsigned long int half_mtt_size = 0;
+static unsigned long int tt_size = 0;
+static unsigned long int half_tt_size = 0;
 
 void
 init_tt_hashs (memuse)
      unsigned long int memuse;
 {
-    if (memuse < MIN_MTT_SIZE)
-	memuse = MIN_MTT_SIZE;
+    if (memuse < MIN_TT_SIZE)
+	memuse = MIN_TT_SIZE;
 
-    half_mtt_size = chi_closest_prime ((memuse / sizeof *mtt) >> 1);
-    mtt_size = half_mtt_size << 1;
-    mtt = xrealloc (mtt, mtt_size * sizeof *mtt);
+    half_tt_size = chi_closest_prime ((memuse / sizeof *tt) / 6);
+    fprintf (stderr, "closest prime to %lu: %lu\n",
+	     memuse / sizeof *tt, half_tt_size);
+    tt_size = half_tt_size << 1;
+    tt = xrealloc (tt, 6 * half_tt_size * sizeof *tt);
     fprintf (stdout, 
 	     "\
 Allocated %lu bytes (%lu entries) for main transposition table.\n",
-	     mtt_size * sizeof *mtt, mtt_size);
+	     tt_size * sizeof *tt, 6 * half_tt_size);
 
     clear_tt_hashs ();
+
+    tt_end += 6 * half_tt_size * sizeof *tt;
 }
 
 void
 clear_tt_hashs ()
 {
     fprintf (stdout, "Clearing hash tables.\n");
-    memset (mtt, 0, mtt_size * sizeof *mtt);
+    memset (tt, 0, (tt_size << 1) * sizeof *tt);
 }
 
 int
@@ -82,12 +87,35 @@ probe_tt (pos, signature, depth, alpha, beta)
      int* alpha;
      int* beta;
 {
-    size_t offset = chi_on_move (pos) == chi_white ? 0 : half_mtt_size;
-    TT_Entry* hit = mtt + offset + (signature % ((bitv64) half_mtt_size));
+    size_t offset;
+    TT_Entry* hit;
+    int wtm = chi_on_move (pos) == chi_white;
+
+    if (wtm)
+	offset = signature % ((bitv64) half_tt_size);
+    else
+	offset = tt_size + half_tt_size + signature % ((bitv64) half_tt_size);
+
+    hit = tt + offset;
+
+    if (hit >= tt_end)
+	error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
+	       hit, tt_end);
+
+    if (hit->signature && hit->signature != signature) {
+	if (wtm)
+	    offset = half_tt_size + signature % ((bitv64) tt_size);
+	else
+	    offset = (tt_size << 1) + signature % ((bitv64) tt_size);
+	hit = tt + offset;
+	if (hit >= tt_end)
+	    error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
+		   hit, tt_end);
+    }
 
 #if DEBUG_BRAIN
     fprintf (stderr, "TTProbe at depth %d (on move: %s, ",
-	     depth, chi_on_move (pos) == chi_white ? "white" : "black");
+	     depth, wtm ? "white" : "black");
     fprintf (stderr, "alpha: %d, beta: %d, signature: 0x%016llx)\n", 
 	     *alpha, *beta, signature);
 #endif
@@ -157,8 +185,31 @@ best_tt_move (pos, signature)
      chi_pos* pos;
      bitv64 signature;
 {
-    size_t offset = chi_on_move (pos) == chi_white ? 0 : half_mtt_size;
-    TT_Entry* hit = mtt + offset + (signature % ((bitv64) half_mtt_size));
+    size_t offset;
+    TT_Entry* hit;
+    int wtm = chi_on_move (pos) == chi_white;
+
+    if (wtm)
+	offset = signature % ((bitv64) half_tt_size);
+    else
+	offset = tt_size + half_tt_size + signature % ((bitv64) half_tt_size);
+
+    hit = tt + offset;
+
+    if (hit >= tt_end)
+	error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
+	       hit, tt_end);
+
+    if (hit->signature && hit->signature != signature) {
+	if (wtm)
+	    offset = half_tt_size + signature % ((bitv64) tt_size);
+	else
+	    offset = (tt_size << 1) + signature % ((bitv64) tt_size);
+	hit = tt + offset;
+	if (hit >= tt_end)
+	    error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
+		   hit, tt_end);
+    }
 
     if (hit->signature == signature) {
 	return hit->best & 0x3fffffff;
@@ -167,7 +218,7 @@ best_tt_move (pos, signature)
     return 0;
 }
 
-int
+void
 store_tt_entry (pos, signature, move, depth, score, flags)
      chi_pos* pos;
      bitv64 signature;
@@ -176,16 +227,25 @@ store_tt_entry (pos, signature, move, depth, score, flags)
      int score;
      int flags;
 {
-    size_t offset = chi_on_move (pos) == chi_white ? 0 : half_mtt_size;
-    TT_Entry* old_entry = mtt + offset + 
-	(signature % ((bitv64) half_mtt_size));
+    size_t offset;
+    TT_Entry* hit;
+    int wtm = chi_on_move (pos) == chi_white;
 
-    int retval = old_entry->signature && old_entry->signature != signature ? 
-	1 : 0;
+    if (wtm)
+	offset = signature % ((bitv64) half_tt_size);
+    else
+	offset = tt_size + half_tt_size + signature % ((bitv64) half_tt_size);
+
+    hit = tt + offset;
+
+    if (hit >= tt_end)
+	error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
+	       hit, tt_end);
+
 
 #if DEBUG_BRAIN
     fprintf (stderr, "TTStore score %d for %s with move ", 
-	     score, chi_on_move (pos) == chi_white ? "white" : "black");
+	     score, wtm ? "white" : "black");
     my_print_move (move);
     fprintf (stderr, " at depth %d (%s), signature: %016llx\n", 
 	     depth, flags == HASH_EXACT ? 
@@ -194,49 +254,51 @@ store_tt_entry (pos, signature, move, depth, score, flags)
 	     signature);
 #endif
 
-#if 0
-    if (chi_move_from (move) == 12 && chi_move_to (move) == 21) {
-	unsigned int old_flags = (old_entry->best & 0xc0000000) >> 30;
-	unsigned int old_move = (old_entry->best & ~0xc0000000);
+    if (hit->signature) {
+	/* We have a conflict that is resolved as follows: If the new
+	   entry has a higher depth, it replaces the old entry, if it
+	   has the same depth, HASH_EXACT is preferred over HASH_BETA, and
+	   HASH_BETA is preferred over HASH_ALPHA.  */
+	int move_entry = 0;
+	int old_flags = hit->best >> 30;
+	size_t offset_always;
+	TT_Entry* always;
 
-	fprintf (stderr, "Storing score %d with move ", score);
-	my_print_move (move);
-	fprintf (stderr, " at depth %d (%s)\n", depth, flags == HASH_EXACT ? 
-		 "HASH_EXACT" : flags == HASH_ALPHA ? "HASH_ALPHA" :
-		 flags == HASH_BETA ? "HASH_BETA" : "unknown flag");
-	fprintf (stderr, "Signature: 0x%016llx\n", signature);
-	fprintf (stderr, "Old signature: 0x%016llx\n", old_entry->signature);
-	fprintf (stderr, "Old score: %d\n", old_entry->score);
-	fprintf (stderr, "Old depth: %d\n", old_entry->depth);
-	fprintf (stderr, "Old flags: %s\n", old_flags == HASH_EXACT ? 
-		 "HASH_EXACT" : old_flags == HASH_ALPHA ? "HASH_ALPHA" :
-		 old_flags == HASH_BETA ? "HASH_BETA" : "unknown flag");
-	fprintf (stderr, "Old move: ");
-	my_print_move (old_entry->best);
-	fprintf (stderr, "\n");
-	fflush (stderr);
-	dump_board (pos);
+	if (wtm)
+	    offset_always = half_tt_size + signature % ((bitv64) tt_size);
+	else
+	    offset_always = (tt_size << 1) + signature % ((bitv64) tt_size);
+
+	always = tt + offset_always;
+
+	if (always >= tt_end)
+	    error (EXIT_FAILURE, 0, "%s:%d: assertion 'always' (%p) < tt_end (%p) failed!",
+		   hit, tt_end);
+
+	if (hit->depth < depth)
+	    move_entry = 1;
+	else if ((hit->depth == depth) && (old_flags < flags))
+	    move_entry = 1;
+
+	if (move_entry) {
+	    *always = *hit;
+	    hit->signature = signature;
+	    hit->depth = depth;
+	    hit->score = score;
+	    hit->best = move | flags << 30;
+	} else {
+	    always->signature = signature;
+	    always->depth = depth;
+	    always->score = score;
+	    always->best = move | flags << 30;
+	}
+    } else {
+	/* No conflict.  */
+	hit->signature = signature;
+	hit->depth = depth;
+	hit->score = score;
+	hit->best = move | (flags << 30);
     }
-#endif
-
-    /* Collision or not yet seen.  */
-    if (!old_entry->signature || old_entry->signature != signature) {
-	old_entry->signature = signature;
-	old_entry->depth = depth;
-	old_entry->score = score;
-	old_entry->best = move | (flags << 30);
-	return retval;
-    }
-
-    if (old_entry->depth > depth)
-	return retval;
-
-    old_entry->signature = signature;
-    old_entry->depth = depth;
-    old_entry->score = score;
-    old_entry->best = move | (flags << 30);
-
-    return retval;
 }
 
 /*
