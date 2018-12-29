@@ -75,14 +75,14 @@ clear_tt_hashs ()
 }
 
 int
-probe_tt (tree, signature, depth, alpha, beta)
-     TREE* tree;
+probe_tt (pos, signature, depth, alpha, beta)
+     chi_pos* pos;
      bitv64 signature;
      int depth;
      int* alpha;
      int* beta;
 {
-    size_t offset = chi_on_move (&tree->pos) == chi_white ? 0 : half_mtt_size;
+    size_t offset = chi_on_move (pos) == chi_white ? 0 : half_mtt_size;
     TT_Entry* hit = mtt + offset + (signature % ((bitv64) half_mtt_size));
 
     if (hit->signature == signature) {
@@ -106,11 +106,11 @@ probe_tt (tree, signature, depth, alpha, beta)
 }
 
 chi_move
-best_tt_move (tree, signature)
-     TREE* tree;
+best_tt_move (pos, signature)
+     chi_pos* pos;
      bitv64 signature;
 {
-    size_t offset = chi_on_move (&tree->pos) == chi_white ? 0 : half_mtt_size;
+    size_t offset = chi_on_move (pos) == chi_white ? 0 : half_mtt_size;
     TT_Entry* hit = mtt + offset + (signature % ((bitv64) half_mtt_size));
 
     if (hit->signature == signature) {
@@ -121,15 +121,15 @@ best_tt_move (tree, signature)
 }
 
 int
-store_tt_entry (tree, signature, move, depth, score, flags)
-     TREE* tree;
+store_tt_entry (pos, signature, move, depth, score, flags)
+     chi_pos* pos;
      bitv64 signature;
      chi_move move;
      int depth;
      int score;
      int flags;
 {
-    size_t offset = chi_on_move (&tree->pos) == chi_white ? 0 : half_mtt_size;
+    size_t offset = chi_on_move (pos) == chi_white ? 0 : half_mtt_size;
     TT_Entry* old_entry = mtt + offset + 
 	(signature % ((bitv64) half_mtt_size));
 
@@ -144,6 +144,31 @@ store_tt_entry (tree, signature, move, depth, score, flags)
 	flags == HASH_BETA ? "HASH_BETA" : "unknown flag");
 #endif
 
+#if 0
+    if (chi_move_from (move) == 12 && chi_move_to (move) == 21) {
+	unsigned int old_flags = (old_entry->best & 0xc0000000) >> 30;
+	unsigned int old_move = (old_entry->best & ~0xc0000000);
+
+	fprintf (stderr, "Storing score %d with move ", score);
+	my_print_move (move);
+	fprintf (stderr, " at depth %d (%s)\n", depth, flags == HASH_EXACT ? 
+		 "HASH_EXACT" : flags == HASH_ALPHA ? "HASH_ALPHA" :
+		 flags == HASH_BETA ? "HASH_BETA" : "unknown flag");
+	fprintf (stderr, "Signature: 0x%016llx\n", signature);
+	fprintf (stderr, "Old signature: 0x%016llx\n", old_entry->signature);
+	fprintf (stderr, "Old score: %d\n", old_entry->score);
+	fprintf (stderr, "Old depth: %d\n", old_entry->depth);
+	fprintf (stderr, "Old flags: %s\n", old_flags == HASH_EXACT ? 
+		 "HASH_EXACT" : old_flags == HASH_ALPHA ? "HASH_ALPHA" :
+		 old_flags == HASH_BETA ? "HASH_BETA" : "unknown flag");
+	fprintf (stderr, "Old move: ");
+	my_print_move (old_entry->best);
+	fprintf (stderr, "\n");
+	fflush (stderr);
+	dump_board (pos);
+    }
+#endif
+
     /* Collision or not yet seen.  */
     if (!old_entry->signature || old_entry->signature != signature) {
 	old_entry->signature = signature;
@@ -153,22 +178,13 @@ store_tt_entry (tree, signature, move, depth, score, flags)
 	return retval;
     }
 
-    if (!old_entry->best) {
-	old_entry->best &= 0xcfffffff;
-	old_entry->best |= move;
-    }
-
     if (old_entry->depth > depth)
 	return retval;
 
     old_entry->signature = signature;
     old_entry->depth = depth;
     old_entry->score = score;
-    if (move) {
-	old_entry->best = move | (flags << 30);
-    } else {
-	old_entry->best &= (old_entry->best & 0xcfffffff) | (flags << 30);	
-    }
+    old_entry->best = move | (flags << 30);
 
     return retval;
 }

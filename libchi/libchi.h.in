@@ -349,7 +349,7 @@ extern chi_move* chi_legal_moves CHI_PARAMS ((chi_pos* chi_arg_pos,
    castling, will cross attacked squares.  In case of legality, the
    move is also applied to the position.  */
 extern int chi_illegal_move CHI_PARAMS ((chi_pos* chi_arg_pos, 
-					 chi_move chi_arg_move));
+					 chi_move chi_arg_move, int ext_check));
 
 /* Check if a given move is legal (done by generating all legal moves
    and trying to find it there.  */

@@ -54,6 +54,7 @@ static void handle_accepted PARAMS ((const char* feature));
 static void handle_rejected PARAMS ((const char* feature));
 static int handle_usermove PARAMS ((const char* movestr));
 static int handle_legalmove PARAMS ((const char* movestr));
+static int handle_hashmove PARAMS ((void));
 static int handle_evaluate PARAMS ((const char* movestr));
 static int handle_go PARAMS ((void));
 static void display_offsets PARAMS ((void));
@@ -153,6 +154,8 @@ main (argc, argv)
 	check_input ();
 	while (event_pending) {
 	    int status = get_event ();
+	    if (status & EVENT_TERMINATE)
+		fprintf (stderr, "get_event status: 0x%x\n", status);
 	    if (status & EVENT_TERMINATE)
 		return EXIT_SUCCESS;
 	}
@@ -465,6 +468,8 @@ get_event ()
 	char* movestr = strtok (NULL, WHITE_SPACE);
 
 	retval = handle_evaluate (movestr);
+    } else if (strcasecmp (cmd, "hashmove") == 0) {
+	retval = handle_hashmove ();
     } else {
 	retval = handle_usermove (cmd);
     }
@@ -813,7 +818,7 @@ handle_legalmove (movestr)
 	return EVENT_CONTINUE;
     }
 
-    errnum = chi_illegal_move (&dummy_pos, move);
+    errnum = chi_illegal_move (&dummy_pos, move, 1);
     if (errnum != 0) {
 	fprintf (stdout, "Illegal move (%s): %s\n",
 		 chi_strerror (errnum), movestr);
@@ -848,7 +853,7 @@ handle_evaluate (movestr)
 	return EVENT_CONTINUE;
     }
 
-    errnum = chi_illegal_move (&dummy_pos, move);
+    errnum = chi_illegal_move (&dummy_pos, move, 1);
     if (errnum != 0) {
 	fprintf (stdout, "Illegal move (%s): %s\n",
 		 chi_strerror (errnum), movestr);
@@ -857,6 +862,71 @@ handle_evaluate (movestr)
 
     evaluate_move (move);
     
+    return EVENT_CONTINUE;
+}
+
+static int
+handle_hashmove ()
+{
+    chi_move move;
+    bitv64 signature;
+    int alpha = +INF;
+    int beta = -INF;
+    int probe;
+
+    if (game_over) {
+	fprintf (stdout, "Error (game over): hashmove\n");
+	return EVENT_CONTINUE;
+    }
+
+    signature = chi_zk_signature (zk_handle, &current);
+    move = best_tt_move (&current, signature);
+    probe = probe_tt (&current, signature, 0, &alpha, &beta);
+
+    if (move) {
+	fprintf (stdout, "  Hashed best move: %s%c%s",
+		 chi_shift2label (chi_move_from (move)),
+		 chi_move_victim (move) ? 'x' : '-',
+		 chi_shift2label (chi_move_to (move)));
+	if (chi_move_promote (move)) {
+	    switch (chi_move_promote (move)) {
+		case knight:
+		    fprintf (stdout, "=N");
+		    break;
+		case bishop:
+		    fprintf (stdout, "=B");
+		    break;
+		case rook:
+		    fprintf (stdout, "=R");
+		    break;
+		case queen:
+		    fprintf (stdout, "=Q");
+		    break;
+		default:
+		    fprintf (stdout, "=?");
+		    break;
+	    }
+	}
+	fputc ('\n', stdout);
+    } else {
+	fprintf (stdout, "  No best move!\n");
+    }
+
+    switch (probe) {
+	case HASH_EXACT:
+	    fprintf (stdout, "  HASH_EXACT: %d\n", alpha);
+	    break;
+	case HASH_ALPHA:
+	    fprintf (stdout, "  HASH_ALPHA: %d\n", alpha);
+	    break;
+	case HASH_BETA:
+	    fprintf (stdout, "  HASH_BETA: %d\n", beta);
+	    break;
+	default:
+	    fprintf (stdout, "  HASH_UNKNOWN\n");
+	    break;
+    }
+
     return EVENT_CONTINUE;
 }
 
@@ -959,8 +1029,11 @@ handle_go ()
 	}
 	
 	fprintf (stderr, "]\n");
-	error (EXIT_FAILURE, 0, "engine made illegal move (%d->%d).\n",
-	       chi_move_from (move), chi_move_to (move));
+	fprintf (stderr, "Passed extended chi_illegal_move: %s\n",
+		 chi_illegal_move (&current, move, 1) ? "no" : "yes");
+	error (EXIT_FAILURE, 0, "engine made illegal move (%s-%s).\n",
+	       chi_shift2label (chi_move_from (move)), 
+	       chi_shift2label (chi_move_to (move)));
     }
 
     fprintf (stdout, "move %s\n", buf);

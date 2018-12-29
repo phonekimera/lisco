@@ -42,22 +42,18 @@ next_move (tree, ply, depth)
 	    tree->move_states[ply] = move_state_pv;
 	    tree->pv_move[ply] = 0;
 
-	    /* Try the pv move first if searching principal variation.  */
-	    if (!depth && ply == 0 && tree->pv[ply].length) {
-		tree->pv_move[ply] = tree->pv[ply].moves[0];
-		*(tree->move_ptr[ply]++) = tree->pv[ply].moves[0];
-		return tree->move_stack[ply];
-	    } else {
-		chi_move best_move = best_tt_move (tree, 
+	    if (depth) {
+		/* Try the pv move first if searching principal variation.  */
+		tree->pv_move[ply] = best_tt_move (&tree->pos, 
 						   tree->signatures[ply]);
-
-		if (best_move) {
+		if (tree->pv_move[ply]) {
 		    ++tree->tt_moves;
-		    tree->pv_move[ply] = tree->pv[ply].moves[0];
-		    *(tree->move_ptr[ply]++) = best_move;
+		    *(tree->move_ptr[ply]++) = tree->pv_move[ply];
 		    return tree->move_stack[ply];
 		}
 	    }
+
+	    /* FALLTHRU */
 
 	case move_state_pv:
 
@@ -113,7 +109,7 @@ next_move (tree, ply, depth)
 	    // FIXME: Do not return duplicates!
 	case move_state_bonny:
 	    tree->move_states[ply] = move_state_clyde;
-	    if (tree->bonny[ply])	    
+	    if (tree->bonny[ply] && tree->bonny[ply] != tree->pv_move[ply])    
 		return &tree->bonny[ply];
 	    
             /* FALLTHRU.  */
@@ -121,7 +117,9 @@ next_move (tree, ply, depth)
 	case move_state_clyde:
 	    tree->move_states[ply] = move_state_generate_non_captures;
 
-	    if (tree->clyde[ply])	    
+	    if (tree->clyde[ply] &&
+		tree->clyde[ply] != tree->pv_move[ply] &&
+		tree->clyde[ply] != tree->bonny[ply])	    
 		return &tree->clyde[ply];
 	    
             /* FALLTHRU.  */

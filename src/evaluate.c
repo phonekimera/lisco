@@ -173,7 +173,7 @@ evaluate (tree, ply, alpha, beta)
 
 	mv = chi_legal_moves (pos, moves);
 	if (mv - moves == 0)
-	    return MATE;
+	    return MATE - ply;
     }
 
     if (pos->half_move_clock >= 100)

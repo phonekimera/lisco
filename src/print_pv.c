@@ -40,6 +40,8 @@ print_pv (tree, score, whisper, ply)
     chi_pos tmp_pos = tree->pos;
     static char* buf = NULL;
     static unsigned int bufsize = 0;
+    bitv64 signature;
+    chi_move hashed_move;
 
     tree->pv_printed = tree->iteration_depth;
 
@@ -49,7 +51,7 @@ print_pv (tree, score, whisper, ply)
 		 elapsed, tree->nodes);
     
     if (chi_on_move (&tmp_pos) != chi_white)
-	fprintf (stdout, " %d. ... ", 1 + tmp_pos.half_moves / 2);
+	fprintf (stdout, " %d. ...", 1 + tmp_pos.half_moves / 2);
 
     for (i = 0; i < tree->pv[0].length && i >= ply; ++i) {
 	int errnum;
@@ -65,35 +67,92 @@ print_pv (tree, score, whisper, ply)
 	    fprintf (stdout, " [illegal: %s]", chi_strerror (errnum));
     }
 
-    if (i < tree->iteration_depth) {
-	/* Must be a hash move.  */
-	bitv64 signature = chi_zk_signature (zk_handle, &tmp_pos);
-	chi_move hash_move = best_tt_move (tree, signature);
+    signature = chi_zk_signature (zk_handle, &tmp_pos);
+    while (0 != (hashed_move = best_tt_move (&tmp_pos, signature))) {
+	int left_char;
+	int right_char;
+	int alpha = +INF;
+	int beta = -INF;
 
-	if (hash_move) {
-	    chi_print_move (&tmp_pos, hash_move, &buf, &bufsize, 0);
-	    fprintf (stdout, " <%s>", buf);
-	} else {
-	    fprintf (stdout, " <HT>");
+	chi_print_move (&tmp_pos, hashed_move, &buf, &bufsize, 0);
+
+	switch (probe_tt (&tmp_pos, signature, 0, &alpha, &beta)) {
+	    case HASH_ALPHA:
+		left_char = right_char = '<';
+		break;
+	    case HASH_BETA:
+		left_char = right_char = '>';
+		break;
+	    case HASH_EXACT:
+		left_char = '<';
+		right_char = '>';
+		break;
+	    default:
+		left_char = right_char = '?';
+		break;
 	}
+
+	if (chi_apply_move (&tmp_pos, hashed_move))
+	    break;
+	if (chi_on_move (&tmp_pos) != chi_white)
+	    fprintf (stdout, " %d.", 1 + tmp_pos.half_moves / 2);
+	
+	fprintf (stdout, " %c", left_char);
+
+	fprintf (stdout, "%s%c", buf, right_char);
+	
+	signature = chi_zk_signature (zk_handle, &tmp_pos);
     }
 
     fprintf (stdout, "\n");
+}
 
-#if 0
-    tmp_pos = tree->pos;
-    for (i = 0; i < tree->iteration_depth; ++i) {
-	int j;
-	for (j = 0; j < 1 + tree->pv[i + 1].length; ++j) {
-	    fprintf (stdout, " %s-%s%s", 
-		     chi_shift2label (chi_move_from (tree->pv[i].moves[j])),
-		     chi_shift2label (chi_move_to (tree->pv[i].moves[j])),
-		     i == ply ? "*" : " ");
+void
+print_fail_high (tree, score, whisper)
+     TREE* tree;
+     int score;
+     int whisper;
+{
+    long int elapsed = rdifftime (rtime (), start_time);
+    static char* buf = NULL;
+    static unsigned int bufsize = 0;
 
-	}
-	fprintf (stdout, "\n");
-    }
-#endif
+    if (!whisper)
+	fprintf (stdout, "%3d %5d %7ld %8ld  ",
+		 tree->iteration_depth, chi_value2centipawns (score), 
+		 elapsed, tree->nodes);
+    
+    if (chi_on_move (&tree->pos) != chi_white)
+	fprintf (stdout, " %d. ... ", 1 + tree->pos.half_moves / 2);
+    else
+	fprintf (stdout, " %d. ", 1 + tree->pos.half_moves / 2);
+    
+    chi_print_move (&tree->pos, tree->pv[0].moves[0], &buf, &bufsize, 0);
+    fprintf (stdout, "%s!!\n", buf);
+}
+
+void
+print_fail_low (tree, score, whisper)
+     TREE* tree;
+     int score;
+     int whisper;
+{
+    long int elapsed = rdifftime (rtime (), start_time);
+    static char* buf = NULL;
+    static unsigned int bufsize = 0;
+
+    if (!whisper)
+	fprintf (stdout, "%3d %5d %7ld %8ld  ",
+		 tree->iteration_depth, chi_value2centipawns (score), 
+		 elapsed, tree->nodes);
+    
+    if (chi_on_move (&tree->pos) != chi_white)
+	fprintf (stdout, " %d. ... ", 1 + tree->pos.half_moves / 2);
+    else
+	fprintf (stdout, " %d. ", 1 + tree->pos.half_moves / 2);
+    
+    chi_print_move (&tree->pos, tree->pv[0].moves[0], &buf, &bufsize, 0);
+    fprintf (stdout, "%s??\n", buf);
 }
 
 /*

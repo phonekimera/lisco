@@ -174,10 +174,10 @@ chi_check_check (pos)
 #define HER_KINGS(p) ((p)->b_kings)
 #define QUEEN_CASTLE(p) chi_wq_castle ((p))
 #define QUEEN_CASTLE_CROSS_MASK 0x70
-#define QUEEN_CASTLE_MOVE (0x03 | 0x05 << 6 | king << 12)
+#define QUEEN_CASTLE_MOVE (0x03 | 0x05 << 6 | (~king & 0x7) << 13)
 #define KING_CASTLE(p) chi_wk_castle ((p))
 #define KING_CASTLE_CROSS_MASK 0x06
-#define KING_CASTLE_MOVE (0x03 | 0x01 << 6 | king << 12)
+#define KING_CASTLE_MOVE (0x03 | 0x01 << 6 | (~king & 0x7) << 13)
 
 #include "movegen_color.c"
 
@@ -261,10 +261,10 @@ chi_check_check (pos)
 #define HER_KINGS(p) ((p)->w_kings)
 #define QUEEN_CASTLE(p) chi_bq_castle ((p))
 #define QUEEN_CASTLE_CROSS_MASK (((bitv64) 0x70) << 56)
-#define QUEEN_CASTLE_MOVE (0x3b | (0x3d << 6) | (king << 12))
+#define QUEEN_CASTLE_MOVE (0x3b | (0x3d << 6) | ((~king & 0x7) << 13))
 #define KING_CASTLE(p) chi_bk_castle ((p))
 #define KING_CASTLE_CROSS_MASK (((bitv64) 0x06) << 56)
-#define KING_CASTLE_MOVE (0x3b | (0x39 << 6) | (king << 12))
+#define KING_CASTLE_MOVE (0x3b | (0x39 << 6) | ((~king & 0x7) << 13))
 #include "movegen_color.c"
 
 /*

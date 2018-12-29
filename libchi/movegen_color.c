@@ -100,15 +100,15 @@ chi_generate_color_captures (pos, moves)
 		if (to_mask & empty_squares) {
 		    chi_move move = from | 
 			((from + SINGLE_PAWN_OFFSET) << 6) |
-			(1 << 12);
+			((~pawn & 0x7) << 13);
 		    
-		    *moves++ = move | (queen << 18) | 
+		    *moves++ = move | (queen << 19) | 
 			(8 << 22);
-		    *moves++ = move | (rook << 18) | 
+		    *moves++ = move | (rook << 19) | 
 			(4 << 22);
-		    *moves++ = move | (bishop << 18) | 
+		    *moves++ = move | (bishop << 19) | 
 			(2 << 22);
-		    *moves++ = move | (knight << 18) | 
+		    *moves++ = move | (knight << 19) | 
 			(2 << 22);
 		}	
 	    }
@@ -119,39 +119,39 @@ chi_generate_color_captures (pos, moves)
 		if (to_mask & target_squares) {
 		    bitv64 target_square = to_mask & target_squares;
 		    int to = from + LEFT_PAWN_CAPTURE_OFFSET;
-		    chi_move move = from | (to << 6) | (1 << 12);
+		    chi_move move = from | (to << 6) | ((~pawn & 0x7) << 13);
 		    int material = 1 << 22;
-		    chi_piece_t victim = pawn << 15;
+		    chi_piece_t victim = pawn << 16;
 		    int ep_flag = 0;
 		    chi_move filled;
 
 		    if (target_square & HER_KNIGHTS (pos)) {
 			material = 3 << 22;
-			victim = knight << 15;
+			victim = knight << 16;
 		    } else if (target_square & HER_BISHOPS (pos)) {
 			material = 3 << 22;
-			victim = bishop << 15;
+			victim = bishop << 16;
 			if (target_square & HER_ROOKS (pos)) {
 			    material = 9 << 22;
-			    victim = queen << 15;
+			    victim = queen << 16;
 			}
 		    } else if (target_square & HER_ROOKS (pos)) {
 			material = 5 << 22;
-			victim = rook << 15;
+			victim = rook << 16;
 		    } else if (to == ep_offset) {
-			ep_flag = 0x200000;
+			ep_flag = 0x1000;
 		    }
 
 		    filled = move | victim | ep_flag | material;
 
 		    if (to_mask & PAWN_PROMOTE_RANK_MASK) {
-			*moves++ = filled | (queen << 18) | 
+			*moves++ = filled | (queen << 19) | 
 			    (8 << 22);
-			*moves++ = filled | (rook << 18) | 
+			*moves++ = filled | (rook << 19) | 
 			    (4 << 22);
-			*moves++ = filled | (bishop << 18) | 
+			*moves++ = filled | (bishop << 19) | 
 			    (2 << 22);
-			*moves++ = filled | (knight << 18) | 
+			*moves++ = filled | (knight << 19) | 
 			    (2 << 22);
 		    } else {
 			*moves++ = filled;
@@ -165,39 +165,39 @@ chi_generate_color_captures (pos, moves)
 		if (to_mask & target_squares) {
 		    bitv64 target_square = to_mask & target_squares;
 		    int to = from + RIGHT_PAWN_CAPTURE_OFFSET;
-		    chi_move move = from | (to << 6) | (pawn << 12);
+		    chi_move move = from | (to << 6) | ((~pawn & 0x7) << 13);
 		    int material = 1 << 22;
-		    chi_piece_t victim = pawn << 15;
+		    chi_piece_t victim = pawn << 16;
 		    int ep_flag = 0;
 		    chi_move filled;
 
 		    if (target_square & HER_KNIGHTS (pos)) {
 			material = 3 << 22;
-			victim = knight << 15;
+			victim = knight << 16;
 		    } else if (target_square & HER_BISHOPS (pos)) {
 			material = 3 << 22;
-			victim = bishop << 15;
+			victim = bishop << 16;
 			if (target_square & HER_ROOKS (pos)) {
 			    material = 9 << 22;
-			    victim = queen << 15;
+			    victim = queen << 16;
 			}
 		    } else if (target_square & HER_ROOKS (pos)) {
 			material = 5 << 22;
-			victim = rook << 15;
+			victim = rook << 16;
 		    } else if (to == ep_offset) {
-			ep_flag = 0x200000;
+			ep_flag = 0x1000;
 		    }
 
 		    filled = move | victim | ep_flag | material;
 
 		    if (to_mask & PAWN_PROMOTE_RANK_MASK) {
-			*moves++ = filled | (queen << 18) | 
+			*moves++ = filled | (queen << 19) | 
 			    (8 << 22);
-			*moves++ = filled | (rook << 18) | 
+			*moves++ = filled | (rook << 19) | 
 			    (4 << 22);
-			*moves++ = filled | (bishop << 18) | 
+			*moves++ = filled | (bishop << 19) | 
 			    (2 << 22);
-			*moves++ = filled | (knight << 18) | 
+			*moves++ = filled | (knight << 19) | 
 			    (2 << 22);
 		    } else {
 			*moves++ = filled;
@@ -215,7 +215,7 @@ chi_generate_color_captures (pos, moves)
 	unsigned int from = 
 	    chi_bitv2shift (chi_clear_but_least_set (piece_mask));
 	bitv64 attack_mask = knight_attacks[from] & her_squares;
-	chi_move move = from | (knight << 12);
+	chi_move move = from | ((~knight & 0x7) << 13);
 
 	while (attack_mask) {
 	    unsigned int to = 
@@ -239,7 +239,7 @@ chi_generate_color_captures (pos, moves)
 		victim = rook;
 	    }
 
-	    *moves++ = move | (to << 6) | (victim << 15) | (material << 22);
+	    *moves++ = move | (to << 6) | (victim << 16) | (material << 22);
 
 	    attack_mask = chi_clear_least_set (attack_mask);
 	}
@@ -254,7 +254,7 @@ chi_generate_color_captures (pos, moves)
 	unsigned int from = chi_bitv2shift (isol_mask);
 	unsigned int to;
 	chi_piece_t piece = ((((bitv64) 1) << from) & MY_ROOKS (pos)) ?
-	    queen : bishop;
+	    (~queen & 0x7) : (~bishop & 0x7);
 
 	bitv64 dest_mask = (isol_mask & ~(CHI_A_MASK | CHI_8_MASK)) << 9;
 
@@ -281,7 +281,7 @@ chi_generate_color_captures (pos, moves)
 		    victim = rook;
 		}
 	    
-		*moves++ = from | (to << 6) | (piece << 12) | (victim << 15) |
+		*moves++ = from | (to << 6) | (piece << 13) | (victim << 16) |
 		    (material << 22);
 		break;
 	    }
@@ -314,7 +314,7 @@ chi_generate_color_captures (pos, moves)
 		    victim = rook;
 		}
 	    
-		*moves++ = from | (to << 6) | (piece << 12) | (victim << 15) |
+		*moves++ = from | (to << 6) | (piece << 13) | (victim << 16) |
 		    (material << 22);
 		break;
 	    }
@@ -347,7 +347,7 @@ chi_generate_color_captures (pos, moves)
 		    victim = rook;
 		}
 	    
-		*moves++ = from | (to << 6) | (piece << 12) | (victim << 15) |
+		*moves++ = from | (to << 6) | (piece << 13) | (victim << 16) |
 		    (material << 22);
 		break;
 	    }
@@ -380,7 +380,7 @@ chi_generate_color_captures (pos, moves)
 		    victim = rook;
 		}
 	    
-		*moves++ = from | (to << 6) | (piece << 12) | (victim << 15) |
+		*moves++ = from | (to << 6) | (piece << 13) | (victim << 16) |
 		    (material << 22);
 		break;
 	    }
@@ -436,7 +436,7 @@ chi_generate_color_captures (pos, moves)
 	bitv64 hor_attack_mask = rook_hor_attack_masks[from][state];
 	bitv64 ver_attack_mask = rook_ver_attack_masks[from][state90];
 	chi_piece_t piece = ((((bitv64) 1) << from) & MY_BISHOPS (pos)) ?
-	    queen : rook;
+	    (~queen & 0x7) : (~rook & 0x7);
 
 	bitv64 attack_mask = hor_attack_mask | ver_attack_mask;
 	attack_mask &= her_squares;
@@ -463,7 +463,7 @@ chi_generate_color_captures (pos, moves)
 		victim = rook;
 	    }
 	    
-	    *moves++ = from | (to << 6) | (piece << 12) | (victim << 15) |
+	    *moves++ = from | (to << 6) | (piece << 13) | (victim << 16) |
 		(material << 22);
 	    
 	    attack_mask = chi_clear_least_set (attack_mask);
@@ -501,7 +501,7 @@ chi_generate_color_captures (pos, moves)
 		victim = rook;
 	    }
 	    
-	    *moves++ = from | (to << 6) | (king << 12) | (victim << 15) |
+	    *moves++ = from | (to << 6) | ((~king & 0x7) << 13) | (victim << 16) |
 		(material << 22);
 	    
 	    attack_mask = chi_clear_least_set (attack_mask);
@@ -535,7 +535,7 @@ chi_generate_color_pawn_double_steps (pos, moves)
 		
 		if (to_mask & empty_squares)
 		    *moves++ = (from | ((from + DOUBLE_PAWN_OFFSET) << 6) |
-				(pawn << 12));
+				((~pawn & 0x7) << 13));
 	    }
 	    
 	    piece_mask = chi_clear_least_set (piece_mask);
@@ -562,7 +562,7 @@ chi_generate_color_pawn_single_steps (pos, moves)
 	    
 	    if (to_mask & empty_squares)
 		*moves++ = (from | ((from + SINGLE_PAWN_OFFSET) << 6) |
-			       (pawn << 12));
+			       ((~pawn & 0x7) << 13));
 	    
 	    piece_mask = chi_clear_least_set (piece_mask);
 	}
@@ -588,7 +588,7 @@ chi_generate_color_knight_moves (pos, moves)
 	    while (attack_mask) {
 		unsigned int to = 
 		    chi_bitv2shift (chi_clear_but_least_set (attack_mask));
-		*moves++ = from | (to << 6) | (knight << 12);
+		*moves++ = from | (to << 6) | ((~knight & 0x7) << 13);
 		attack_mask = chi_clear_least_set (attack_mask);
 	    }
 	    
@@ -614,7 +614,7 @@ chi_generate_color_bishop_moves (pos, moves)
 	    bitv64 isol_mask = chi_clear_but_least_set (piece_mask);
 	    unsigned int from = chi_bitv2shift (isol_mask);
 	    chi_piece_t piece = ((((bitv64) 1) << from) & MY_ROOKS (pos)) ?
-		queen : bishop;
+		(~queen & 0x7) : (~bishop & 0x7);
 	    unsigned int to;
 	    
 	    bitv64 dest_mask = empty_squares & 
@@ -623,7 +623,7 @@ chi_generate_color_bishop_moves (pos, moves)
 	    to = from;
 	    while (dest_mask) {
 		to += 9;
-		*moves++ = from | (to << 6) | (piece << 12);		
+		*moves++ = from | (to << 6) | (piece << 13);		
 		dest_mask = empty_squares & 
 		    ((dest_mask & ~(CHI_A_MASK | CHI_8_MASK)) << 9);
 	    }
@@ -633,7 +633,7 @@ chi_generate_color_bishop_moves (pos, moves)
 	    to = from;
 	    while (dest_mask) {
 		to += 7;
-		*moves++ = from | (to << 6) | (piece << 12);
+		*moves++ = from | (to << 6) | (piece << 13);
 		dest_mask = empty_squares & 
 		    ((dest_mask & ~(CHI_H_MASK | CHI_8_MASK)) << 7);
 	    }
@@ -643,7 +643,7 @@ chi_generate_color_bishop_moves (pos, moves)
 	    to = from;
 	    while (dest_mask) {
 		to -= 7;
-		*moves++ = from | (to << 6) | (piece << 12);		
+		*moves++ = from | (to << 6) | (piece << 13);		
 		dest_mask = empty_squares & 
 		    ((dest_mask & ~(CHI_A_MASK | CHI_1_MASK)) >> 7);
 	    }
@@ -653,7 +653,7 @@ chi_generate_color_bishop_moves (pos, moves)
 	    to = from;
 	    while (dest_mask) {
 		to -= 9;
-		*moves++ = from | (to << 6) | (piece << 12);		
+		*moves++ = from | (to << 6) | (piece << 13);		
 		dest_mask = empty_squares & 
 		    ((dest_mask & ~(CHI_H_MASK | CHI_1_MASK)) >> 9);
 	    }
@@ -686,13 +686,13 @@ chi_generate_color_rook_moves (pos, moves)
 	    bitv64 ver_slide_mask = rook_ver_slide_masks[from][state90];
 	    bitv64 slide_mask = hor_slide_mask | ver_slide_mask;
 	    chi_piece_t piece = ((((bitv64) 1) << from) & MY_BISHOPS (pos)) ?
-		queen : rook;
+		(~queen & 0x7) : (~rook & 0x7);
 	    
 	    while (slide_mask) {
 		unsigned int to = 
 		    chi_bitv2shift (chi_clear_but_least_set (slide_mask));
 
-		*moves++ = (from | (to << 6) | (piece << 12));
+		*moves++ = (from | (to << 6) | (piece << 13));
 		slide_mask = chi_clear_least_set (slide_mask);
 	    }
 	    
@@ -721,7 +721,7 @@ chi_generate_color_king_moves (pos, moves)
 	    unsigned int to = 
 		chi_bitv2shift (chi_clear_but_least_set (attack_mask));
 	    
-	    *moves++ = from | (to << 6) | (king << 12);
+	    *moves++ = from | (to << 6) | ((~king & 0x7) << 13);
 	    attack_mask = chi_clear_least_set (attack_mask);
 	}
     }

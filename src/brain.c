@@ -190,12 +190,12 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 		fprintf (stdout, "offer draw\n"); /* ;-) */
 	    } else if (tree.iteration_depth > 1) {
 		fprintf (stdout, "tellothers Mated in %d. :-(\n",
-			 tree.iteration_depth >> 1);
+			 (MATE - score) >> 1);
 	    }
 	    break;
 	} else if (score >= -MATE) {
 	    if (!mate_announce) {
-		mate_announce = tree.iteration_depth >> 1;
+		mate_announce = (score - MATE) >> 1;
 		fprintf (stdout, "tellall Mate in %d! :->\n",
 			 mate_announce);
 		fprintf (stdout, "tellothers");
@@ -207,29 +207,33 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 
 #define ASPIRATION_WINDOW 1
 
+	if (score > MATE && score < -MATE) {
 #if ASPIRATION_WINDOW
-	if (score <= alpha) {
-	    alpha -= MIN_EVAL_DIFF;
+	    if (score <= alpha) {
+		alpha = score - MIN_EVAL_DIFF;
 #if DEBUG_BRAIN
-	fprintf (stderr, "\
+		fprintf (stderr, "\
 Re-searching (failed low) best of %d moves in position (material %d) with depth %d [%d, %d]\n",
-		 num_moves, tree.pos.material, depth, alpha, beta);
+			 num_moves, tree.pos.material, depth, alpha, beta);
 #endif
-	    --depth;
-	    continue;
-	} else if (score >= beta) {
-	    beta += MIN_EVAL_DIFF;
+		--depth;
+		print_fail_low (&tree, score, 0);
+		continue;
+	    } else if (score >= beta) {
+		beta = score + MIN_EVAL_DIFF;
 #if DEBUG_BRAIN
-	fprintf (stderr, "\
+		fprintf (stderr, "\
 Re-searching (failed low) best of %d moves in position (material %d) with depth %d [%d, %d]\n",
-		 num_moves, tree.pos.material, depth, alpha, beta);
+			 num_moves, tree.pos.material, depth, alpha, beta);
 #endif
-	    --depth;
-	    continue;
+		--depth;
+		print_fail_high (&tree, score, 0);
+		continue;
+	    }
+	    
+	    alpha = score - MIN_EVAL_DIFF;
+	    beta = score + MIN_EVAL_DIFF;
 	}
-
-	alpha = score - MIN_EVAL_DIFF;
-	beta = score + MIN_EVAL_DIFF;
 #endif
 
 	the_score = score;
@@ -352,10 +356,8 @@ store_killer (tree, move, depth, ply)
     if (chi_move_material (move))
 	return;
 
-    // FIXME: Maybe better to store depth * ply here? This will
-    // return results in favor of closer searches.
-    history[(move & 0xfff) + (chi_on_move (&tree->pos) << 6)] =
-	depth * depth;
+    history[(move & 0xfff) + (chi_on_move (&tree->pos) << 6)] +=
+	depth * tree->pos.half_moves;
 
     if (tree->bonny[ply] != move) {
 	tree->clyde[ply] = tree->bonny[ply];

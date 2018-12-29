@@ -146,7 +146,7 @@ quiescence (tree, ply, alpha, beta)
 	    continue;
 	}
 
-	if (chi_illegal_move (pos, *mv))
+	if (chi_illegal_move (pos, *mv, 0))
 	    continue;
 
 	tree->signatures[ply + 1] = 

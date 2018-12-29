@@ -24,17 +24,13 @@
 #include <libchi.h>
 
 int
-chi_illegal_move (pos, move)
+chi_illegal_move (pos, move, ext_check)
      chi_pos* pos;
      chi_move move;
+     int ext_check;
 {
     chi_pos tmp_pos;
-    chi_move moves[CHI_MAX_MOVES];
-    chi_move* mv = moves;
-    chi_move* mv_ptr;
     int errnum;
-    chi_piece_t attacker = chi_move_attacker (move);
-    chi_piece_t victim = chi_move_victim (move);
 
     if (!pos)
 	return CHI_ERR_YOUR_FAULT;
@@ -43,63 +39,71 @@ chi_illegal_move (pos, move)
     // moves.  Generated moves and pv moves will never fail this test!
     // A possible solution would be an extra argument that triggers 
     // the extended checking.
-    switch (attacker) {
-	case pawn:
-	    if (victim || chi_move_promote (move)) {
-		mv = chi_generate_captures (pos, moves);
-	    } else {
-		mv = chi_generate_pawn_double_steps (pos, moves);
-		mv = chi_generate_pawn_single_steps (pos, mv);
-	    }
-	    break;
-	case knight:
-	    if (victim) {
-		mv = chi_generate_captures (pos, moves);
-	    } else {
-		mv = chi_generate_knight_moves (pos, moves);
-	    }
-	    break;
-	case bishop:
-	    if (victim) {
-		mv = chi_generate_captures (pos, moves);
-	    } else {
-		mv = chi_generate_bishop_moves (pos, moves);
-	    }
-	    break;
-	case rook:
-	    if (victim) {
-		mv = chi_generate_captures (pos, moves);
-	    } else {
-		mv = chi_generate_rook_moves (pos, moves);
-	    }
-	    break;
-	case queen:
-	    if (victim) {
-		mv = chi_generate_captures (pos, moves);
-	    } else {
-		mv = chi_generate_bishop_moves (pos, moves);
-		mv = chi_generate_rook_moves (pos, mv);
-	    }
-	    break;
-	case king:
-	    if (victim) {
-		mv = chi_generate_captures (pos, moves);
-	    } else {
-		mv = chi_generate_king_moves (pos, moves);
-		mv = chi_generate_king_castling_moves (pos, mv);
-	    }
-	    break;
-	default:
+    if (ext_check) {
+	chi_move moves[CHI_MAX_MOVES];
+	chi_move* mv = moves;
+	chi_move* mv_ptr;
+	chi_piece_t attacker = chi_move_attacker (move);
+	chi_piece_t victim = chi_move_victim (move);
+
+	switch (attacker) {
+	    case pawn:
+		if (victim || chi_move_promote (move)) {
+		    mv = chi_generate_captures (pos, moves);
+		} else {
+		    mv = chi_generate_pawn_double_steps (pos, moves);
+		    mv = chi_generate_pawn_single_steps (pos, mv);
+		}
+		break;
+	    case knight:
+		if (victim) {
+		    mv = chi_generate_captures (pos, moves);
+		} else {
+		    mv = chi_generate_knight_moves (pos, moves);
+		}
+		break;
+	    case bishop:
+		if (victim) {
+		    mv = chi_generate_captures (pos, moves);
+		} else {
+		    mv = chi_generate_bishop_moves (pos, moves);
+		}
+		break;
+	    case rook:
+		if (victim) {
+		    mv = chi_generate_captures (pos, moves);
+		} else {
+		    mv = chi_generate_rook_moves (pos, moves);
+		}
+		break;
+	    case queen:
+		if (victim) {
+		    mv = chi_generate_captures (pos, moves);
+		} else {
+		    mv = chi_generate_bishop_moves (pos, moves);
+		    mv = chi_generate_rook_moves (pos, mv);
+		}
+		break;
+	    case king:
+		if (victim) {
+		    mv = chi_generate_captures (pos, moves);
+		} else {
+		    mv = chi_generate_king_moves (pos, moves);
+		    mv = chi_generate_king_castling_moves (pos, mv);
+		}
+		break;
+	    default:
+		return CHI_ERR_ILLEGAL_MOVE;
+	}
+	
+	for (mv_ptr = moves; mv_ptr < mv; ++mv_ptr) {
+	    if (*mv_ptr == move)
+		break;
+	}
+
+	if (*mv_ptr != move)
 	    return CHI_ERR_ILLEGAL_MOVE;
     }
-
-    for (mv_ptr = moves; mv_ptr < mv; ++mv_ptr) {
-	if (*mv_ptr == move)
-	    break;
-    }
-
-    if (*mv_ptr != move)
-	return CHI_ERR_ILLEGAL_MOVE;
 
     tmp_pos = *pos;
 
@@ -111,12 +115,12 @@ chi_illegal_move (pos, move)
 	    int tmp_to = (3 + to) >> 1;
 	    
 	    if (chi_check_check (pos))
-		return 1;
+		return CHI_ERR_ILLEGAL_MOVE;
 	    
 	    chi_move_set_to (move, tmp_to);
 	    chi_make_move (&tmp_pos, move);
 	    if (chi_check_check (&tmp_pos))
-		return 1;
+		return CHI_ERR_ILLEGAL_MOVE;
 	    tmp_pos = *pos;
 	    chi_move_set_to (move, to);
 	}
@@ -128,12 +132,12 @@ chi_illegal_move (pos, move)
 	    int tmp_to = (3 + to) >> 1;
 	    
 	    if (chi_check_check (pos))
-		return 1;
+		return CHI_ERR_ILLEGAL_MOVE;
 	    
 	    chi_move_set_to (move, tmp_to);
 	    chi_make_move (&tmp_pos, move);
 	    if (chi_check_check (&tmp_pos))
-		return 1;
+		return CHI_ERR_ILLEGAL_MOVE;
 	    tmp_pos = *pos;
 	    chi_move_set_to (move, to);
 	}

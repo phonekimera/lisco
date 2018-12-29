@@ -175,17 +175,19 @@ extern int quiescence PARAMS ((TREE* tree, int ply,
 
 extern void print_pv PARAMS ((TREE* tree, int score, 
 			      int whisper, int ply));
+extern void print_fail_high PARAMS ((TREE* tree, int score, int whisper));
+extern void print_fail_low PARAMS ((TREE* tree, int score, int whisper));
 
 extern void init_tt_hashs PARAMS ((unsigned long int memuse));
 extern void clear_tt_hashs PARAMS ((void));
 
-extern int store_tt_entry PARAMS ((TREE* tree,
+extern int store_tt_entry PARAMS ((chi_pos* pos,
 				   bitv64 signature, chi_move move, int depth,
 				    int score, int flags));
-extern int probe_tt PARAMS ((TREE* tree, bitv64 signature, 
+extern int probe_tt PARAMS ((chi_pos* pos, bitv64 signature, 
 			     int depth, int* alpha,
 			     int* beta));
-extern chi_move best_tt_move PARAMS ((TREE* tree, bitv64 signature));
+extern chi_move best_tt_move PARAMS ((chi_pos* pos, bitv64 signature));
 
 extern void update_castling_state PARAMS ((TREE* tree, chi_move move, int ply));
 extern void store_killer PARAMS ((TREE* tree, chi_move move, 
