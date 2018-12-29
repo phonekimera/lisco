@@ -209,11 +209,21 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 
 #if ASPIRATION_WINDOW
 	if (score <= alpha) {
-	    alpha = score - MIN_EVAL_DIFF;
+	    alpha -= MIN_EVAL_DIFF;
+#if DEBUG_BRAIN
+	fprintf (stderr, "\
+Re-searching (failed low) best of %d moves in position (material %d) with depth %d [%d, %d]\n",
+		 num_moves, tree.pos.material, depth, alpha, beta);
+#endif
 	    --depth;
 	    continue;
 	} else if (score >= beta) {
-	    beta = score + MIN_EVAL_DIFF;
+	    beta += MIN_EVAL_DIFF;
+#if DEBUG_BRAIN
+	fprintf (stderr, "\
+Re-searching (failed low) best of %d moves in position (material %d) with depth %d [%d, %d]\n",
+		 num_moves, tree.pos.material, depth, alpha, beta);
+#endif
 	    --depth;
 	    continue;
 	}
@@ -223,6 +233,9 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 #endif
 
 	the_score = score;
+
+	if (tree.iteration_depth > tree.pv_printed)
+	    print_pv (&tree, the_score, 0, 0);
 
 	/* Do not go any deeper, if we have already used up more than
 	   2/3 of our time.  */
@@ -239,7 +252,7 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 
     if (1) {
 	printf ("  Nodes searched: %ld (quiescence: %ld [%f%%])\n", 
-		tree.nodes, tree.qnodes, (float) tree.qnodes / ((float) tree.nodes + 1));
+		tree.nodes, tree.qnodes, 100 * (float) tree.qnodes / ((float) tree.nodes + 1));
 	printf ("  Deepest search: %d\n", tree.max_ply);
 	printf ("  Refuted quiescences: %ld\n", tree.refuted_quiescences);
 	printf ("  Score: %#.3g\n", chi_value2pawns (the_score));
@@ -325,17 +338,34 @@ update_castling_state (tree, move, ply)
     tree->castling_states[ply + 1] = castling_state;
 }
 
+unsigned int history[8192];
+
 // FIXME: Should be inlined.
 void
-store_killer (tree, move, ply)
+store_killer (tree, move, depth, ply)
      TREE* tree;
      chi_move move;
+     int depth;
      int ply;
 {
+    /* Moves that change the material balance will always be tried first.  */
+    if (chi_move_material (move))
+	return;
+
+    // FIXME: Maybe better to store depth * ply here? This will
+    // return results in favor of closer searches.
+    history[(move & 0xfff) + (chi_on_move (&tree->pos) << 6)] =
+	depth * depth;
+
     if (tree->bonny[ply] != move) {
 	tree->clyde[ply] = tree->bonny[ply];
 	tree->bonny[ply] = move;
     }
+}
+
+void init_killers ()
+{
+    memset (history, 0, sizeof history);
 }
 
 #if DEBUG_BRAIN

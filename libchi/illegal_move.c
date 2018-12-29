@@ -29,7 +29,12 @@ chi_illegal_move (pos, move)
      chi_move move;
 {
     chi_pos tmp_pos;
+    chi_move moves[CHI_MAX_MOVES];
+    chi_move* mv = moves;
+    chi_move* mv_ptr;
     int errnum;
+    chi_piece_t attacker = chi_move_attacker (move);
+    chi_piece_t victim = chi_move_victim (move);
 
     if (!pos)
 	return CHI_ERR_YOUR_FAULT;
@@ -38,171 +43,63 @@ chi_illegal_move (pos, move)
     // moves.  Generated moves and pv moves will never fail this test!
     // A possible solution would be an extra argument that triggers 
     // the extended checking.
-    if (chi_on_move (pos) == chi_white) {
-	bitv64 from_mask = ((bitv64) 1) << chi_move_from (move);
-	chi_piece_t attacker = chi_move_attacker (move);
-	bitv64 to_mask = ((bitv64) 1) << chi_move_to (move);
-	chi_piece_t victim = chi_move_victim (move);
-
-	if (!(pos->w_pieces & from_mask))
-	    return CHI_ERR_EMPTY_SQUARE;
-	else {
-	    switch (attacker) {
-		case pawn:
-		    if (!(pos->w_pawns & from_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case knight:
-		    if (!(pos->w_knights & from_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case bishop:
-		    if (!(pos->w_bishops & ~pos->w_rooks & from_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case rook:
-		    if (!(pos->w_rooks & ~pos->w_bishops & from_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case queen:
-		    if (!(pos->w_rooks & pos->w_bishops & from_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case king:
-		    if (!(pos->w_kings & from_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		default:
-		    return CHI_ERR_ILLEGAL_MOVE;
-		    break;
+    switch (attacker) {
+	case pawn:
+	    if (victim || chi_move_promote (move)) {
+		mv = chi_generate_captures (pos, moves);
+	    } else {
+		mv = chi_generate_pawn_double_steps (pos, moves);
+		mv = chi_generate_pawn_single_steps (pos, mv);
 	    }
-	}
-
-	if (victim) {
-	    switch (victim) {
-		case pawn:
-		    if (!(pos->b_pawns & to_mask)) {
-			if (chi_move_is_ep (move)) {
-			    int ep_file = 7 - (chi_move_from (move) % 8);
-			    
-			    if (!(chi_ep (pos)) ||
-				chi_ep_file (pos) != ep_file)
-				return CHI_ERR_ILLEGAL_MOVE;
-
-			    to_mask >>= 8;
-			    
-			    if (!(pos->b_pawns & to_mask))
-				return CHI_ERR_ILLEGAL_MOVE;
-			}
-			return CHI_ERR_ILLEGAL_MOVE;
-		    }
-		    break;
-		case knight:
-		    if (!(pos->b_knights & to_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case bishop:
-		    if (!(pos->b_bishops & ~pos->b_rooks & to_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case rook:
-		    if (!(pos->b_rooks & ~pos->b_bishops & to_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case queen:
-		    if (!(pos->b_rooks & pos->b_bishops & to_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		default:
-		    return CHI_ERR_ILLEGAL_MOVE;
-		    break;
+	    break;
+	case knight:
+	    if (victim) {
+		mv = chi_generate_captures (pos, moves);
+	    } else {
+		mv = chi_generate_knight_moves (pos, moves);
 	    }
-	} else if ((pos->w_pieces & to_mask) || (pos->b_kings & to_mask)){
+	    break;
+	case bishop:
+	    if (victim) {
+		mv = chi_generate_captures (pos, moves);
+	    } else {
+		mv = chi_generate_bishop_moves (pos, moves);
+	    }
+	    break;
+	case rook:
+	    if (victim) {
+		mv = chi_generate_captures (pos, moves);
+	    } else {
+		mv = chi_generate_rook_moves (pos, moves);
+	    }
+	    break;
+	case queen:
+	    if (victim) {
+		mv = chi_generate_captures (pos, moves);
+	    } else {
+		mv = chi_generate_bishop_moves (pos, moves);
+		mv = chi_generate_rook_moves (pos, mv);
+	    }
+	    break;
+	case king:
+	    if (victim) {
+		mv = chi_generate_captures (pos, moves);
+	    } else {
+		mv = chi_generate_king_moves (pos, moves);
+		mv = chi_generate_king_castling_moves (pos, mv);
+	    }
+	    break;
+	default:
 	    return CHI_ERR_ILLEGAL_MOVE;
-	}
-    } else {
-	bitv64 from_mask = ((bitv64) 1) << chi_move_from (move);
-	chi_piece_t attacker = chi_move_attacker (move);
-	bitv64 to_mask = ((bitv64) 1) << chi_move_to (move);
-	chi_piece_t victim = chi_move_victim (move);
-
-	if (!(pos->b_pieces & from_mask))
-	    return CHI_ERR_EMPTY_SQUARE;
-	else {
-	    switch (attacker) {
-		case pawn:
-		    if (!(pos->b_pawns & from_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case knight:
-		    if (!(pos->b_knights & from_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case bishop:
-		    if (!(pos->b_bishops & ~pos->b_rooks & from_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case rook:
-		    if (!(pos->b_rooks & ~pos->b_bishops & from_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case queen:
-		    if (!(pos->b_rooks & pos->b_bishops & from_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case king:
-		    if (!(pos->b_kings & from_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		default:
-		    return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-	    }
-	}
-
-	if (victim) {
-	    switch (victim) {
-		case pawn:
-		    if (!(pos->w_pawns & to_mask)) {
-			if (chi_move_is_ep (move)) {
-			    int ep_file = 7 - (chi_move_from (move) % 8);
-			    
-			    if (!(chi_ep (pos)) ||
-				chi_ep_file (pos) != ep_file)
-				return CHI_ERR_ILLEGAL_MOVE;
-
-			    to_mask <<= 8;
-			    
-			    if (!(pos->w_pawns & to_mask))
-				return CHI_ERR_ILLEGAL_MOVE;
-			}
-			return CHI_ERR_ILLEGAL_MOVE;
-		    }
-		    break;
-		case knight:
-		    if (!(pos->w_knights & to_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case bishop:
-		    if (!(pos->w_bishops & ~pos->w_rooks & to_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case rook:
-		    if (!(pos->w_rooks & ~pos->w_bishops & to_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		case queen:
-		    if (!(pos->w_rooks & pos->w_bishops & to_mask))
-			return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-		default:
-		    return CHI_ERR_ILLEGAL_MOVE;
-		    break;
-	    }
-	} else if ((pos->b_pieces & to_mask) || (pos->w_kings & to_mask)) {
-	    return CHI_ERR_ILLEGAL_MOVE;
-	}
     }
+
+    for (mv_ptr = moves; mv_ptr < mv; ++mv_ptr) {
+	if (*mv_ptr == move)
+	    break;
+    }
+
+    if (*mv_ptr != move)
+	return CHI_ERR_ILLEGAL_MOVE;
 
     tmp_pos = *pos;
 

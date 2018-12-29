@@ -227,7 +227,7 @@ typedef struct {
    with 0xf0000000.
  */
 
-typedef int chi_move;
+typedef unsigned int chi_move;
 
 /* Macros that extract a particular value of interest from a move.
    En-passant is treat as a flag rather than a value and therefore

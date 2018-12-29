@@ -72,26 +72,8 @@ enum move_state {
     move_state_generate_non_captures = move_state_clyde + 1,
 #define move_state_generate_non_captures (move_state_clyde + 1)
 
-    move_state_pawn_double_steps = move_state_generate_non_captures + 1,
-#define move_state_pawn_double_steps (move_state_generate_non_captures + 1)
-
-    move_state_pawn_single_steps = move_state_pawn_double_steps + 1,
-#define move_state_pawn_single_steps (move_state_pawn_double_steps + 1)
-
-    move_state_knight_moves = move_state_pawn_single_steps + 1,
-#define move_state_knight_moves (move_state_pawn_single_steps + 1)
-
-    move_state_bishop_moves = move_state_knight_moves + 1,
-#define move_state_bishop_moves (move_state_knight_moves + 1)
-
-    move_state_rook_moves = move_state_bishop_moves + 1,
-#define move_state_rook_moves (move_state_bishop_moves + 1)
-
-    move_state_king_moves = move_state_rook_moves + 1,
-#define move_state_king_moves (move_state_rook_moves + 1)
-
-    move_state_king_castlings = move_state_king_moves + 1,
-#define move_state_king_castlings (move_state_king_moves + 1)
+    move_state_non_captures = move_state_generate_non_captures + 1,
+#define move_state_non_captures (move_state_generate_non_captures + 1)
 };
 
 typedef struct tree {
@@ -100,18 +82,20 @@ typedef struct tree {
     chi_pos pos;
 
     PATH pv[MAX_PLY];
+    PATH cv;
 
     enum move_state move_states[MAX_PLY];
     chi_move* move_stack[MAX_PLY];
     chi_move* move_ptr[MAX_PLY];
-    int moves_left[MAX_PLY];
-    int cached_moves[MAX_PLY];
     int in_check[MAX_PLY];
+    int moves_left[MAX_PLY];
 
     /* Killer moves.  Naming them murder_1st_degree and murder_2nd_degree
        would sound too morbid.  */
     chi_move bonny[MAX_PLY];
     chi_move clyde[MAX_PLY];
+
+    chi_move pv_move[MAX_PLY];
 
     unsigned long nodes;
     unsigned long qnodes;
@@ -152,6 +136,7 @@ typedef struct tree {
     int max_ply;
     int status;
     int iteration_depth;
+    int pv_printed;
 
     char castling_states[MAX_PLY + 1];
 } TREE;
@@ -160,6 +145,10 @@ typedef struct tree {
 #define HASH_EXACT 1
 #define HASH_ALPHA 2
 #define HASH_BETA  3
+
+extern unsigned int history[];
+#define history_lookup(tree, move) \
+    history[(move & 0xfff) + (chi_on_move (&tree->pos) << 6)]
 
 extern int think PARAMS ((chi_move* mv));
 extern int move_now PARAMS ((chi_move* mv));
@@ -199,6 +188,8 @@ extern int probe_tt PARAMS ((TREE* tree, bitv64 signature,
 extern chi_move best_tt_move PARAMS ((TREE* tree, bitv64 signature));
 
 extern void update_castling_state PARAMS ((TREE* tree, chi_move move, int ply));
-extern void store_killer PARAMS ((TREE* tree, chi_move move, int ply));
+extern void store_killer PARAMS ((TREE* tree, chi_move move, 
+				  int depth, int ply));
+extern void init_killers PARAMS ((void));
 
 #endif

@@ -41,6 +41,8 @@ print_pv (tree, score, whisper, ply)
     static char* buf = NULL;
     static unsigned int bufsize = 0;
 
+    tree->pv_printed = tree->iteration_depth;
+
     if (!whisper)
 	fprintf (stdout, "%3d %5d %7ld %8ld  ",
 		 tree->iteration_depth, chi_value2centipawns (score), 

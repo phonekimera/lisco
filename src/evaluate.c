@@ -163,6 +163,9 @@ evaluate (tree, ply, alpha, beta)
 {
     chi_pos* pos = &tree->pos;
     int score = 100 * pos->material;
+    int total_white_pieces, total_black_pieces;
+
+    ++tree->evals;
 
     if (tree->in_check[ply]) {
 	chi_move moves[CHI_MAX_MOVES];
@@ -176,8 +179,7 @@ evaluate (tree, ply, alpha, beta)
     if (pos->half_move_clock >= 100)
 	return DRAW;
 
-    ++tree->evals;
-    if ((abs (score - alpha) > CHI_VALUE_PAWN) ||
+    if ((abs (score - alpha) > CHI_VALUE_PAWN) &&
 	(abs (score - beta) > CHI_VALUE_PAWN)) {
 	++tree->lazy_one_pawn;
     } else {
@@ -190,6 +192,40 @@ evaluate (tree, ply, alpha, beta)
     }
 
     score += evaluate_mobility (tree);
+
+    total_white_pieces = popcount (pos->w_pieces);
+    total_black_pieces = popcount (pos->b_pieces);
+
+    if (total_black_pieces > 10 || 
+	((total_white_pieces + total_black_pieces) > 20)) {
+	int king_shift = 
+	    chi_bitv2shift (chi_clear_but_least_set (pos->w_kings));
+	bitv64 king_wall;
+	
+	for (king_wall = pos->w_pawns & ((bitv64) 0x7) << (king_shift + 7);
+	     king_wall;
+		 score += 2, king_wall &= king_wall - 1);
+	for (king_wall = pos->w_pieces & ((bitv64) 0x7) << (king_shift + 7);
+	     king_wall;
+	     score += 2, king_wall &= king_wall - 1);
+	
+	score -= white_king_heat[king_shift];
+    }
+    if (total_white_pieces > 10 || 
+	((total_white_pieces + total_black_pieces) > 20)) {
+	int king_shift = 
+	    chi_bitv2shift (chi_clear_but_least_set (pos->b_kings));
+	bitv64 king_wall;
+	
+	for (king_wall = pos->b_pawns & ((bitv64) 0x7) << (king_shift - 9);
+	     king_wall;
+	     score -= 2, king_wall &= king_wall - 1);
+	for (king_wall = pos->b_pieces & ((bitv64) 0x7) << (king_shift - 9);
+	     king_wall;
+	     score -= 2, king_wall &= king_wall - 1);
+	
+	score += black_king_heat[king_shift];
+    }
 
     if (chi_on_move (pos) == chi_white)
 	return score;
@@ -210,6 +246,7 @@ int evaluate_dev_white (tree, ply)
     bitv64 w_queens = pos->w_bishops & pos->w_rooks;
     int castling_state = tree->castling_states[ply];
 
+    // FIXME: We can precompute the relevant mask.
     while (w_pawns) {
 	unsigned int from = 
 	    chi_bitv2shift (chi_clear_but_least_set (w_pawns));
@@ -312,7 +349,6 @@ evaluate_mobility (tree)
     bitv64 occ_squares = pos->w_pieces | pos->b_pieces;
     bitv64 occ90_squares = pos->w_pieces90 | pos->b_pieces90;
     bitv64 empty_squares = ~occ_squares;
-    int total_white_pieces, total_black_pieces;
     register bitv64 piece_mask;
 
     /* Pawn mobility.  */
@@ -448,43 +484,6 @@ evaluate_mobility (tree)
 
 	for (; target_mask; --score, target_mask &= target_mask - 1);
 	piece_mask = chi_clear_least_set (piece_mask);
-    }
-
-    total_white_pieces = popcount (pos->w_pieces);
-    total_black_pieces = popcount (pos->b_pieces);
-
-    if (chi_on_move (pos) == chi_white) {
-	if (total_black_pieces > 10 || 
-	    ((total_white_pieces + total_black_pieces) > 20)) {
-	    int king_shift = 
-		chi_bitv2shift (chi_clear_but_least_set (piece_mask));
-	    bitv64 king_wall;
-
-	    for (king_wall = pos->w_pawns & ((bitv64) 0x7) << (king_shift + 7);
-		 king_wall;
-		 score += 2, king_wall &= king_wall - 1);
-	    for (king_wall = pos->w_pieces & ((bitv64) 0x7) << (king_shift + 7);
-		 king_wall;
-		 score += 2, king_wall &= king_wall - 1);
-	    
-	    score -= white_king_heat[king_shift];
-	}
-    } else {
-	if (total_white_pieces > 10 || 
-	    ((total_white_pieces + total_black_pieces) > 20)) {
-	    int king_shift = 
-		chi_bitv2shift (chi_clear_but_least_set (piece_mask));
-	    bitv64 king_wall;
-
-	    for (king_wall = pos->b_pawns & ((bitv64) 0x7) >> (king_shift - 9);
-		 king_wall;
-		 score -= 2, king_wall &= king_wall - 1);
-	    for (king_wall = pos->b_pieces & ((bitv64) 0x7) >> (king_shift - 9);
-		 king_wall;
-		 score -= 2, king_wall &= king_wall - 1);
-	    
-	    score += white_king_heat[king_shift];
-	}
     }
 
     return score;

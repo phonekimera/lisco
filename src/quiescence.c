@@ -41,8 +41,7 @@ quiescence (tree, ply, alpha, beta)
     chi_pos* pos = &tree->pos;
     int pv_seen = 0;
     int standing_pat;
-    chi_move best_move = 0;
-    int original_alpha = alpha;
+    int best_score;
     int material;
     int num_moves;
 
@@ -50,6 +49,8 @@ quiescence (tree, ply, alpha, beta)
     ++tree->qnodes;
 
     tree->pv[ply].length = 0;
+
+    tree->cv.moves[ply] = 0;
 
     /* Check for time control and user input.  */
     if (tree->nodes > 0x2000) {
@@ -73,53 +74,6 @@ quiescence (tree, ply, alpha, beta)
     if (ply > tree->max_ply)
         tree->max_ply = ply;
 
-    ++tree->qtt_probes;
-    /* Probe the quiescence transposition table.  */
-    switch (probe_tt (tree, tree->signatures[ply],
-		      0, &alpha, &beta)) {
-        case HASH_EXACT:
-            ++tree->qtt_hits;
-	    ++tree->qtt_exact_hits;
-	    if (alpha < beta) {
-		tree->pv[ply].moves[0] = best_tt_move (tree, 
-						       tree->signatures[ply]);
-		tree->pv[ply].length = 1;
-            }
-#if DEBUG_BRAIN
-	    indent_output (tree, ply);
-	    fprintf (stderr, "HX: result hashed");
-	    fprintf (stderr, " alpha: %d, beta: %d\n",
-		     chi_value2centipawns (alpha),
-		     chi_value2centipawns (beta));
-#endif
-	    return alpha;
-        case HASH_ALPHA:
-            ++tree->qtt_hits;
-            ++tree->qtt_alpha_hits;
-
-#if DEBUG_BRAIN
-	    indent_output (tree, ply);
-	    fprintf (stderr, "HA: result hashed");
-	    fprintf (stderr, " alpha: %d, beta: %d\n",
-		     chi_value2centipawns (alpha),
-		     chi_value2centipawns (beta));
-#endif
-
-            return alpha;
-        case HASH_BETA:
-            ++tree->qtt_hits;
-            ++tree->qtt_beta_hits;
-
-#if DEBUG_BRAIN
-	    indent_output (tree, ply);
-	    fprintf (stderr, "HB: result hashed");
-	    fprintf (stderr, " alpha: %d, beta: %d\n",
-		     chi_value2centipawns (alpha),
-		     chi_value2centipawns (beta));
-#endif
-            return beta;
-    }
-
 #if 0
     // FIXME: Maybe this has the opposite effect?!
     tree->in_check[ply] = chi_check_check (pos);
@@ -127,10 +81,11 @@ quiescence (tree, ply, alpha, beta)
         return search (tree, 1, ply, alpha, beta, 1);
 #endif
 
-    standing_pat = evaluate (tree, ply, alpha, beta);
+    best_score = standing_pat = evaluate (tree, ply, alpha, beta);
 #if DEBUG_BRAIN
     indent_output (tree, ply);
-    fprintf (stderr, "SP: standing pat alpha: %d, beta: %d\n",
+    fprintf (stderr, "sp: standing pat score: %d (alpha: %d, beta: %d)\n",
+	     best_score,
              chi_value2centipawns (alpha),
              chi_value2centipawns (beta));
 #endif
@@ -138,7 +93,7 @@ quiescence (tree, ply, alpha, beta)
     if (standing_pat >= beta) {
 #if DEBUG_BRAIN
         indent_output (tree, ply);
-        fprintf (stderr, "FH: standing pat failed high with score %d\n",
+        fprintf (stderr, "fh: standing pat failed high with score %d\n",
                  chi_value2centipawns (standing_pat));
 #endif
         return standing_pat;
@@ -146,13 +101,13 @@ quiescence (tree, ply, alpha, beta)
         alpha = standing_pat;
 #if DEBUG_BRAIN
         indent_output (tree, ply);
-        fprintf (stderr, "PV: standing pat score: %d\n",
+        fprintf (stderr, "pv: standing pat score: %d\n",
                  chi_value2centipawns (standing_pat));
 #endif
     } else {
 #if DEBUG_BRAIN
         indent_output (tree, ply);
-        fprintf (stderr, "FL: standing pat failed low with score: %d\n",
+        fprintf (stderr, "fl: standing pat failed low with score: %d\n",
                  chi_value2centipawns (standing_pat));
 #endif
     }
@@ -165,19 +120,28 @@ quiescence (tree, ply, alpha, beta)
 
     num_moves = 0;
 
+    tree->cv.moves[ply] = 0;
+    tree->cv.length = ply + 1;
+
     while (NULL != (mv = next_move (tree, ply, 0))) {
 	int score;
 	
 	/* Refute moves that will not bring the material balance close
 	   to alpha.  */
 	int min_material = alpha - material - 100;
+	int this_material = 100 * chi_move_material (*mv);
 
-	// fprintf (stderr, "alpha: %d, material: %d, min_material: %d, move material: %d\n", alpha, material, min_material, chi_move_material (*mv));
+#if 0
+	fprintf (stderr, "move: %s-%s, alpha: %d, material: %d, min_material: %d, move material: %d\n", 
+		 chi_shift2label (chi_move_from (*mv)),
+		 chi_shift2label (chi_move_to (*mv)),
+		 alpha, material, min_material, chi_move_material (*mv));
+#endif
 
 	if (!(chi_move_victim (*mv)))
 	    continue;
 
-	if (100 * chi_move_material (*mv) < min_material) {
+	if (this_material < min_material) {
 	    ++tree->refuted_quiescences;
 	    continue;
 	}
@@ -191,11 +155,12 @@ quiescence (tree, ply, alpha, beta)
 	update_castling_state (tree, *mv, ply);
 
 	++num_moves;
+	tree->cv.moves[ply] = *mv;
 
 #if DEBUG_BRAIN
         chi_on_move (pos) = !chi_on_move (pos);
         indent_output (tree, ply);
-        fprintf (stderr, "ST: ");
+        fprintf (stderr, "st: ");
         my_print_move (*mv);
         fprintf (stderr, " alpha: %d, beta: %d\n",
                  chi_value2centipawns (alpha),
@@ -219,7 +184,7 @@ quiescence (tree, ply, alpha, beta)
 	if (score >= beta) {
 #if DEBUG_BRAIN
             indent_output (tree, ply);
-            fprintf (stderr, "FH: ");
+            fprintf (stderr, "fh: ");
             my_print_move (*mv);
             fprintf (stderr, " failed high with score %d\n",
                      chi_value2centipawns (score));
@@ -227,30 +192,30 @@ quiescence (tree, ply, alpha, beta)
 	    ++tree->qfh;
 	    if (num_moves == 1)
 		++tree->qffh;
-	    tree->tt_collisions += store_tt_entry (tree,
-						   tree->signatures[ply], 
-						   *mv, 0, score, 
-						   HASH_BETA);
 	    return score;
 	} else if (score > alpha) {
 	    pv_seen = 1;
 	    alpha = score;
-	    tree->pv[ply].moves[0] = best_move = *mv;
+	    if (score > best_score)
+		best_score = score;
+	    tree->pv[ply].moves[0] = *mv;
 	    memcpy (tree->pv[ply].moves + 1, tree->pv[ply + 1].moves,
 		    tree->pv[ply + 1].length * sizeof *mv);
 	    tree->pv[ply].length = tree->pv[ply + 1].length + 1;
 
 #if DEBUG_BRAIN
             indent_output (tree, ply);
-            fprintf (stderr, "PV: ");
+            fprintf (stderr, "pv: ");
             my_print_move (*mv);
             fprintf (stderr, " new pv with score: %d\n",
                      chi_value2centipawns (score));
 #endif
 	} else {
+	    if (score > best_score)
+		best_score = score;
 #if DEBUG_BRAIN
             indent_output (tree, ply);
-            fprintf (stderr, "FL: ");
+            fprintf (stderr, "fl: ");
             my_print_move (*mv);
             fprintf (stderr, " failed low with score: %d\n",
                      chi_value2centipawns (score));
@@ -260,12 +225,12 @@ quiescence (tree, ply, alpha, beta)
 
     }
 
-    tree->tt_collisions += store_tt_entry (tree, 
-					   tree->signatures[ply], best_move, 
-					   0, alpha,
-					   original_alpha == alpha ? HASH_ALPHA : HASH_EXACT);
-
-    return alpha;
+#if DEBUG_BRAIN
+    indent_output (tree, ply);
+    fprintf (stderr, "returning best_score: %d (alpha: %d)\n", 
+	     best_score, alpha);
+#endif
+    return best_score;
 }
 
 /*

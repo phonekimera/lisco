@@ -136,6 +136,14 @@ store_tt_entry (tree, signature, move, depth, score, flags)
     int retval = old_entry->signature && old_entry->signature != signature ? 
 	1 : 0;
 
+#if DEBUG_BRAIN
+    fprintf (stderr, "Storing score %d with move ", score);
+    my_print_move (move);
+    fprintf (stderr, " at depth %d (%s)\n", depth, flags == HASH_EXACT ? 
+	"HASH_EXACT" : flags == HASH_ALPHA ? "HASH_ALPHA" :
+	flags == HASH_BETA ? "HASH_BETA" : "unknown flag");
+#endif
+
     /* Collision or not yet seen.  */
     if (!old_entry->signature || old_entry->signature != signature) {
 	old_entry->signature = signature;
