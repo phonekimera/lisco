@@ -38,9 +38,7 @@
 
 #define EVAL_BLOCKED_C_PAWN (6)
 #define EVAL_BLOCKED_CENTER_PAWN (12)
-
-/* Doubled compared to crafty.  */
-#define EVAL_PREMATURE_QUEEN_MOVE (24)
+#define EVAL_PREMATURE_QUEEN_MOVE (12)
 
 #define EVAL_NOT_CASTLED (24)
 #define EVAL_LOST_CASTLE (10)
@@ -110,25 +108,47 @@ static const int square_values[64] = {
 };
 
 static const int white_outposts[64] = {
-    0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  4,  4,  0,  0,  0,
-    0,  0,  8, 10, 10,  8,  0,  0,
-    0,  0,  8, 12, 12,  8,  0,  0,
-    0,  0,  4,  8,  8,  4,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  4,  4,  0,  0,  0,
+     0,  0,  8, 10, 10,  8,  0,  0,
+     0,  0,  8, 12, 12,  8,  0,  0,
+     0,  0,  4,  8,  8,  4,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,
 };
 
 static const int black_outposts[64] = {
-    0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  4,  8,  8,  4,  0,  0,
-    0,  0,  8, 12, 12,  8,  0,  0,
-    0,  0,  8, 10, 10,  8,  0,  0,
-    0,  0,  0,  4,  4,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  4,  8,  8,  4,  0,  0,
+     0,  0,  8, 12, 12,  8,  0,  0,
+     0,  0,  8, 10, 10,  8,  0,  0,
+     0,  0,  0,  4,  4,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,
+};
+
+static const int white_pawn_advances[64] = {
+       0,   0,   0,   0,   0,   0,   0,   0,
+       0,   0,   0,   0,   0,   0,   0,   0,
+      12,  12,  12,  12,  12,  12,  12,  12,
+      24,  24,  24,  24,  24,  24,  24,  24,
+      48,  48,  48,  48,  48,  48,  48,  48,
+     100, 100, 100, 100, 100, 100, 100, 100,
+     200, 200, 200, 200, 200, 200, 200, 200,
+       0,   0,   0,   0,   0,   0,   0,   0,
+};
+
+static const int black_pawn_advances[64] = {
+       0,   0,   0,   0,   0,   0,   0,   0,
+     200, 200, 200, 200, 200, 200, 200, 200,
+     100, 100, 100, 100, 100, 100, 100, 100,
+      48,  48,  48,  48,  48,  48,  48,  48,
+      24,  24,  24,  24,  24,  24,  24,  24,
+      12,  12,  12,  12,  12,  12,  12,  12,
+       0,   0,   0,   0,   0,   0,   0,   0,
+       0,   0,   0,   0,   0,   0,   0,   0,
 };
 
 int white_king_heat[64] = { 
@@ -181,6 +201,25 @@ evaluate (tree, ply, alpha, beta)
     total_white_pieces = popcount (pos->w_pieces);
     total_black_pieces = popcount (pos->b_pieces);
 
+    if (!pos->w_pawns && !pos->b_pawns) {
+	/* Check for draw by lack of material.  */
+	if (!pos->w_rooks && !pos->b_rooks && 
+	    !pos->w_bishops && !pos->b_bishops) {
+	    return DRAW;
+	} else if (!pos->w_rooks && !pos->b_rooks) {
+	    /* Only bishops and knights left.  We report two knights
+	       as not sufficient.  */
+	    int white_bishops = popcount (pos->w_bishops);
+	    int black_bishops = popcount (pos->b_bishops);
+	    int white_knights = popcount (pos->w_knights);
+	    int black_knights = popcount (pos->b_knights);
+
+	    if ((white_bishops < 2 && !white_knights) ||
+		(black_bishops < 2 && !black_knights))
+		return DRAW;
+	}
+    }
+
     if ((abs (score - alpha) > MAX_POS_SCORE) &&
 	(abs (score - beta) > MAX_POS_SCORE)) {
 	++tree->lazy_one_pawn;
@@ -229,6 +268,93 @@ evaluate (tree, ply, alpha, beta)
 	     score -= 2, king_wall &= king_wall - 1);
 	
 	score += black_king_heat[king_shift];
+    }
+
+    if (total_white_pieces + total_black_pieces <= 20) {
+	/* Preliminary pawn evaluation.  */
+	bitv64 piece_mask = pos->w_pawns;
+	while (piece_mask) {
+	    int square = chi_bitv2shift (chi_clear_but_least_set (piece_mask));
+	    int rank = square >> 3;
+	    int file = square & 0x7;  /* Really file - 7.  */
+	    bitv64 front = (((bitv64) 1) << ((rank + 1) << 3)) - 1;
+	    bitv64 rear = (((bitv64) 1) << ((rank - 1) << 3)) - 1;
+	    bitv64 ahead_mask = front & (CHI_H_MASK << file);
+	    bitv64 rear_mask = rear & (CHI_H_MASK << file);
+	    bitv64 left_mask = (bitv64) 0;
+	    bitv64 right_mask = (bitv64) 0;
+	    int pawn_score = white_pawn_advances[square];
+	    bitv64 rel_mask;
+
+	    if (file > 0)
+		left_mask = CHI_H_MASK << (file + 1);
+	    if (file < 7)
+		right_mask = CHI_H_MASK << (file - 1);
+
+	    /* Penalty for foes ahead.  */
+	    for (rel_mask = ahead_mask & pos->b_pawns; 
+		 rel_mask;
+		 rel_mask = chi_clear_least_set (rel_mask), 
+		     pawn_score -= (pawn_score >> 1));
+	    /* Penalty for foes left or right ahead.  */
+	    for (rel_mask = ahead_mask & pos->b_pawns & (left_mask | right_mask);
+		 rel_mask;
+		 rel_mask = chi_clear_least_set (rel_mask),
+		     pawn_score -= (pawn_score >> 2));
+	    /* Bonus for friends left and right behind.  */
+	    for (rel_mask = rear_mask & pos->w_pawns & (left_mask | right_mask);
+		 rel_mask;
+		 rel_mask = chi_clear_least_set (rel_mask),
+		     pawn_score += (pawn_score >> 2));
+
+	    /* Never give a penalty for bad pawns.  */
+	    if (score > 0)
+		score += pawn_score;
+
+	    piece_mask = chi_clear_least_set (piece_mask);
+	}
+
+	piece_mask = pos->b_pawns;
+	while (piece_mask) {
+	    int square = chi_bitv2shift (chi_clear_but_least_set (piece_mask));
+	    int rank = square >> 3;
+	    int file = square & 0x7;  /* Really file - 7.  */
+	    bitv64 rear = (((bitv64) 1) << ((rank + 1) << 3)) - 1;
+	    bitv64 front = (((bitv64) 1) << ((rank - 1) << 3)) - 1;
+	    bitv64 ahead_mask = front & (CHI_H_MASK << file);
+	    bitv64 rear_mask = rear & (CHI_H_MASK << file);
+	    bitv64 left_mask = (bitv64) 0;
+	    bitv64 right_mask = (bitv64) 0;
+	    int pawn_score = black_pawn_advances[square];
+	    bitv64 rel_mask;
+
+	    if (file > 0)
+		left_mask = CHI_H_MASK << (file + 1);
+	    if (file < 7)
+		right_mask = CHI_H_MASK << (file - 1);
+
+	    /* Penalty for foes ahead.  */
+	    for (rel_mask = ahead_mask & pos->w_pawns; 
+		 rel_mask;
+		 rel_mask = chi_clear_least_set (rel_mask), 
+		     pawn_score -= (pawn_score >> 1));
+	    /* Penalty for foes left or right ahead.  */
+	    for (rel_mask = ahead_mask & pos->w_pawns & (left_mask | right_mask);
+		 rel_mask;
+		 rel_mask = chi_clear_least_set (rel_mask),
+		     pawn_score -= (pawn_score >> 2));
+	    /* Bonus for friends left and right behind.  */
+	    for (rel_mask = rear_mask & pos->b_pawns & (left_mask | right_mask);
+		 rel_mask;
+		 rel_mask = chi_clear_least_set (rel_mask),
+		     pawn_score += (pawn_score >> 2));
+
+	    /* Never give a penalty for bad pawns.  */
+	    if (score > 0)
+		score -= pawn_score;
+
+	    piece_mask = chi_clear_least_set (piece_mask);
+	}
     }
 
     if (chi_on_move (pos) == chi_white)

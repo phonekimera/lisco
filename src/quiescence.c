@@ -36,7 +36,7 @@ quiescence (tree, ply, alpha, beta)
      int beta;
 { 
     chi_move moves[CHI_MAX_MOVES];
-    chi_move* mv;
+    chi_move move;
     chi_pos saved_pos;
     chi_pos* pos = &tree->pos;
     int pv_seen = 0;
@@ -128,22 +128,22 @@ quiescence (tree, ply, alpha, beta)
 
     tree->cv.length = ply + 1;
 
-    while (NULL != (mv = next_move (tree, ply, 0))) {
+    while (0 != (move = next_move (tree, ply, 0))) {
 	int score;
 	
 	/* Refute moves that will not bring the material balance close
 	   to alpha.  */
 	int min_material = alpha - material - MAX_POS_SCORE;
-	int this_material = 100 * chi_move_material (*mv);
+	int this_material = 100 * chi_move_material (move);
 
-	if (!(chi_move_victim (*mv)) && !(chi_move_promote (*mv)))
+	if (!(chi_move_victim (move)) && !(chi_move_promote (move)))
 	    continue;
 
 #if DEBUG_BRAIN
 	fprintf (stderr, "move: %s-%s, alpha: %d, material: %d, min_material: %d, move material: %d\n", 
-		 chi_shift2label (chi_move_from (*mv)),
-		 chi_shift2label (chi_move_to (*mv)),
-		 alpha, material, min_material, 100 * chi_move_material (*mv));
+		 chi_shift2label (chi_move_from (move)),
+		 chi_shift2label (chi_move_to (move)),
+		 alpha, material, min_material, 100 * chi_move_material (move));
 #endif
 
 	if (this_material < min_material) {
@@ -151,23 +151,23 @@ quiescence (tree, ply, alpha, beta)
 	    continue;
 	}
 
-	if (chi_illegal_move (pos, *mv, 0))
+	if (chi_illegal_move (pos, move, 0))
 	    continue;
 
 	tree->signatures[ply + 1] = 
 	    chi_zk_update_signature (zk_handle, tree->signatures[ply],
-				     *mv, !chi_on_move (pos));
-	update_castling_state (tree, *mv, ply);
+				     move, !chi_on_move (pos));
+	update_castling_state (tree, move, ply);
 
 	++num_moves;
-	tree->cv.moves[ply] = *mv;
+	tree->cv.moves[ply] = move;
 	tree->in_check[ply + 1] = chi_check_check (pos);
 
 #if DEBUG_BRAIN
         chi_on_move (pos) = !chi_on_move (pos);
         indent_output (tree, ply);
         fprintf (stderr, "st: ");
-        my_print_move (*mv);
+        my_print_move (move);
         fprintf (stderr, " alpha: %d, beta: %d\n",
                  chi_value2centipawns (alpha),
                  chi_value2centipawns (beta));
@@ -187,63 +187,74 @@ quiescence (tree, ply, alpha, beta)
 	if (tree->status & EVENTMASK_ENGINE_STOP)
 	    return alpha;
 
-	if (score >= beta) {
-#if DEBUG_BRAIN
-            indent_output (tree, ply);
-            fprintf (stderr, "fh: ");
-            my_print_move (*mv);
-            fprintf (stderr, " failed high with score %d\n",
-                     chi_value2centipawns (score));
-#endif	    
-	    ++tree->qfh;
-	    if (num_moves == 1)
-		++tree->qffh;
-	    return score;
-	} else if (score > alpha) {
-	    pv_seen = 1;
-	    alpha = score;
-	    if (score > best_score) {
-		best_score = score;
-		best_move = *mv;
-	    }
-	    tree->pv[ply].moves[0] = *mv;
-	    memcpy (tree->pv[ply].moves + 1, tree->pv[ply + 1].moves,
-		    tree->pv[ply + 1].length * sizeof *mv);
-	    tree->pv[ply].length = tree->pv[ply + 1].length + 1;
+	if (score > alpha) {
+	    if (score >= beta) {
+		// FIXME: A mate as a return value is not necessarily
+		// correct!?
 
+		/* Is this correct? */
+		tree->pv[ply].moves[0] = move;
+		memcpy (tree->pv[ply].moves + 1, tree->pv[ply + 1].moves,
+			tree->pv[ply + 1].length * sizeof move);
+		tree->pv[ply].length = tree->pv[ply + 1].length + 1;
+		
 #if DEBUG_BRAIN
-            indent_output (tree, ply);
-            fprintf (stderr, "pv: ");
-            my_print_move (*mv);
-            fprintf (stderr, " new pv with score: %d\n",
-                     chi_value2centipawns (score));
-	    dump_pv (tree);
+		indent_output (tree, ply);
+		fprintf (stderr, "fh: ");
+		my_print_move (move);
+		fprintf (stderr, " failed high with score %d\n",
+			 chi_value2centipawns (score));
+#endif	    
+		++tree->qfh;
+		if (num_moves == 1)
+		    ++tree->qffh;
+		return score;
+	    } else {
+		pv_seen = 1;
+		alpha = score;
+		if (score > best_score) {
+		    best_score = score;
+		    best_move = move;
+		}
+		tree->pv[ply].moves[0] = move;
+		memcpy (tree->pv[ply].moves + 1, tree->pv[ply + 1].moves,
+			tree->pv[ply + 1].length * sizeof move);
+		tree->pv[ply].length = tree->pv[ply + 1].length + 1;
+		
+#if DEBUG_BRAIN
+		indent_output (tree, ply);
+		fprintf (stderr, "pv: ");
+		my_print_move (move);
+		fprintf (stderr, " new pv with score: %d\n",
+			 chi_value2centipawns (score));
+		dump_pv (tree);
 #endif
+	    }
 	} else {
 	    if (score > best_score) {
 		best_score = score;
-		best_move = *mv;
+		best_move = move;
 	    }
 #if DEBUG_BRAIN
             indent_output (tree, ply);
             fprintf (stderr, "fl: ");
-            my_print_move (*mv);
+            my_print_move (move);
             fprintf (stderr, " failed low with score: %d\n",
                      chi_value2centipawns (score));
 #endif
 	    ++tree->qfl;
 	}
-
+	
     }
-
+    
 #if DEBUG_BRAIN
     indent_output (tree, ply);
     fprintf (stderr, "returning best_score: %d (alpha: %d)\n", 
 	     best_score, alpha);
 #endif
-
+    
     tree->cv.length = ply;
-
+    
     if (best_move && !tree->pv[ply].length) {
 	tree->pv[ply].length = 1;
 	tree->pv[ply].moves[0] = best_move;
@@ -254,7 +265,7 @@ quiescence (tree, ply, alpha, beta)
 	dump_pv (tree);
 #endif
     }
-
+    
     return best_score;
 }
 

@@ -28,13 +28,13 @@
 #include "brain.h"
 
 /* Pick the next move from the stack and apply it to the position.  */
-chi_move*
+chi_move
 next_move (tree, ply, depth)
      TREE* tree;
      int ply;
      int depth;
 {
-    chi_move* mv;
+    chi_move* mv_end;
 
     switch (tree->move_states[ply]) {
 	case move_state_init:
@@ -43,31 +43,31 @@ next_move (tree, ply, depth)
 	    tree->pv_move[ply] = 0;
 
 	    /* Try the pv move first if searching principal variation.  */
+	    if (!tree->pv_move[ply] && tree->pv[ply].length)
+		tree->pv_move[ply] = tree->pv[ply].moves[0];
+	    
 	    if (!tree->pv_move[ply])
 		tree->pv_move[ply] = best_tt_move (&tree->pos, 
 						   tree->signatures[ply]);
 	    
-	    if (!tree->pv_move[ply] && tree->pv[ply].length)
-		tree->pv_move[ply] = tree->pv[ply].moves[0];
-	    
 	    if (tree->pv_move[ply]) {
 		++tree->tt_moves;
 		*(tree->move_ptr[ply]++) = tree->pv_move[ply];
-		return tree->move_stack[ply];
+		return tree->pv_move[ply];
 	    }
 
 	    /* FALLTHRU */
 
 	case move_state_pv:
-	    mv = chi_generate_captures (&tree->pos, tree->move_ptr[ply]);
-	    tree->moves_left[ply] = mv - tree->move_ptr[ply];
+	    mv_end = chi_generate_captures (&tree->pos, tree->move_ptr[ply]);
+	    tree->moves_left[ply] = mv_end - tree->move_ptr[ply];
 	    tree->move_states[ply] = move_state_captures;
 
 	    if (tree->moves_left[ply]) {
 		chi_move* mark;
 
-		for (mark = tree->move_ptr[ply]; mark < mv; ++mark) {
-		    /* Unmark already played moves.  */
+		for (mark = tree->move_ptr[ply]; mark < mv_end; ++mark) {
+		    /* Mark new moves, except for those already played.  */
 		    chi_move the_move = *mark;
 
 		    *mark |= 0x80000000;
@@ -76,7 +76,7 @@ next_move (tree, ply, depth)
 			*mark &= 0x7fffffff;
 		}
 	    } else {
-		tree->move_states[ply] = move_state_bonny;	       
+		tree->move_states[ply] = move_state_bonny; 
 	    }
 
 	    /* FALLTHRU.  */
@@ -94,10 +94,9 @@ next_move (tree, ply, depth)
 		    }
 		}
 
-		mv = index + tree->move_ptr[ply];
-		if (*mv & 0x80000000) {
-		    *mv &= 0x7fffffff;
-		    return mv;
+		if (tree->move_ptr[ply][index] & 0x80000000) {
+		    tree->move_ptr[ply][index] &= 0x7fffffff;
+		    return tree->move_ptr[ply][index];
 		}
 	    }
 
@@ -111,7 +110,7 @@ next_move (tree, ply, depth)
 	case move_state_bonny:
 	    tree->move_states[ply] = move_state_clyde;
 	    if (tree->bonny[ply] && tree->bonny[ply] != tree->pv_move[ply])    
-		return &tree->bonny[ply];
+		return tree->bonny[ply];
 
             /* FALLTHRU.  */
 
@@ -121,21 +120,21 @@ next_move (tree, ply, depth)
 	    if (tree->clyde[ply] &&
 		tree->clyde[ply] != tree->pv_move[ply] &&
 		tree->clyde[ply] != tree->bonny[ply])	    
-		return &tree->clyde[ply];
+		return tree->clyde[ply];
 	    
 	    /* FALLTHRU.  */
 
 	case move_state_generate_non_captures:
-	    mv = chi_generate_non_captures (&tree->pos, 
-					    tree->move_ptr[ply]);
-	    tree->moves_left[ply] = mv - tree->move_ptr[ply];
+	    mv_end = chi_generate_non_captures (&tree->pos, 
+						tree->move_ptr[ply]);
+	    tree->moves_left[ply] = mv_end - tree->move_ptr[ply];
 	    tree->move_states[ply] = move_state_non_captures;
 
 	    if (tree->moves_left[ply]) {
 		chi_move* mark;
 
-		for (mark = tree->move_ptr[ply]; mark < mv; ++mark) {
-		    /* Unmark already played moves.  */
+		for (mark = tree->move_ptr[ply]; mark < mv_end; ++mark) {
+		    /* Mark moves as new, except for those already played.  */
 		    chi_move the_move = *mark;
 
 		    *mark |= 0x80000000;
@@ -170,18 +169,16 @@ next_move (tree, ply, depth)
 		    }
 		}
 
-		mv = index + tree->move_ptr[ply];
-		if (*mv & 0x80000000) {
-		    *mv &= 0x7fffffff;
-		    return mv;
+		if (tree->move_ptr[ply][index] & 0x80000000) {
+		    tree->move_ptr[ply][index] &= 0x7fffffff;
+		    return tree->move_ptr[ply][index];
 		}
 	    }
 
             /* FALLTHRU.  */
-
     }
 
-    return NULL;
+    return 0;
 }
 
 /*

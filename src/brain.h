@@ -50,13 +50,13 @@
 #define MIN_EVAL_DIFF (1 << MOBILITY_SHIFT)
 #endif
 
-#define MIN_EVAL_DIFF 50
+#define MIN_EVAL_DIFF 30 
 
 #define MAX_POS_SCORE 150
 
-#define FUTILITY_MARGIN 200
-#define EXT_FUTILITY_MARGIN 500
-#define RAZOR_MARGIN 900
+#define FUTILITY_MARGIN 400
+#define EXT_FUTILITY_MARGIN 600
+#define RAZOR_MARGIN 1000
 
 extern bitv64 total_nodes;
 extern bitv64 total_centiseconds;
@@ -179,7 +179,7 @@ extern int evaluate_mobility PARAMS ((TREE* tree));
 
 extern void evaluate_move PARAMS ((chi_move move));
 
-extern chi_move* next_move PARAMS ((TREE* tree, int ply, int depth));
+extern chi_move next_move PARAMS ((TREE* tree, int ply, int depth));
 #if DEBUG_BRAIN
 extern void indent_output PARAMS ((TREE* tree, int depth));
 #endif

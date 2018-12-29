@@ -247,7 +247,7 @@ store_tt_entry (pos, signature, move, depth, score, flags)
     fprintf (stderr, "TTStore score %d for %s with move ", 
 	     score, wtm ? "white" : "black");
     my_print_move (move);
-    fprintf (stderr, " at depth %d (%s), signature: %016llx\n", 
+    fprintf (stderr, " at depth %d (%s), signature: 0x%016llx\n", 
 	     depth, flags == HASH_EXACT ? 
 	     "HASH_EXACT" : flags == HASH_ALPHA ? "HASH_ALPHA" :
 	     flags == HASH_BETA ? "HASH_BETA" : "unknown flag",
@@ -277,7 +277,7 @@ store_tt_entry (pos, signature, move, depth, score, flags)
 
 	if (hit->depth < depth)
 	    move_entry = 1;
-	else if ((hit->depth == depth) && (old_flags < flags))
+	else if ((hit->depth == depth) && (old_flags <= flags))
 	    move_entry = 1;
 
 	if (move_entry) {

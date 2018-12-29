@@ -28,12 +28,26 @@
 #include "brain.h"
 #include "time_ctrl.h"
 
+static void flagged_print_pv PARAMS ((TREE* tree, int score, int whisper,
+				      int ply, int fail_flag));
+
 void
 print_pv (tree, score, whisper, ply)
      TREE* tree;
      int score;
      int whisper;
      int ply;
+{
+    return flagged_print_pv (tree, score, whisper, ply, 0);
+}
+
+static void
+flagged_print_pv (tree, score, whisper, ply, fail_flag)
+     TREE* tree;
+     int score;
+     int whisper;
+     int ply;
+     int fail_flag;
 {
     int i;
     long int elapsed = rdifftime (rtime (), start_time);
@@ -45,6 +59,7 @@ print_pv (tree, score, whisper, ply)
     static unsigned int seen_size = 0;
     chi_move hashed_move;
     int printed = 0;
+    int hash_cont = 0;
 
     tree->pv_printed = tree->iteration_sdepth;
 
@@ -81,16 +96,29 @@ print_pv (tree, score, whisper, ply)
 	
 	printed += fprintf (stdout, " %s", buf);
 
+	if (i == 0) {
+	    if (fail_flag > 0)
+		printed += fprintf (stdout, "!!");
+	    else if (fail_flag < 0)
+		printed += fprintf (stdout, "??");
+	}
+
 	if (errnum)
 	    printed += fprintf (stdout, " [illegal: %s]", 
 				chi_strerror (errnum));
 	signature = chi_zk_signature (zk_handle, &tmp_pos);
     }
 
+    hash_cont = best_tt_move (&tmp_pos, signature);
+    if (hash_cont) {
+	printed += fprintf (stdout, " {");
+	if (chi_on_move (&tmp_pos) != chi_white)
+	    printed += fprintf (stdout, " %d. ...", 
+				1 + tmp_pos.half_moves / 2);
+    }
+
     signature = chi_zk_signature (zk_handle, &tmp_pos);
     while (0 != (hashed_move = best_tt_move (&tmp_pos, signature))) {
-	int left_char;
-	int right_char;
 	int alpha = +INF;
 	int beta = -INF;
 	int j;
@@ -106,29 +134,22 @@ print_pv (tree, score, whisper, ply)
 	if (chi_print_move (&tmp_pos, hashed_move, &buf, &bufsize, 1))
 	    break;
 
-	switch (probe_tt (&tmp_pos, signature, 0, &alpha, &beta)) {
-	    case HASH_ALPHA:
-		left_char = right_char = '<';
-		break;
-	    case HASH_BETA:
-		left_char = right_char = '>';
-		break;
-	    case HASH_EXACT:
-		left_char = '<';
-		right_char = '>';
-		break;
-	    default:
-		left_char = right_char = '?';
-		break;
-	}
-
 	if (chi_apply_move (&tmp_pos, hashed_move))
 	    break;
 	if (chi_on_move (&tmp_pos) != chi_white)
 	    printed += fprintf (stdout, " %d.", 1 + tmp_pos.half_moves / 2);
 	
-	printed += fprintf (stdout, " %c%s%c", left_char, buf, right_char);
+	printed += fprintf (stdout, " %s", buf);
 	
+	switch (probe_tt (&tmp_pos, signature, 0, &alpha, &beta)) {
+	    case HASH_ALPHA:
+		fprintf (stdout, "?!");
+		break;
+	    case HASH_BETA:
+		fprintf (stdout, "!?");
+		break;
+	}
+
 	signature = chi_zk_signature (zk_handle, &tmp_pos);
 	seen[i++] = signature;
 
@@ -144,7 +165,10 @@ print_pv (tree, score, whisper, ply)
     }
 
     if (printed >= 4000)
-	fprintf (stdout, " {cut}");
+	fprintf (stdout, " [cut]");
+
+    if (hash_cont)
+	printed += fprintf (stdout, "}");
 
     if (tree->epd) {
 	chi_epd_pos* epd = tree->epd;
@@ -216,6 +240,9 @@ print_fail_high (tree, score, whisper)
     static char* buf = NULL;
     static unsigned int bufsize = 0;
 
+    flagged_print_pv (tree, score, whisper, 0, 1);
+    return;
+
     if (!whisper)
 	fprintf (stdout, "%3d %5d %7ld %10ld ",
 		 tree->iteration_sdepth, chi_value2centipawns (score), 
@@ -239,6 +266,9 @@ print_fail_low (tree, score, whisper)
     long int elapsed = rdifftime (rtime (), start_time);
     static char* buf = NULL;
     static unsigned int bufsize = 0;
+
+    flagged_print_pv (tree, score, whisper, 0, -1);
+    return;
 
     if (!whisper)
 	fprintf (stdout, "%3d %5d %7ld %10ld ",

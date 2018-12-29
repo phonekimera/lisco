@@ -58,7 +58,6 @@ static int handle_hashmove PARAMS ((void));
 static int handle_evaluate PARAMS ((const char* movestr));
 static int handle_setboard PARAMS ((const char* fen));
 static int handle_perft PARAMS ((unsigned int depth, int post_flag));
-static int handle_hash PARAMS ((unsigned long int memuse));
 static void display_offsets PARAMS ((void));
 static void display_moves PARAMS ((void));
 static RETSIGTYPE sigio_handler PARAMS ((int));
@@ -1057,6 +1056,9 @@ handle_go (epd)
 
     if (game_over)
 	return EVENT_GAME_OVER;
+
+    if (engine_color != chi_on_move (&current))
+	current_score = -current_score;
 
     engine_color = chi_on_move (&current);
 

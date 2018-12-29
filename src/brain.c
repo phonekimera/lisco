@@ -202,7 +202,9 @@ think (mv, epd)
 #endif
 
 #if ASPIRATION_WINDOW
+    fprintf (stdout, "Current score is: %d\n", current_score);
     alpha = current_score - MIN_EVAL_DIFF;
+    beta = current_score + MIN_EVAL_DIFF;
 #endif
 
     for (sdepth = 1; sdepth <= max_ply; ++sdepth) {
@@ -270,17 +272,15 @@ Re-searching (failed low) best of %d moves in position (material %d) with depth 
 			 num_moves, chi_material (&tree.pos), sdepth, alpha, beta);
 #endif
 		--sdepth;
-		print_fail_low (&tree, score, 0);
 		continue;
 	    } else if (score >= beta) {
 		beta = score + MIN_EVAL_DIFF;
 #if DEBUG_BRAIN
 		fprintf (stderr, "\
-Re-searching (failed low) best of %d moves in position (material %d) with depth %d [%d, %d]\n",
+Re-searching (failed high) best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 			 num_moves, chi_material (&tree.pos), sdepth, alpha, beta);
 #endif
 		--sdepth;
-		print_fail_high (&tree, score, 0);
 		continue;
 	    }
 	    
@@ -454,8 +454,27 @@ indent_output (TREE* tree, int ply)
 void
 my_print_move (chi_move mv)
 {
-    fprintf (stderr, "%s-%s", 
+    switch (chi_move_attacker (mv)) {
+	case knight:
+	    fputc ('N', stderr);
+	    break;
+	case bishop:
+	    fputc ('B', stderr);
+	    break;
+	case rook:
+	    fputc ('R', stderr);
+	    break;
+	case queen:
+	    fputc ('Q', stderr);
+	    break;
+	case king:
+	    fputc ('K', stderr);
+	    break;
+    }
+
+    fprintf (stderr, "%s%c%s", 
 	     chi_shift2label (chi_move_from (mv)),
+	     chi_move_victim (mv) ? 'x' : '-',
 	     chi_shift2label (chi_move_to (mv)));
     switch (chi_move_promote (mv)) {
 	case knight:
