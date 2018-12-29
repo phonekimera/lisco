@@ -13,3 +13,7 @@ lib*.a
 *.la
 /stamp-h
 src/tate
+
+libchi/libchi.h
+libchi/chitest
+libchi/genmasks
