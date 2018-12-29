@@ -102,6 +102,7 @@ search (tree, depth, ply, alpha, beta, allow_null)
 		     chi_value2centipawns (alpha),
 		     chi_value2centipawns (beta));
 #endif
+
             return alpha;
         case HASH_BETA:
             ++tree->tt_hits;
@@ -150,20 +151,48 @@ search (tree, depth, ply, alpha, beta, allow_null)
     if (depth <= NULL_R)
 	allow_null = 0;
 
-allow_null =0;
     if (allow_null && !tree->in_check[ply]) {
-	int saved_flags = chi_flags (pos);
 	int null_score;
 	
+	++tree->null_moves;
+
+#if DEBUG_BRAIN
+        chi_on_move (pos) = !chi_on_move (pos);
+        indent_output (tree, ply);
+        fprintf (stderr, "NM: ");
+        fprintf (stderr, " alpha: %d, beta: %d\n",
+                 chi_value2centipawns (alpha),
+                 chi_value2centipawns (beta));
+        chi_on_move (pos) = !chi_on_move (pos);
+#endif
+
 	chi_ep (pos) = 0;
 	chi_on_move (pos) = !chi_on_move (pos);
-	null_score = search (tree, depth - NULL_R, ply + 1,
-			     -beta, -beta + 1, 0);
-	chi_flags (pos) = saved_flags;
-	chi_on_move (pos) = !chi_on_move (pos);
+	null_score = -search (tree, depth - NULL_R, ply,
+			      -beta, -beta + 1, 0);
 
-	if (null_score >= beta)
-	    return beta;
+	*pos = saved_pos;
+
+	if (null_score >= beta) {
+#if DEBUG_BRAIN
+	    chi_on_move (pos) = !chi_on_move (pos);
+	    indent_output (tree, ply);
+	    fprintf (stderr, "NH: ");
+            fprintf (stderr, " NH: null move failed high with score %d\n",
+                     chi_value2centipawns (null_score));
+	    chi_on_move (pos) = !chi_on_move (pos);
+#endif
+	    ++tree->null_fh;
+	    return null_score;
+	}
+#if DEBUG_BRAIN
+	chi_on_move (pos) = !chi_on_move (pos);
+	indent_output (tree, ply);
+	fprintf (stderr, "NX: ");
+	fprintf (stderr, " NH: null move returned score %d\n",
+		 chi_value2centipawns (null_score));
+	chi_on_move (pos) = !chi_on_move (pos);
+#endif
     }
 
     tree->move_stack[ply] = moves;
@@ -207,7 +236,7 @@ allow_null =0;
 	*pos = saved_pos;
 
 	if (tree->status & EVENTMASK_ENGINE_STOP)
-	    return 0;
+	    return alpha;
 
 	if (score >= beta) {
 #if DEBUG_BRAIN
@@ -223,9 +252,10 @@ allow_null =0;
 	    fprintf (stderr, " at depth %d (HASH_BETA)\n", depth);
 	    chi_on_move (pos) = !chi_on_move (pos);
 #endif
+	    ++tree->fh;
 	    store_tt_entry (tree->signatures[ply], *mv, depth, score, 
 			    HASH_BETA);
-	    return beta;
+	    return score;
 	} else if (score > alpha) {
 	    pv_seen = 1;
 	    alpha = score;
@@ -238,9 +268,6 @@ allow_null =0;
 		print_pv (tree, score, 0, ply);
 
 #if DEBUG_BRAIN
-	    else
-		print_pv (tree, score, 0, ply);
-
             indent_output (tree, ply);
             fprintf (stderr, "PV: ");
             my_print_move (*mv);
@@ -255,6 +282,7 @@ allow_null =0;
             fprintf (stderr, " failed low with score: %d\n",
                      chi_value2centipawns (score));
 #endif
+	    ++tree->fl;
 	}
 
     }

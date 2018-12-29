@@ -170,7 +170,7 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 		 num_moves, tree.pos.material, depth, alpha, beta);
 #endif
 	
-	score = search (&tree, depth, 0, alpha, beta, 1);
+	score = search (&tree, depth, 0, alpha, beta, 0);
 
 	total_nodes += tree.nodes - last_nodes;
 	last_nodes = tree.nodes;
@@ -246,7 +246,8 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 	time_cushion += tree.time_for_move - elapsed + inc;
 
     if (1) {
-	printf ("  Nodes searched: %ld\n", tree.nodes);
+	printf ("  Nodes searched: %ld (quiescence: %ld)\n", 
+		tree.nodes, tree.qnodes);
 	printf ("  Deepest search: %d\n", tree.max_ply);
 	printf ("  Score: %#.3g\n", chi_value2pawns (the_score));
 	printf ("  Elapsed: %ld.%02lds\n", elapsed / 100, elapsed % 100);
@@ -254,11 +255,15 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 	    printf ("  Nodes per second: %ld\n", (100 * tree.nodes) / elapsed);
 	else
 	    printf ("  Nodes per second: INF\n");
+	printf ("  Failed high: %ld, failed low: %ld\n",
+		tree.fh, tree.fl);
 	printf ("  TT probes: %lu\n", tree.tt_probes);
 	printf ("  TT hits: %lu (exact: %lu, alpha: %lu, beta: %lu, moves: %lu)\n", 
 		tree.tt_hits, tree.tt_exact_hits, 
 		tree.tt_alpha_hits, tree.tt_beta_hits,
 		tree.tt_moves);
+	printf ("  Null moves: %lu (%lu failed high)\n",
+		tree.null_moves, tree.null_fh);
 	printf ("  Evaluations: %lu\n", tree.evals);
 	printf ("  One-Pawn lazy evals: %lu\n", tree.lazy_one_pawn);
 	printf ("  Two-pawn lazy evals: %lu\n", tree.lazy_two_pawns);

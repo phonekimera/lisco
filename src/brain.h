@@ -101,6 +101,7 @@ typedef struct tree {
     int in_check[MAX_PLY];
 
     unsigned long nodes;
+    unsigned long qnodes;
     unsigned long time_for_move;
 
     unsigned long tt_probes;
@@ -109,6 +110,11 @@ typedef struct tree {
     unsigned long tt_exact_hits;
     unsigned long tt_alpha_hits;
     unsigned long tt_beta_hits;
+
+    unsigned long null_moves;
+    unsigned long null_fh;
+    unsigned long fh;
+    unsigned long fl;
 
     unsigned long evals;
     unsigned long lazy_one_pawn;

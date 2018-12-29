@@ -44,6 +44,7 @@ quiescence (tree, ply, alpha, beta)
     chi_move best_move = 0;
 
     ++tree->nodes;
+    ++tree->qnodes;
 
     tree->pv[ply].length = 0;
 
@@ -88,14 +89,16 @@ quiescence (tree, ply, alpha, beta)
         fprintf (stderr, "FH: standing pat failed high with score %d\n",
                  chi_value2centipawns (standing_pat));
 #endif
-        return beta;
+        return standing_pat;
     } if (standing_pat > alpha) {
         alpha = standing_pat;
 #if DEBUG_BRAIN
         indent_output (tree, ply);
         fprintf (stderr, "PV: standing pat score: %d\n",
                  chi_value2centipawns (standing_pat));
+#endif
     } else {
+#if DEBUG_BRAIN
         indent_output (tree, ply);
         fprintf (stderr, "FL: standing pat failed low with score: %d\n",
                  chi_value2centipawns (standing_pat));
@@ -138,7 +141,7 @@ quiescence (tree, ply, alpha, beta)
 	*pos = saved_pos;
 
 	if (tree->status & EVENTMASK_ENGINE_STOP)
-	    return 0;
+	    return alpha;
 
 	if (score >= beta) {
 #if DEBUG_BRAIN
@@ -148,7 +151,8 @@ quiescence (tree, ply, alpha, beta)
             fprintf (stderr, " failed high with score %d\n",
                      chi_value2centipawns (score));
 #endif	    
-	    return beta;
+	    ++tree->fh;
+	    return score;
 	} else if (score > alpha) {
 	    pv_seen = 1;
 	    alpha = score;
@@ -158,8 +162,6 @@ quiescence (tree, ply, alpha, beta)
 	    tree->pv[ply].length = tree->pv[ply + 1].length + 1;
 
 #if DEBUG_BRAIN
-	    print_pv (tree, score, 0, ply);
-
             indent_output (tree, ply);
             fprintf (stderr, "PV: ");
             my_print_move (*mv);
@@ -174,6 +176,7 @@ quiescence (tree, ply, alpha, beta)
             fprintf (stderr, " failed low with score: %d\n",
                      chi_value2centipawns (score));
 #endif
+	    ++tree->fl;
 	}
 
     }
