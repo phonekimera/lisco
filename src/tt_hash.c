@@ -69,7 +69,7 @@ Allocated %lu bytes (%lu entries) for main transposition table.\n",
 
     clear_tt_hashs ();
 
-    tt_end += 6 * half_tt_size * sizeof *tt;
+    tt_end = tt + 6 * half_tt_size * sizeof *tt;
 }
 
 void
