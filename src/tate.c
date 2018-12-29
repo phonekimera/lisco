@@ -103,8 +103,7 @@ main (argc, argv)
     if (signal (SIGIO, sigio_handler) != 0)
 	error (EXIT_FAILURE, errno, "Cannot install SIGIO handler");
 
-    if (fcntl (fileno (stdin), F_SETOWN, getpid ()) != 0)
-	error (EXIT_FAILURE, errno, "Cannot F_SETOWN stdin");
+    fcntl (fileno (stdin), F_SETOWN, getpid ());
 
     flags = fcntl (fileno (stdin), F_GETFL);
     if (flags == -1)
