@@ -32,7 +32,9 @@ chi_set_piece (pos, piece, color, file, rank)
      int rank;
 {
     int shift = chi_coords2shift (file, rank);
+    int shift90 = chi_coords2shift90 (file, rank);
     bitv64 mask = ((bitv64) 1) << shift;
+    bitv64 mask90 = ((bitv64) 1) << shift90;
 
     if (file < CHI_FILE_A || file > CHI_FILE_H
 	|| rank < CHI_RANK_1 || rank > CHI_RANK_8)
@@ -40,6 +42,9 @@ chi_set_piece (pos, piece, color, file, rank)
 
     pos->w_pieces &= ~mask;
     pos->b_pieces &= ~mask;
+
+    pos->w_pieces90 &= ~mask90;
+    pos->b_pieces90 &= ~mask90;
 
     pos->w_pawns &= ~mask;
     pos->w_knights &= ~mask;
@@ -56,10 +61,13 @@ chi_set_piece (pos, piece, color, file, rank)
     if (piece == empty)
 	return 0;
 
-    if (color == chi_white)
+    if (color == chi_white) {
 	pos->w_pieces |= mask;
-    else
+	pos->w_pieces90 |= mask90;
+    } else {
 	pos->b_pieces |= mask;
+	pos->b_pieces90 |= mask90;
+    }
 
     switch (piece) {
 	case pawn:

@@ -71,6 +71,8 @@ check_position (pos, is_fen)
 	}
     }
 
+    chi_update_material (pos);
+
     return 0;
 }
 

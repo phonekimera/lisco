@@ -31,16 +31,19 @@ chi_print_move (pos, move, buf, bufsize, san)
      unsigned int* bufsize;
      int san;
 {
-    int from = chi_from (move);
-    int to = chi_to (move);
+    int from = chi_move_from (move);
+    int to = chi_move_to (move);
     char* ptr;
     chi_piece_t piece;
     bitv64 from_mask, to_mask;
     bitv64 is_capture = 0;
+    chi_pos target_pos;
 
     if (from > 63 || to > 63 || !buf || !bufsize || !pos)
 	return CHI_ERR_YOUR_FAULT;
     
+    target_pos = *pos;
+
     /* 20 is too much, but play safe.  */
     if (!*buf || *bufsize < 20) {
 	char* new_buf = realloc (*buf, 20);
@@ -59,40 +62,40 @@ chi_print_move (pos, move, buf, bufsize, san)
     from_mask = ((bitv64) 1 << from);
     to_mask = ((bitv64) 1 << to);
     
-    is_capture = to_mask & (pos->w_pieces | pos->b_pieces);
+    is_capture = to_mask & (target_pos.w_pieces | target_pos.b_pieces);
 
-    if (chi_to_move (pos) == chi_white) {
-	if (from_mask & pos->w_pawns) {
+    if (chi_on_move (&target_pos) == chi_white) {
+	if (from_mask & target_pos.w_pawns) {
 	    piece = pawn;
-	} else if (from_mask & pos->w_knights) {
+	} else if (from_mask & target_pos.w_knights) {
 	    piece = knight;
-	} else if (from_mask & pos->w_bishops) {
-	    if (from_mask & pos->w_rooks) {
+	} else if (from_mask & target_pos.w_bishops) {
+	    if (from_mask & target_pos.w_rooks) {
 		piece = queen;
 	    } else {
 		piece = bishop;
 	    }
-	} else if (from_mask & pos->w_rooks) {
+	} else if (from_mask & target_pos.w_rooks) {
 	    piece = rook;
-	} else if (from_mask & pos->w_kings) {
+	} else if (from_mask & target_pos.w_kings) {
 	    piece = king;
 	} else {
 	    return CHI_ERR_EMPTY_SQUARE;
 	}
     } else {
-	if (from_mask & pos->b_pawns) {
+	if (from_mask & target_pos.b_pawns) {
 	    piece = pawn;
-	} else if (from_mask & pos->b_knights) {
+	} else if (from_mask & target_pos.b_knights) {
 	    piece = knight;
-	} else if (from_mask & pos->b_bishops) {
-	    if (from_mask & pos->b_rooks) {
+	} else if (from_mask & target_pos.b_bishops) {
+	    if (from_mask & target_pos.b_rooks) {
 		piece = queen;
 	    } else {
 		piece = bishop;
 	    }
-	} else if (from_mask & pos->b_rooks) {
+	} else if (from_mask & target_pos.b_rooks) {
 	    piece = rook;
-	} else if (from_mask & pos->b_kings) {
+	} else if (from_mask & target_pos.b_kings) {
 	    piece = king;
 	} else {
 	    return CHI_ERR_EMPTY_SQUARE;
@@ -139,18 +142,23 @@ chi_print_move (pos, move, buf, bufsize, san)
 	*ptr++ = *label++;
 	*ptr++ = *label++;
 
-	if (is_ep) {
-	    *ptr++ = 'e';
-	    *ptr++ = '.';
-	    *ptr++ = 'p';
-	    *ptr++ = '.';
-	} else if (chi_promote (move)) {
+	if (chi_move_promote (move)) {
 	    *ptr++ = '=';
-	    *ptr++ = chi_piece2char (chi_promote (move));
+	    *ptr++ = chi_piece2char (chi_move_promote (move));
 	}
     }
 
-    /* FIXME: Check for check and mate.  */
+    chi_apply_move (&target_pos, move);
+    if (chi_check_check (&target_pos)) {
+	chi_move moves[CHI_MAX_MOVES];
+	chi_move* mv;
+
+	mv = chi_legal_moves (&target_pos, moves);
+	if (mv == moves)
+	    *ptr++ = '#';
+	else
+	    *ptr++ = '+';
+    }
 
     *ptr++ = '\000';
 

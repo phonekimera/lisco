@@ -26,6 +26,8 @@
 
 #include <system.h>
 
+#include <libchi.h>
+
 /* Events from main loop.  */
 #define EVENT_CONTINUE      0x00000000
 #define EVENT_TERMINATE     0x00000001
@@ -43,14 +45,47 @@
 #define EVENTMASK_TERMINATE   EVENT_TERMINATE
 #define EVENTMASK_ENGINE_STOP 0x1f
 
+#define MAX_PLY 512
+#define MATE    -9999
+#define INF     ((-(MATE)) << 1)
+#define DRAW    (0)
+
+struct game_hist_entry {
+    bitv64   signature;
+    chi_move move;
+    chi_pos  pos;
+    /* Bitmask for keeping track of castling state. 
+       0x1 - white can castle on one side
+       0x2 - white can castle on two sides
+       0x4 - white has castled
+       0x10 - black can castle on one side
+       0x20 - black can castle on two sides
+       0x40 - black has castled
+    */
+    int castling_state;
+};
+
+extern struct game_hist_entry* game_hist;
+extern unsigned int game_hist_ply;
+
+extern chi_pos current;
+extern chi_zk_handle zk_handle;
+
 extern char* name;
-extern char* my_time;
-extern char* opp_time;
 extern int xboard;
 extern int force;
 extern int game_over;
 extern int thinking;
+extern int pondering;
+extern int allow_pondering;
 extern int ics;
 extern int computer;
+extern chi_color_t engine_color;
+extern int max_ply;
+extern int event_pending;
+extern int post;
+extern int mate_announce;
+
+extern int get_event PARAMS ((void));
 
 #endif

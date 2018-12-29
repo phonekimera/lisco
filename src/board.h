@@ -30,5 +30,6 @@
 
 void display_board PARAMS ((chi_pos* pos));
 void dump_board PARAMS ((chi_pos* pos));
+void print_game PARAMS ((void));
 
 #endif

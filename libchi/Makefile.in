@@ -93,7 +93,11 @@ lib_LTLIBRARIES = libchi.la
 libchi_la_SOURCES = libchi.h dump_pieces.c strerror.c make_move.c \
 	print_move.c movegen.c bitv2shift.c clear_position.c \
 	coords2label.c init_position.c piece2char.c set_piece.c \
-	shift2label.c parse_move.c
+	shift2label.c parse_move.c apply_move.c legal_moves.c \
+	check_legality.c illegal_move.c closest_prime.c \
+	zk_init.c zk_finish.c zk_signature.c zk_update_signature.c \
+	update_material.c
+
 
 libchi_la_LDFLAGS = -version-info 0:0:0
 
@@ -118,7 +122,10 @@ libchi_la_LIBADD =
 am_libchi_la_OBJECTS = dump_pieces.lo strerror.lo make_move.lo \
 	print_move.lo movegen.lo bitv2shift.lo clear_position.lo \
 	coords2label.lo init_position.lo piece2char.lo set_piece.lo \
-	shift2label.lo parse_move.lo
+	shift2label.lo parse_move.lo apply_move.lo legal_moves.lo \
+	check_legality.lo illegal_move.lo closest_prime.lo zk_init.lo \
+	zk_finish.lo zk_signature.lo zk_update_signature.lo \
+	update_material.lo
 libchi_la_OBJECTS = $(am_libchi_la_OBJECTS)
 noinst_PROGRAMS = genmasks$(EXEEXT) chitest$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
@@ -138,15 +145,24 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/bitv2shift.Plo $(DEPDIR)/chitest.Po \
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/apply_move.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/bitv2shift.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/check_legality.Plo $(DEPDIR)/chitest.Po \
 @AMDEP_TRUE@	$(DEPDIR)/clear_position.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/closest_prime.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/coords2label.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/dump_pieces.Plo $(DEPDIR)/genmasks.Po \
-@AMDEP_TRUE@	$(DEPDIR)/init_position.Plo $(DEPDIR)/make_move.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/illegal_move.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/init_position.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/legal_moves.Plo $(DEPDIR)/make_move.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/movegen.Plo $(DEPDIR)/parse_move.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/piece2char.Plo $(DEPDIR)/print_move.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/set_piece.Plo $(DEPDIR)/shift2label.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/strerror.Plo
+@AMDEP_TRUE@	$(DEPDIR)/strerror.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/update_material.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/zk_finish.Plo $(DEPDIR)/zk_init.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/zk_signature.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/zk_update_signature.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -217,13 +233,18 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/apply_move.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/bitv2shift.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/check_legality.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/chitest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/clear_position.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/closest_prime.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/coords2label.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/dump_pieces.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/genmasks.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/illegal_move.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/init_position.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/legal_moves.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/make_move.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/movegen.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/parse_move.Plo@am__quote@
@@ -232,6 +253,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/set_piece.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/shift2label.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strerror.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/update_material.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/zk_finish.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/zk_init.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/zk_signature.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/zk_update_signature.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)

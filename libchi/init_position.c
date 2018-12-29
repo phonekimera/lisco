@@ -27,6 +27,8 @@ void
 chi_init_position (pos)
      chi_pos* pos;
 {
+        chi_clear_position (pos);
+	
 	pos->w_pawns = CHI_2_MASK;
 	pos->b_pawns = CHI_7_MASK;
 	
@@ -55,6 +57,8 @@ chi_init_position (pos)
 	
 	pos->w_pieces = CHI_1_MASK | CHI_2_MASK;
 	pos->b_pieces = CHI_8_MASK | CHI_7_MASK;
+	pos->w_pieces90 = CHI_A_MASK | CHI_B_MASK;
+	pos->b_pieces90 = CHI_G_MASK | CHI_H_MASK;
 
 	pos->union_flags.flags = 0;
 	chi_wk_castle (pos) = 1;
@@ -63,6 +67,8 @@ chi_init_position (pos)
 	chi_bq_castle (pos) = 1;
 
 	pos->half_move_clock = pos->half_moves = 0;
+
+	pos->to_move = chi_white;
 }
 
 /*

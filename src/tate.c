@@ -45,41 +45,60 @@
 #include "edit.h"
 #include "board.h"
 #include "book.h"
+#include "brain.h"
+#include "time_ctrl.h"
 
 static void greeting PARAMS ((void));
 static void feature_requests PARAMS ((void));
 static void handle_accepted PARAMS ((const char* feature));
 static void handle_rejected PARAMS ((const char* feature));
 static int handle_usermove PARAMS ((const char* movestr));
+static int handle_legalmove PARAMS ((const char* movestr));
+static int handle_evaluate PARAMS ((const char* movestr));
+static int handle_go PARAMS ((void));
 static void display_offsets PARAMS ((void));
 static void display_moves PARAMS ((void));
 static RETSIGTYPE sigio_handler PARAMS ((int));
-
-int get_event PARAMS ((void));
+static void check_input PARAMS ((void));
 
 #define WHITE_SPACE " \t\r\n\v\f"
 
 chi_pos current;
+chi_zk_handle zk_handle;
 
 int protover = 2;
 
 char* name = NULL;
-char* my_time = NULL;
-char* opp_time = NULL;
 int xboard = 0;
 int force = 0;
 int game_over = 0;
 int thinking = 0;
+int pondering = 0;
+int allow_pondering = 1;
 int ics = 0;
 int computer = 0;
+chi_color_t engine_color = chi_black;
 
 int input_available = 0;
 int event_pending   = 0;
+int max_ply = MAX_PLY;
+
+int mate_announce = 0;
+
+int post = 1;
 
 static int edit_mode = 0;
 
-#define PROMPT (chi_to_move (&current) == chi_white ? \
-		"tate[white]> " : "tate[black]> ")
+struct game_hist_entry* game_hist = NULL;
+unsigned int game_hist_ply = 0;
+
+static unsigned int game_hist_alloc = 0;
+
+#define PROMPT (edit_mode ? \
+		((chi_on_move (&current) == chi_white ? \
+		  "tate[white]# " : "tate[black]# ")) : \
+		((chi_on_move (&current) == chi_white ? \
+		  "tate[white]> " : "tate[black]> ")))
 
 int
 main (argc, argv)
@@ -87,18 +106,30 @@ main (argc, argv)
     char* argv[];
 {
     int flags;
+    int errnum;
 
     /* Standard input must be unbuffered, because we mix it with
        low-level I/O (which is of course a sin).  */
-    setvbuf (stdin, NULL, _IONBF, 4096);
-    setvbuf (stdout, NULL, _IOLBF, 4096);
-    setvbuf (stderr, NULL, _IOLBF, 4096);
+    setvbuf (stdin, NULL, _IONBF, 0);
+    setvbuf (stdout, NULL, _IOLBF, 0);
+    setvbuf (stderr, NULL, _IOLBF, 0);
 
     greeting ();
 
-    srandom (time (NULL));
-
     chi_init_position (&current);
+    errnum = chi_zk_init (&zk_handle);
+    if (errnum)
+	error (EXIT_FAILURE, 0, "Cannot initialize Zobrist key array: %s",
+	       chi_strerror (errnum));
+
+    game_hist_alloc = MAX_PLY;
+    game_hist = xmalloc (game_hist_alloc * sizeof *game_hist);
+    game_hist[0].pos = current;
+    game_hist[0].signature = chi_zk_signature (zk_handle, &current);
+    game_hist[0].castling_state = 0x33;
+
+    /* Use minimum size.  */
+    init_tt_hashs (0);
 
     if (signal (SIGIO, sigio_handler) != 0)
 	error (EXIT_FAILURE, errno, "Cannot install SIGIO handler");
@@ -118,10 +149,11 @@ main (argc, argv)
     fflush (stdout);
 
     while (1) {
-	if (event_pending) {
+	check_input ();
+	while (event_pending) {
 	    int status = get_event ();
 	    if (status & EVENT_TERMINATE)
-		break;
+		return EXIT_SUCCESS;
 	}
 	sleep (1);
     }
@@ -167,9 +199,27 @@ get_event ()
 
     if (edit_mode) {
 	retval = EVENT_STOP_THINKING;
-	if (cmd [0] == '.' && cmd[1] == 0)
+	if (cmd [0] == '.' && cmd[1] == 0) {
 	    edit_mode = check_position (&current, 0);
-	else if (strcasecmp (cmd, "display") == 0) {
+	    if (!edit_mode) {
+		int castling_state = 0;
+
+		game_hist_ply = 0;
+		game_hist[0].pos = current;
+		game_hist[0].signature = chi_zk_signature (zk_handle, 
+							   &current);
+		
+		if (chi_wk_castle (&current))
+		    castling_state |= 0x1;
+		if (chi_wq_castle (&current))
+		    castling_state |= 0x2;
+		if (chi_bk_castle (&current))
+		    castling_state |= 0x10;
+		if (chi_bq_castle (&current))
+		    castling_state |= 0x20;
+		game_hist[0].castling_state = castling_state;
+	    }
+	} else if (strcasecmp (cmd, "display") == 0) {
 	    /* Convenience.  */
 	    display_board (&current);
 	    fprintf (stdout, "\n");
@@ -178,11 +228,7 @@ get_event ()
 	    return EVENT_TERMINATE;
 	} else
 	    handle_edit_command (&current, cmd);
-
-	return retval;
-    }
-
-    if (strcasecmp (cmd, "xboard") == 0) {
+    } else if (strcasecmp (cmd, "xboard") == 0) {
 	xboard = 1;
     } else if (strcasecmp (cmd, "edit") == 0) {
 	init_edit_mode (&current);
@@ -203,18 +249,11 @@ get_event ()
 	if (!force)
 	    game_over = 0;
     } else if (strcasecmp (cmd, "go") == 0) {
-	force = 0;
-#if 0
-	// FIXME: Check return value!
-	go (&current);
-#else
-	fprintf (stdout, "Error (currently not implemented): %s\n",
-		 linebuf);
-#endif
+	retval = handle_go ();
     } else if (cmd[0] == '?' && cmd[1] == 0) {
 	retval = EVENT_MOVE_NOW;
     } else if (strcasecmp (cmd, "draw") == 0) {
-	fprintf (stdout, "offer draw\n");  /* Always happy.  */
+	// FIXME: Keep global score and react.
     } else if (strcasecmp (cmd, "hint") == 0) {
 	retval = EVENT_WANT_HINT;
     } else if (strcasecmp (cmd, "bk") == 0) {
@@ -224,13 +263,14 @@ get_event ()
     } else if (strcasecmp (cmd, "remove") == 0) {
 	fprintf (stdout, "Error (command not implemented): remove\n");
     } else if (strcasecmp (cmd, "hard") == 0) {
+	// FIXME: Start pondering if not on move.
 	retval = EVENT_PONDER;
     } else if (strcasecmp (cmd, "easy") == 0) {
 	retval = EVENT_NO_PONDER;
     } else if (strcasecmp (cmd, "post") == 0) {
-	retval = EVENT_POST;
+	post = 1;
     } else if (strcasecmp (cmd, "nopost") == 0) {
-	retval = EVENT_UNPOST;
+	post = 0;
     } else if (strcasecmp (cmd, "analyze") == 0) {
 	/* Ignore.  */
     } else if (strcasecmp (cmd, "name") == 0) {
@@ -254,53 +294,91 @@ get_event ()
 	/* Ignore.  */
     } else if (strcasecmp (cmd, "black") == 0) {
 	game_over = 0;
-	chi_to_move (&current) = chi_white;
+	chi_on_move (&current) = chi_black;
+	engine_color = chi_white;
 	// FIXME: Stop clock, maybe stop thinking.
-	return EVENT_STOP_THINKING;
+	retval = EVENT_STOP_THINKING;
     } else if (strcasecmp (cmd, "white") == 0) {
 	game_over = 0;
-	chi_to_move (&current) = chi_black;
+	chi_on_move (&current) = chi_white;
+	engine_color = chi_black;
 	// FIXME: Stop clock, maybe stop thinking.
-	return EVENT_STOP_THINKING;
+	retval = EVENT_STOP_THINKING;
     } else if (strcasecmp (cmd, "playother") == 0) {
 	game_over = 0;
 	// FIXME: Start pondering...
     } else if (strcasecmp (cmd, "time") == 0) {
 	char* position = cmd + 5;
-
-	if (my_time)
-	    free (my_time);
-	while (*position == ' ' || *position == '\t')
-	    ++position;
-
-	my_time = xstrdup (position);
-	// FIXME: Adjust clock.
+	char* end_ptr;
+	long int parsed = strtol (position, &end_ptr, 10);
+	
+	if (parsed == 0 && end_ptr == position) {
+	    fprintf (stdout, "error (illegal time specification): %s",
+		     position);
+	} else {
+	    time_left = parsed;
+	}
     } else if (strcasecmp (cmd, "otim") == 0) {
 	char* position = cmd + 5;
-
-	if (opp_time)
-	    free (opp_time);
-	while (*position == ' ' || *position == '\t')
-	    ++position;
-
-	opp_time = xstrdup (position);
-	// FIXME: Adjust clock.
+	char* end_ptr;
+	long int parsed = strtol (position, &end_ptr, 10);
+	
+	if (parsed == 0 && end_ptr == position) {
+	    fprintf (stdout, "error (illegal time specification): %s",
+		     position);
+	} else {
+	    opp_time = parsed;
+	}
     } else if (strcasecmp (cmd, "level") == 0) {
-	// FIXME: Set time controls.
+	parse_level (cmd + 6);
     } else if (strcasecmp (cmd, "st") == 0) {
-	// FIXME: Set time controls.
+	char* fixed_str = cmd + 3;
+	char* end_ptr;
+	long int parsed = strtol (fixed_str, &end_ptr, 10);
+	
+	if (parsed == 0 && end_ptr == fixed_str) {
+	    fprintf (stdout, "error (illegal search time): %s",
+		     fixed_str);
+	} else {
+	    fixed_time = 100 * parsed;
+	}
     } else if (strcasecmp (cmd, "sd") == 0) {
-	// FIXME: Set depth.
+#if 0
+	char* depth_str = cmd + 3;
+	char* end_ptr;
+	long int parsed = strtol (depth_str, &end_ptr, 10);
+
+	if (parsed == 0 && end_ptr == depth_str) {
+	    fprintf (stdout, "error (illegal search depth): %s",
+		     depth_str);
+	} else {
+	    max_ply = parsed;
+	}
+#endif
     } else if (strcasecmp (cmd, "random") == 0) {
 	/* Ignore.  */
     } else if (strcasecmp (cmd, "quit") == 0) {
 	    return EVENT_TERMINATE;
     } else if (strcasecmp (cmd, "dump") == 0) {
 	dump_board (&current);
+    } else if (strcasecmp (cmd, "print") == 0) {
+	print_game ();
     } else if (strcasecmp (cmd, "new") == 0) {
+	if (xboard) {
+	    fprintf (stdout, "tellics set 1 %s %s (libchi %s)\n",
+		     PACKAGE, VERSION, CHI_VERSION);
+	}
+
+	mate_announce = 0;
 	game_over = 0;
+	force = 0;
+	go_fast = 0;
 	chi_init_position (&current);
-	fprintf (stdout, "\n");
+	engine_color = chi_black;
+	game_hist_ply = 0;
+	game_hist[0].pos = current;
+	game_hist[0].signature = chi_zk_signature (zk_handle, &current);
+	game_hist[0].castling_state = 0x33;
     } else if (strcasecmp (cmd, "display") == 0) {
 	display_board (&current);
 	fprintf (stdout, "\n");
@@ -374,6 +452,14 @@ get_event ()
 	char* movestr = strtok (NULL, WHITE_SPACE);
 	
 	retval = handle_usermove (movestr);
+    } else if (strcasecmp (cmd, "legalmove") == 0) {
+	char* movestr = strtok (NULL, WHITE_SPACE);
+
+	retval = handle_legalmove (movestr);
+    } else if (strcasecmp (cmd, "evaluate") == 0) {
+	char* movestr = strtok (NULL, WHITE_SPACE);
+
+	retval = handle_evaluate (movestr);
     } else {
 	retval = handle_usermove (cmd);
     }
@@ -382,6 +468,8 @@ get_event ()
 	fputs (PROMPT, stdout); 
 
     fflush (stdout);
+
+    check_input ();
 
     return retval;
 }
@@ -417,14 +505,14 @@ static void
 handle_accepted (feature)
     const char* feature;
 {
-    fprintf (stderr, "Interface accepted feature %s\n", feature);
+    fprintf (stdout, "Interface accepted feature %s\n", feature);
 }
 
 static void
 handle_rejected (feature)
     const char* feature;
 {
-    fprintf (stderr, "Interface rejected feature %s\n", feature);
+    fprintf (stdout, "Interface rejected feature %s\n", feature);
 }
 
 RETSIGTYPE
@@ -444,8 +532,13 @@ display_offsets ()
     int file;
     int rank;
 
-    fputs ("\n     a   b   c   d   e   f   g   h\n", stdout);
-    fputs ("   +---+---+---+---+---+---+---+---+\n", stdout);
+    fputs ("\n     a   b   c   d   e   f   g   h", stdout);
+    fputs ("   ", stdout);
+    fputs ("    a   b   c   d   e   f   g   h\n", stdout);
+
+    fputs ("   +---+---+---+---+---+---+---+---+", stdout);
+    fputs ("   ", stdout);
+    fputs ("+---+---+---+---+---+---+---+---+\n", stdout);
 
     for (rank = CHI_RANK_8; rank >= CHI_RANK_1; --rank) {
 	fputc (' ', stdout);
@@ -453,28 +546,32 @@ display_offsets ()
 	fputc (' ', stdout);
 
 	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
-	    int direction;
-	    int e4 = CHI_RANK_4 * 8 + CHI_FILE_E;
-	    int index = rank * 8 + file;
-	    int offset = index >= e4 ? index - e4 : e4 - index;
+	    int offset = chi_coords2shift (file, rank);
 
-	    if (index < e4)
-		direction = '>';
-	    else if (index > e4)
-		direction = '<';
-	    else 
-		direction = '=';
+	    fprintf (stdout, "| %02d", offset);
+	}
 
-	    fprintf (stdout, "|%c%02d", direction, offset);
+	fputc ('|', stdout);
+	fputs ("   ", stdout);
+
+	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
+	    int offset = chi_coords2shift90 (file, rank);
+
+	    fprintf (stdout, "| %02d", offset);
 	}
 
 	fputc ('|', stdout);
 	fputc (' ', stdout);
+
 	fputc ('8' - 7 + rank, stdout);
-	fputs ("\n   +---+---+---+---+---+---+---+---+\n", stdout);
+	fputs ("\n   +---+---+---+---+---+---+---+---+", stdout);
+	fputs ("   ", stdout);
+	fputs ("+---+---+---+---+---+---+---+---+\n", stdout);
     }
 
-    fputs ("     a   b   c   d   e   f   g   h\n\n", stdout);
+    fputs ("     a   b   c   d   e   f   g   h", stdout);
+    fputs ("   ", stdout);
+    fputs ("    a   b   c   d   e   f   g   h\n\n", stdout);
 }
 
 static void
@@ -483,19 +580,88 @@ display_moves ()
     chi_move moves[CHI_MAX_MOVES];
     chi_move* mv;
     chi_move* mv_ptr;
-    char* buf = NULL;
-    unsigned int bufsize;
+    static char* buf = NULL;
+    static unsigned int bufsize;
 
-    mv = chi_generate_captures (&current, moves);
-    mv = chi_generate_non_captures (&current, mv);
+    mv = chi_legal_moves (&current, moves);
 
     for (mv_ptr = moves; mv_ptr < mv; ++mv_ptr) {
 	chi_print_move (&current, *mv_ptr, &buf, &bufsize, 0);
 	fprintf (stdout, "  Possible move: %s\n", buf);
-    }
 
-    if (buf)
-	free (buf);
+	fprintf (stdout, "[%08x:", *mv_ptr);
+	fprintf (stdout, "%d:", chi_move_material (*mv_ptr));
+	fprintf (stdout, "%s:", chi_move_is_ep (*mv_ptr) ? "ep" : "-");
+	
+	switch (chi_move_promote (*mv_ptr)) {
+	    case knight:
+		fprintf (stdout, "=N:");
+		break;
+	    case bishop:
+		fprintf (stdout, "=B:");
+		break;
+	    case rook:
+		fprintf (stdout, "=R:");
+		break;
+	    case queen:
+		fprintf (stdout, "=Q:");
+		break;
+	    case empty:
+		fprintf (stdout, "-:");
+		break;
+	    default:
+		fprintf (stdout, "=?%d:", chi_move_promote (*mv_ptr));
+		break;
+	}
+	
+	switch (chi_move_victim (*mv_ptr)) {
+	    case pawn:
+		fprintf (stdout, "xP:");
+		break;
+	    case knight:
+		fprintf (stdout, "xN:");
+		break;
+	case bishop:
+	    fprintf (stdout, "xB:");
+	    break;
+	    case rook:
+		fprintf (stdout, "xR:");
+		break;
+	    case queen:
+		fprintf (stdout, "xQ:");
+		break;
+	    case empty:
+		fprintf (stdout, "-:");
+		break;
+	    default:
+		fprintf (stdout, "x?%d:", chi_move_victim (*mv_ptr));
+		break;
+	}
+	
+	switch (chi_move_attacker (*mv_ptr)) {
+	    case pawn:
+		fprintf (stdout, "P");
+		break;
+	    case knight:
+		fprintf (stdout, "N");
+		break;
+	    case bishop:
+		fprintf (stdout, "B");
+		break;
+	    case rook:
+		fprintf (stdout, "R");
+		break;
+	    case queen:
+		fprintf (stdout, "Q");
+		break;
+	    case king:
+		fprintf (stdout, "K");
+		break;
+	}
+	
+	fprintf (stdout, "]\n");
+	
+    }
 }
 
 static int
@@ -504,8 +670,18 @@ handle_usermove (movestr)
 {
     chi_move move;
     int errnum;
+    int castling_state;
 
-    // FIXME: Return with an error if the engine is on move.
+    if (game_over) {
+	fprintf (stdout, "Error (game over): %s\n", movestr);
+	return EVENT_CONTINUE;
+    }
+
+    if (thinking) {
+	fprintf (stdout, "Error (it's not your move): %s\n",
+		 movestr);
+	return EVENT_CONTINUE;
+    }
 
     if (!movestr)
 	return EVENT_CONTINUE;
@@ -515,23 +691,354 @@ handle_usermove (movestr)
     if (errnum != 0) {
 	fprintf (stdout, "Illegal move (%s): %s\n",
 		 chi_strerror (errnum), movestr);
-    } else {
-	char* buf = NULL;
-	unsigned int bufsize;
-
-	int result = chi_print_move (&current, move, &buf, &bufsize, 0);
-	
-	if (result) {
-	    fprintf (stderr, "Oops: %s\n", chi_strerror (result));
-	} else {
-	    fprintf (stdout, "  Got move: %s\n", buf);
-	}
-
-	if (buf)
-	    free (buf);
+	return EVENT_CONTINUE;
     }
 
+    errnum = chi_check_legality (&current, move);
+    if (errnum != 0) {
+	fprintf (stdout, "Illegal move (%s): %s\n",
+		 chi_strerror (errnum), movestr);
+	return EVENT_CONTINUE;
+    }
+
+    errnum = chi_apply_move (&current, move);
+
+    if (errnum != 0) {
+	fprintf (stdout, "Illegal move (%s): %s\n",
+		 chi_strerror (errnum), movestr);
+	return EVENT_CONTINUE;
+    }
+
+    if (game_hist_ply + 1 >= game_hist_alloc) {
+	game_hist = xrealloc (game_hist, game_hist_ply + MAX_PLY);
+	game_hist_ply += MAX_PLY;
+    }
+
+    game_hist[game_hist_ply++].move = move;
+    game_hist[game_hist_ply].signature = chi_zk_signature (zk_handle, 
+							   &current);
+    castling_state = game_hist[game_hist_ply - 1].castling_state;
+    if (!chi_wk_castle (&current))
+	castling_state &= ~0x1;
+    if (!chi_wq_castle (&current))
+	castling_state &= ~0x2;
+
+    if (!chi_bk_castle (&current))
+	castling_state &= ~0x10;
+    if (!chi_bq_castle (&current))
+	castling_state &= ~0x20;
+
+    if ((0xfff & move) == (3 | (1 << 6))) {
+	castling_state &= 0x70;
+	castling_state |= 0x4;
+    } else if ((0xfff & move) == (3 | (5 << 6))) {
+	castling_state &= 0x70;
+	castling_state |= 0x4;
+    } else if ((0xfff & move) == (59 | (57 << 6))) {
+	castling_state &= 0x7;
+	castling_state |= 0x40;
+    } else if ((0xfff & move) == (59 | (61 << 6))) {
+	castling_state &= 0x7;
+	castling_state |= 0x40;
+    }
+    game_hist[game_hist_ply].castling_state = castling_state;
+
+    if (1) {
+	bitv64 new_signature = game_hist[game_hist_ply].signature;
+	bitv64 old_signature = game_hist[game_hist_ply - 1].signature;
+	chi_color_t color = chi_on_move (&game_hist[game_hist_ply - 1].pos);
+	
+	if (new_signature != chi_zk_update_signature (zk_handle, 
+						      old_signature, 
+						      move, color)) {
+	    fprintf (stderr, "new sig: %016llx\n", new_signature);
+	    fprintf (stderr, "old sig: %016llx\n", old_signature);
+	    fprintf (stderr, "upd sig: %016llx\n",
+		     chi_zk_update_signature (zk_handle, old_signature,
+					      move, color));
+	    fprintf (stderr, "xpd sig: %016llx\n",
+	         chi_zk_update_signature (zk_handle, old_signature,
+	    			      move, !color));
+	    error (EXIT_FAILURE, 0, "signatures mismatch");
+	}						    
+    }
+
+    game_hist[game_hist_ply].pos = current;
+
+    if (force)
+	return EVENT_CONTINUE;
+
+    engine_color = !engine_color;
+    thinking = 1;
+
+    return handle_go ();
+}
+
+static int
+handle_legalmove (movestr)
+     const char* movestr;
+{
+    chi_move move;
+    int errnum;
+    chi_pos dummy_pos = current;
+
+    if (game_over) {
+	fprintf (stdout, "Error (game over): %s\n", movestr);
+	return EVENT_CONTINUE;
+    }
+
+    if (!movestr)
+	return EVENT_CONTINUE;
+
+    errnum = chi_parse_move (&dummy_pos, &move, movestr);	
+    if (errnum != 0) {
+	fprintf (stdout, "Illegal move (%s): %s\n",
+		 chi_strerror (errnum), movestr);
+	return EVENT_CONTINUE;
+    }
+
+    errnum = chi_illegal_move (&dummy_pos, move);
+    if (errnum != 0) {
+	fprintf (stdout, "Illegal move (%s): %s\n",
+		 chi_strerror (errnum), movestr);
+	return EVENT_CONTINUE;
+    }
+
+    fprintf (stdout, "  Move %s is legal\n", movestr);
+    
     return EVENT_CONTINUE;
+}
+
+static int
+handle_evaluate (movestr)
+     const char* movestr;
+{
+    chi_move move;
+    int errnum;
+    chi_pos dummy_pos = current;
+
+    if (game_over) {
+	fprintf (stdout, "Error (game over): %s\n", movestr);
+	return EVENT_CONTINUE;
+    }
+
+    if (!movestr)
+	return EVENT_CONTINUE;
+
+    errnum = chi_parse_move (&current, &move, movestr);	
+    if (errnum != 0) {
+	fprintf (stdout, "Illegal move (%s): %s\n",
+		 chi_strerror (errnum), movestr);
+	return EVENT_CONTINUE;
+    }
+
+    errnum = chi_illegal_move (&dummy_pos, move);
+    if (errnum != 0) {
+	fprintf (stdout, "Illegal move (%s): %s\n",
+		 chi_strerror (errnum), movestr);
+	return EVENT_CONTINUE;
+    }
+
+    evaluate_move (move);
+    
+    return EVENT_CONTINUE;
+}
+
+static int
+handle_go ()
+{
+    chi_move move;
+    int errnum;
+    static char* buf = NULL;
+    static unsigned int bufsize;
+    int result;
+    int castling_state;
+
+    force = 0;
+
+    if (game_over)
+	return EVENT_GAME_OVER;
+
+    engine_color = chi_on_move (&current);
+
+    result = think (&move);
+    if (result & EVENT_GAME_OVER)
+	return result;
+    
+    errnum = chi_print_move (&current, move, &buf, &bufsize, 0);
+    if (errnum != 0) {
+	print_game (); fflush (stdout);
+	display_moves (); fflush (stdout);
+	fprintf (stderr, "engine move: ");
+
+	fprintf (stdout, "[%08x:", move);
+	fprintf (stdout, "%d:", chi_move_material (move));
+	fprintf (stdout, "%s:", chi_move_is_ep (move) ? "ep" : "-");
+	
+	switch (chi_move_promote (move)) {
+	    case knight:
+		fprintf (stdout, "=N:");
+		break;
+	    case bishop:
+		fprintf (stdout, "=B:");
+		break;
+	    case rook:
+		fprintf (stdout, "=R:");
+		break;
+	    case queen:
+		fprintf (stdout, "=Q:");
+		break;
+	    case empty:
+		fprintf (stdout, "-:");
+		break;
+	    default:
+		fprintf (stdout, "=?%d:", chi_move_promote (move));
+		break;
+	}
+	
+	switch (chi_move_victim (move)) {
+	    case pawn:
+		fprintf (stdout, "xP:");
+		break;
+	    case knight:
+		fprintf (stdout, "xN:");
+		break;
+	case bishop:
+	    fprintf (stdout, "xB:");
+	    break;
+	    case rook:
+		fprintf (stdout, "xR:");
+		break;
+	    case queen:
+		fprintf (stdout, "xQ:");
+		break;
+	    case empty:
+		fprintf (stdout, "-:");
+		break;
+	    default:
+		fprintf (stdout, "x?%d:", chi_move_victim (move));
+		break;
+	}
+	
+	switch (chi_move_attacker (move)) {
+	    case pawn:
+		fprintf (stdout, "P");
+		break;
+	    case knight:
+		fprintf (stdout, "N");
+		break;
+	    case bishop:
+		fprintf (stdout, "B");
+		break;
+	    case rook:
+		fprintf (stdout, "R");
+		break;
+	    case queen:
+		fprintf (stdout, "Q");
+		break;
+	    case king:
+		fprintf (stdout, "K");
+		break;
+	}
+	
+	fprintf (stdout, "]\n");
+	error (EXIT_FAILURE, 0, "engine made illegal move (%d->%d).\n",
+	       chi_move_from (move), chi_move_to (move));
+    }
+
+    fprintf (stdout, "move %s\n", buf);
+
+    errnum = chi_apply_move (&current, move);
+    if (errnum != 0)
+	error (EXIT_FAILURE, 0, "engine made illegal move.\n");
+
+    if (game_hist_ply + 1 >= game_hist_alloc) {
+	game_hist = xrealloc (game_hist, game_hist_ply + MAX_PLY);
+	game_hist_ply += MAX_PLY;
+    }
+
+    if (result == EVENT_GAME_OVER)
+	return EVENT_GAME_OVER;
+
+    game_hist[game_hist_ply++].move = move;
+    game_hist[game_hist_ply].signature = chi_zk_signature (zk_handle, 
+							   &current);
+    game_hist[game_hist_ply].pos = current;
+    castling_state = game_hist[game_hist_ply - 1].castling_state;
+    if (!chi_wk_castle (&current))
+	castling_state &= ~0x1;
+    if (!chi_wq_castle (&current))
+	castling_state &= ~0x2;
+
+    if (!chi_bk_castle (&current))
+	castling_state &= ~0x10;
+    if (!chi_bq_castle (&current))
+	castling_state &= ~0x20;
+
+    if ((0xfff & move) == (3 | (1 << 6))) {
+	castling_state &= 0x70;
+	castling_state |= 0x4;
+    } else if ((0xfff & move) == (3 | (5 << 6))) {
+	castling_state &= 0x70;
+	castling_state |= 0x4;
+    } else if ((0xfff & move) == (59 | (57 << 6))) {
+	castling_state &= 0x7;
+	castling_state |= 0x40;
+    } else if ((0xfff & move) == (59 | (61 << 6))) {
+	castling_state &= 0x7;
+	castling_state |= 0x40;
+    }
+    game_hist[game_hist_ply].castling_state = castling_state;
+
+    if (1) {
+	bitv64 new_signature = game_hist[game_hist_ply].signature;
+	bitv64 old_signature = game_hist[game_hist_ply - 1].signature;
+	chi_color_t color = !chi_on_move (&current);
+	
+	if (new_signature != chi_zk_update_signature (zk_handle, 
+						      old_signature, 
+						      move, color)) {
+	    print_game ();
+	    fflush (stdout);
+	    fprintf (stderr, "new sig: %016llx\n", new_signature);
+	    fprintf (stderr, "old sig: %016llx\n", old_signature);
+	    fprintf (stderr, "upd sig: %016llx\n",
+		     chi_zk_update_signature (zk_handle, old_signature,
+					      move, color));
+	    fprintf (stderr, "xpd sig: %016llx\n",
+	         chi_zk_update_signature (zk_handle, old_signature,
+	    			      move, !color));
+
+	    error (EXIT_FAILURE, 0, "signatures mismatch");
+	}
+    }
+
+    engine_color = !engine_color;
+    thinking = 0;
+
+    // FIXME: Start pondering.
+
+    return EVENT_CONTINUE;
+}
+
+static void
+check_input ()
+{
+    fd_set mask;
+    struct timeval timeout;
+    int result;
+
+    memset (&timeout, 0, sizeof timeout);
+    FD_ZERO (&mask);
+    FD_SET (fileno (stdin), &mask);
+
+    result = select (1, &mask, NULL, NULL, &timeout);
+    if (result == -1)
+	error (EXIT_FAILURE, errno, "select failed");
+    if (result != 0) {
+	event_pending = 1;
+	raise (SIGIO);
+    }
 }
 
 /*

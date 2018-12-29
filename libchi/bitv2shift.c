@@ -25,8 +25,8 @@
 
 #include <string.h>
 
-#define M1 ((unsigned long long) 0x5555555555555555)
-#define M2 ((unsigned long long) 0x3333333333333333)
+#define M1 ((bitv64) 0x5555555555555555)
+#define M2 ((bitv64) 0x3333333333333333)
 
 unsigned int 
 chi_bitv2shift (b)

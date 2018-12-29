@@ -56,8 +56,12 @@ typedef @BITV64@ bitv64;
 #define CHI_ERR_PARSER     2
 /* Move from an empty square.  */
 #define CHI_ERR_EMPTY_SQUARE 3
+/* Move from an empty square.  */
+#define CHI_ERR_ILLEGAL_MOVE 4
+/* Side not on move is in check.  */
+#define CHI_ERR_IN_CHECK 5
 /* Illegal library usage (NULL pointers, etc.).  */
-#define CHI_ERR_YOUR_FAULT 4
+#define CHI_ERR_YOUR_FAULT 6
 /* End marker.  */
 #define CHI_ERRMAX      CHI_ERR_YOUR_FAULT
 
@@ -98,13 +102,21 @@ typedef @BITV64@ bitv64;
 #define CHI_RANK_7 (6)
 #define CHI_RANK_8 (7)
 
-/* Commonly used piece values in millipawns.  */
+/* Commonly used piece values in centipawns bytes.  */
 #define CHI_VALUE_EMPTY      0
-#define CHI_VALUE_PAWN    1000
-#define CHI_VALUE_KNIGHT  3000
-#define CHI_VALUE_BISHOP  3000
-#define CHI_VALUE_ROOK    5000
-#define CHI_VALUE_QUEEN   9000
+#define CHI_VALUE_PAWN     100
+#define CHI_VALUE_KNIGHT   300
+#define CHI_VALUE_BISHOP   300
+#define CHI_VALUE_ROOK     500
+#define CHI_VALUE_QUEEN    900
+
+/* Artifical evaluations.  */
+#define CHI_VALUE_DOUBLE_STEP   20
+#define CHI_VALUE_CASTLING      30
+
+/* Convert to conventional values.  */
+#define chi_value2centipawns(v) (v)
+#define chi_value2pawns(v) (((double) (v)) / 100)
 
 /* The minimum number of a move array (must be capable of storing all
    legal moves from one position.  I think the theoretical maximum is 76, 
@@ -138,7 +150,9 @@ typedef enum {
 typedef struct {
 	bitv64 w_pieces;
 	bitv64 b_pieces;
-	
+        bitv64 w_pieces90;
+        bitv64 b_pieces90;
+
 	bitv64 w_pawns;
 	bitv64 w_knights;
 	bitv64 w_bishops;
@@ -162,10 +176,10 @@ typedef struct {
 #define chi_bq_castle(p) ((p)->union_flags.sflags.bq_castle)
 #define chi_ep(p) ((p)->union_flags.sflags.ep)
 #define chi_ep_file(p) ((p)->union_flags.sflags.ep_file)
-#define chi_to_move(p) ((p)->to_move)
-#define chi_ep_row(p) (chi_to_move(p) ? \
+#define chi_on_move(p) ((p)->to_move)
+#define chi_ep_rank(p) (chi_to_move(p) ? \
 			  CHI_RANK_6 : CHI_RANK_3)
-
+    
 	union {
 		unsigned char flags;
 		struct {
@@ -177,47 +191,81 @@ typedef struct {
 			unsigned ep_file: 3;
 		} sflags;
 	} union_flags;
+    
+        /* The material (p = 1, n = 3, b = 3, r = 5, q = 9) from
+	   white's point of view.  This gets updated by chi_apply_move().
+	   In normal chess, the maximum is 9 queens, 2 rooks, and 4 minors,
+	   which sums up to 103.  Luckily less than 128 which leaves
+	   us with sufficient space for the sign.
+	*/
+        char material;
 } chi_pos;
 
-typedef union {
-        /* Assigning to chi_packed(move) will clear/initialize to
-	   move (and if carefully chosen) set fields.from at the
-	   same time.  */
-#define chi_packed(m) ((m).packed)
-	unsigned int packed;
-#define chi_from(m) ((m).fields.from)
-#define chi_to(m) ((m).fields.to)
-#define chi_promote(m) ((m).fields.promote)
-#define chi_material(m) ((m).fields.material)
-	struct {
-#ifdef WORDS_BIGENDIAN
-		/* Raw material gain by this move (in pawns).  */
-		unsigned char material;
-		/* Promotion piece.  */
-		unsigned char promote;
-		/* Offset of destination square.  Negative for unknown
-		   shift.  */
-		char to;
-		/* Offset of source square.  Negative for unknown shift.  */
-		char from;
-#else
-		/* Offset of source square.  Negative for unknown shift.  */
-		char from;
-		/* Offset of destination square.  Negative for unknown
-		   shift.  */
-		char to;
-		/* Promotion piece.  */
-		unsigned char promote;
-		/* Raw material gain by this move (in pawns).  */
-		unsigned char material;
-#endif
-	} fields;
-} chi_move;
+/* A move is represented by 32 bits in host order:
+
+           25-31: raw material balance (viewed from the side on move)
+           23-24: unused
+              22: en passant flag
+           19-21: promotion piece (add 2)
+           16-18: piece that gets removed
+           13-15: piece that moves (resp. attacker)
+            7-12: to offset (0-63)
+            1- 6: from offset (0-63)
+
+   Why is the most signicant bit not set? This will "hide" the
+   conventional signing of a position (a positive score is good
+   for white, a negative one good for black).  The idea behind
+   that, is to allow for efficient move ordering.  You can simply
+   sort an array of moves as integers, and you will have sorted
+   them by their raw material gain for the side on move (and you
+   usually will order moves for the side on move).
+
+   Having the sign OR'd into the move, would require you to either
+   unset the most significant bit, or distinguish between white
+   on move and black on move.  But if you decide to make that 
+   distinction, you can probably afford the time to OR the move
+   with 0xf0000000.
+ */
+
+typedef int chi_move;
+
+/* Macros that extract a particular value of interest from a move.
+   En-passant is treat as a flag rather than a value and therefore
+   not shifted to the right.  */
+#define chi_move_packed(m) (m)
+#define chi_move_from(m) ((m) & 0x3f)
+#define chi_move_to(m) (((m) >> 6) & 0x3f)
+#define chi_move_attacker(m) (((m) >> 12) & 0x7)
+#define chi_move_victim(m) (((m) >> 15) & 0x7)
+#define chi_move_promote(m) (((m) >> 18) & 0x7)
+#define chi_move_is_ep(m) ((m) & 0x200000)
+#define chi_move_material(m) ((m) >> 24)
+
+/* Macros for setting particular values for a move.  They are all
+   expansive and should be avoided in really time-critical situations.
+   You can often save a lot of time by doing some exercises in
+   bit-twiddling.
+*/
+#define chi_move_set_packed(m, v) ((m) = (v))
+#define chi_move_set_from(m, v) ((m) = ((m) & ~0x3f) | ((v) & 0x3f))
+#define chi_move_set_to(m, v) ((m) = ((m) & ~0xfc0) | ((v) & 0x3f) << 6)
+#define chi_move_set_attacker(m, a) ((m) = ((m) & ~0x7000) | ((a) & 0x7) << 12)
+#define chi_move_set_victim(m, v) ((m) = ((m) & ~0x38000) | ((v) & 0x7) << 15)
+#define chi_move_set_promote(m, p) ((m) = ((m) & ~0x1c0000) | ((p) & 0x7) << 18)
+#define chi_move_set_ep(m) ((m) |= 0x200000)
+#define chi_move_unset_ep(m) ((m) &= ~0x200000)
+#define chi_move_set_material(m, v) ((m) = ((m) & ~0xff000000) | ((v) << 24))
+
+/* A handle for creating Zobrist keys.  */
+typedef @BITV64@* chi_zk_handle;
 
 /* Function like macros.  */
 #define chi_file2char(f) ((f) + 'a')
 #define chi_rank2char(r) ((r) + '1')
 #define chi_coords2shift(f, r) ((r) * 8 + (7 - (f)))
+#define chi_coords2shift90(f, r) ((7 - (f)) * 8 + (7 - (r)))
+#define chi_zk_lookup(zk_handle, pc, co, sq) \
+    zk_handle[((pc) << 7) + ((co) << 1) + sq]
 
 /* Bit twiddling part 1: Clear all but the least significant bit.  */
 #define chi_clear_but_least_set(b) ((b) & -(b))
@@ -228,61 +276,183 @@ typedef union {
 CHI_BEGIN_DECLS
 
 /* Return a descriptive (English!) error message for the given error.  */
-const char* chi_strerror CHI_PARAMS ((int chi_arg_errnum));
+extern const char* chi_strerror CHI_PARAMS ((int chi_arg_errnum));
 
 /* Set a board to the initial chess position.  */
-void chi_init_position CHI_PARAMS ((chi_pos* chi_arg_pos));
+extern void chi_init_position CHI_PARAMS ((chi_pos* chi_arg_pos));
 
 /* Set a position to empty (no pieces), unset all flags etc.  */
-void chi_clear_position CHI_PARAMS ((chi_pos* chi_arg_pos));
+extern void chi_clear_position CHI_PARAMS ((chi_pos* chi_arg_pos));
 
 /* Place a piece (also empty!) of given color on board.  Will not update
    en_passant state, castling state, move clocks etc.  */
-int chi_set_piece CHI_PARAMS ((chi_pos* chi_arg_pos, chi_piece_t chi_arg_piece,
-			       chi_color_t chi_arg_color,
-			       int chi_arg_file, int chi_arg_rank));
+extern int chi_set_piece CHI_PARAMS ((chi_pos* chi_arg_pos, 
+				      chi_piece_t chi_arg_piece,
+				      chi_color_t chi_arg_color,
+				      int chi_arg_file, int chi_arg_rank));
 
 /* Dumps piece characters into a string.  The second argument is a buffer
    allocated with malloc(), the third argument must point to the buffer's 
    size.  You can safely pass a NULL pointer for the buffer address,
    in which case libchi will allocate a buffer for you.  */
-int chi_dump_pieces CHI_PARAMS ((chi_pos* chi_arg_pos, char** chi_arg_buf, 
-				 unsigned int* chi_arg_bufsize));
+extern int chi_dump_pieces CHI_PARAMS ((chi_pos* chi_arg_pos, 
+					char** chi_arg_buf, 
+					unsigned int* chi_arg_bufsize));
 
 /* Return the label ("a1", "a2", ...) for given coordinates.  */
-const char* chi_coords2label CHI_PARAMS ((unsigned int chi_arg_file, 
-					  unsigned int chi_arg_rank));
+extern const char* chi_coords2label CHI_PARAMS ((unsigned int chi_arg_file, 
+						 unsigned int chi_arg_rank));
 
 /* Return the label ("a1", "a2", ...) for given shift.  */
-const char* chi_shift2label CHI_PARAMS ((unsigned int chi_arg_shift));
+extern const char* chi_shift2label CHI_PARAMS ((unsigned int chi_arg_shift));
 
 /* Return a letter for a given piece (including pawn!).  */
-const char chi_piece2char CHI_PARAMS ((chi_piece_t chi_arg_piece));
+extern const char chi_piece2char CHI_PARAMS ((chi_piece_t chi_arg_piece));
 
 /* Parse the move string and place the result into the structure.
    Returns a non-zero error code in case of failure.  */
-int chi_parse_move CHI_PARAMS ((chi_pos* chi_arg_pos, chi_move* chi_arg_move,
-				const char* chi_arg_movestr));
+extern int chi_parse_move CHI_PARAMS ((chi_pos* chi_arg_pos, 
+				       chi_move* chi_arg_move,
+				       const char* chi_arg_movestr));
 
 /* Place a string describing the move in the output buffer.  */
-int chi_print_move CHI_PARAMS ((chi_pos* chi_arg_pos, chi_move chi_arg_move, 
-				char** chi_arg_buf, 
-				unsigned int* chi_arg_bufsize, 
-				int chi_arg_san));
+extern int chi_print_move CHI_PARAMS ((chi_pos* chi_arg_pos, 
+				       chi_move chi_arg_move, 
+				       char** chi_arg_buf, 
+				       unsigned int* chi_arg_bufsize, 
+				       int chi_arg_san));
 
 /* (Lazily) apply a move to a given position.  */
-int chi_make_move CHI_PARAMS ((chi_pos* chi_arg_pos, chi_move chi_arg_move));
+extern int chi_make_move CHI_PARAMS ((chi_pos* chi_arg_pos, 
+				      chi_move chi_arg_move));
+
+/* (Fully) apply a move to a given position.  This will also update
+   the material count, based on the information in chi_arg_move.  */
+extern int chi_apply_move CHI_PARAMS ((chi_pos* chi_arg_pos, 
+				       chi_move chi_arg_move));
 
 /* Generate all pseudo-legal captures for a given position.  */
-chi_move* chi_generate_captures CHI_PARAMS ((chi_pos* chi_arg_pos, 
-					     chi_move* chi_arg_movestack));
+extern chi_move* chi_generate_captures CHI_PARAMS ((chi_pos* chi_arg_pos, 
+						    chi_move* 
+						    chi_arg_movestack));
 
 /* Generate all pseudo-legal non-captures for a given position.  */
-chi_move* chi_generate_non_captures CHI_PARAMS ((chi_pos* chi_arg_pos, 
-						 chi_move* chi_arg_movestack));
+extern chi_move* chi_generate_non_captures CHI_PARAMS ((chi_pos* chi_arg_pos, 
+							chi_move* 
+							chi_arg_movestack));
+
+/* Generate all legal moves for a given position.  */
+extern chi_move* chi_legal_moves CHI_PARAMS ((chi_pos* chi_arg_pos, 
+					      chi_move* chi_arg_movestack));
+
+/* Check whether the move is illegal (will lead into a check or when
+   castling, will cross attacked squares.  In case of legality, the
+   move is also applied to the position.  */
+extern int chi_illegal_move CHI_PARAMS ((chi_pos* chi_arg_pos, 
+					 chi_move chi_arg_move));
+
+/* Check if a given move is legal (done by generating all legal moves
+   and trying to find it there.  */
+extern int chi_check_legality CHI_PARAMS ((chi_pos* chi_arg_pos, 
+					   chi_move chi_arg_move));
+
+/* Check if the side to move is in check.  */
+extern int chi_check_check CHI_PARAMS ((chi_pos* chi_arg_pos));
+
+extern chi_move* chi_generate_white_captures CHI_PARAMS ((chi_pos*, 
+							  chi_move*));
+extern chi_move* chi_generate_black_captures CHI_PARAMS ((chi_pos*, 
+							  chi_move*));
+
+extern chi_move* chi_generate_white_non_captures CHI_PARAMS ((chi_pos*, 
+							      chi_move*));
+extern chi_move* chi_generate_black_non_captures CHI_PARAMS ((chi_pos*, 
+							      chi_move*));
+
+/* A whole bunch of functions that let you generate (potentially
+   expansive to generate) moves step by step.  */
+extern chi_move* chi_generate_pawn_double_steps CHI_PARAMS ((chi_pos*, 
+							     chi_move*));
+extern chi_move* chi_generate_white_pawn_double_steps CHI_PARAMS ((chi_pos*, 
+								   chi_move*));
+extern chi_move* chi_generate_black_pawn_double_steps CHI_PARAMS ((chi_pos*, 
+								   chi_move*));
+
+extern chi_move* chi_generate_pawn_single_steps CHI_PARAMS ((chi_pos*, 
+							     chi_move*));
+extern chi_move* chi_generate_white_pawn_single_steps CHI_PARAMS ((chi_pos*, 
+								   chi_move*));
+extern chi_move* chi_generate_black_pawn_single_steps CHI_PARAMS ((chi_pos*, 
+								   chi_move*));
+
+extern chi_move* chi_generate_knight_moves CHI_PARAMS ((chi_pos*, 
+							chi_move*));
+extern chi_move* chi_generate_white_knight_moves CHI_PARAMS ((chi_pos*, 
+							      chi_move*));
+extern chi_move* chi_generate_black_knight_moves CHI_PARAMS ((chi_pos*, 
+							      chi_move*));
+
+extern chi_move* chi_generate_bishop_moves CHI_PARAMS ((chi_pos*, 
+							chi_move*));
+extern chi_move* chi_generate_white_bishop_moves CHI_PARAMS ((chi_pos*, 
+							      chi_move*));
+extern chi_move* chi_generate_black_bishop_moves CHI_PARAMS ((chi_pos*, 
+							      chi_move*));
+
+extern chi_move* chi_generate_rook_moves CHI_PARAMS ((chi_pos*, 
+						      chi_move*));
+extern chi_move* chi_generate_white_rook_moves CHI_PARAMS ((chi_pos*, 
+							    chi_move*));
+extern chi_move* chi_generate_black_rook_moves CHI_PARAMS ((chi_pos*, 
+							    chi_move*));
+
+extern chi_move* chi_generate_king_castling_moves CHI_PARAMS ((chi_pos*, 
+							       chi_move*));
+extern chi_move* chi_generate_white_king_castling_moves CHI_PARAMS ((chi_pos*, 
+								     chi_move*));
+extern chi_move* chi_generate_black_king_castling_moves CHI_PARAMS ((chi_pos*, 
+								     chi_move*));
+
+extern chi_move* chi_generate_king_moves CHI_PARAMS ((chi_pos*, 
+						      chi_move*));
+extern chi_move* chi_generate_white_king_moves CHI_PARAMS ((chi_pos*, 
+							    chi_move*));
+extern chi_move* chi_generate_black_king_moves CHI_PARAMS ((chi_pos*, 
+							    chi_move*));
+
+
+extern int chi_white_check_check CHI_PARAMS ((chi_pos*));
+extern int chi_black_check_check CHI_PARAMS ((chi_pos*));
+
+/* Update the material count for a position, regardless of its former
+   value.  The function will never fail.  */
+extern void chi_update_material CHI_PARAMS ((chi_pos* chi_arg_pos));
 
 /* For bitboards with exactly one bit set.  */
-unsigned int chi_bitv2shift CHI_PARAMS ((bitv64 chi_arg_bitv));
+extern unsigned int chi_bitv2shift CHI_PARAMS ((bitv64 chi_arg_bitv));
+
+/* Get a handle for creating zobrist keys.  Returns NULL on failure.  */
+extern int chi_zk_init CHI_PARAMS ((chi_zk_handle* chi_arg_zk_handle));
+
+/* Free the resources associated with a zobrist key.  */
+extern void chi_zk_finish CHI_PARAMS ((chi_zk_handle chi_arg_zk_handle));
+
+/* Get a 64 bit signature for a given position.  */
+extern bitv64 chi_zk_signature CHI_PARAMS ((chi_zk_handle chi_arg_zk_handle,
+					    chi_pos* pos));
+
+/* Return an updated signature for a given move.  */
+extern bitv64 chi_zk_update_signature CHI_PARAMS ((chi_zk_handle chi_arg_zk_handle,
+						   bitv64 chi_arg_signature,
+						   chi_move chi_arg_move,
+						   chi_color_t chi_arg_color));
+
+/* Return the prime closest to the argument.  In pathological cases,
+   there can be a prime one closer to the argument.  In even more 
+   pathological case, the returned prime is no prime at all.
+   The odds for the latter are less than the odds for you beign a
+   natural blonde and understanding the source.  */
+extern unsigned long int chi_closest_prime CHI_PARAMS ((unsigned long int));
 
 CHI_END_DECLS
 

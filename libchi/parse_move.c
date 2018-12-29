@@ -26,6 +26,8 @@
 static int parse_castling CHI_PARAMS ((chi_pos*, chi_move*, const char*));
 static int parse_fq_move CHI_PARAMS ((chi_pos*, chi_move*, const char*));
 
+static void fill_move CHI_PARAMS ((chi_pos*, chi_move*));
+
 int
 chi_parse_move (pos, move, movestr)
      chi_pos* pos;
@@ -37,19 +39,21 @@ chi_parse_move (pos, move, movestr)
     if (!pos || !move || !movestr || !movestr[0])
 	return CHI_ERR_YOUR_FAULT;
 
-    move->packed = 0;
+    *move = 0;
 
     /* Castling moves should be okay to parse.  */
     match = parse_castling (pos, move, movestr);
-    if (match >= 0)
-	return match;
 
     /* Fully qualified moves: (P/)?e2-e4.  */
-    match = parse_fq_move (pos, move, movestr);
-    if (match >= 0)
-	return match;
+    if (match != 0)
+	match = parse_fq_move (pos, move, movestr);
 
-    return CHI_ERR_PARSER;
+    if (match != 0)
+	return CHI_ERR_PARSER;
+
+    fill_move (pos, move);
+
+    return 0;
 }
 
 static int
@@ -59,25 +63,27 @@ parse_castling (pos, move, movestr)
      const char* movestr;
 {
     /* Castling moves are easy to detect.  */
-    if (0 == strncasecmp ("o-o-o", movestr, 5)) {
-	if (chi_to_move (pos) == chi_white) {
-	    move->fields.from = chi_coords2shift (CHI_FILE_E, CHI_RANK_1);
-	    move->fields.to = chi_coords2shift (CHI_FILE_C, CHI_RANK_1);
+    if (0 == strncasecmp ("o-o-o", movestr, 5)
+	|| 0 == strncmp ("0-0-0", movestr, 5)) {
+	if (chi_on_move (pos) == chi_white) {
+	    chi_move_set_from (*move, chi_coords2shift (CHI_FILE_E, CHI_RANK_1));
+	    chi_move_set_to (*move, chi_coords2shift (CHI_FILE_C, CHI_RANK_1));
 	} else {
-	    move->fields.from = chi_coords2shift (CHI_FILE_E, CHI_RANK_8);
-	    move->fields.to = chi_coords2shift (CHI_FILE_C, CHI_RANK_8);
+	    chi_move_set_from (*move, chi_coords2shift (CHI_FILE_E, CHI_RANK_8));
+	    chi_move_set_to (*move, chi_coords2shift (CHI_FILE_C, CHI_RANK_8));
 	}
 	
 	return 0;
     }
 
-    if (0 == strncasecmp ("o-o", movestr, 3)) {
-	if (chi_to_move (pos) == chi_white) {
-	    move->fields.from = chi_coords2shift (CHI_FILE_E, CHI_RANK_1);
-	    move->fields.to = chi_coords2shift (CHI_FILE_G, CHI_RANK_1);
+    if (0 == strncasecmp ("o-o", movestr, 3)
+	|| 0 == strncmp ("0-0", movestr, 3)) {
+	if (chi_on_move (pos) == chi_white) {
+	    chi_move_set_from (*move, chi_coords2shift (CHI_FILE_E, CHI_RANK_1));
+	    chi_move_set_to (*move, chi_coords2shift (CHI_FILE_G, CHI_RANK_1));
 	} else {
-	    move->fields.from = chi_coords2shift (CHI_FILE_E, CHI_RANK_8);
-	    move->fields.to = chi_coords2shift (CHI_FILE_G, CHI_RANK_8);
+	    chi_move_set_from (*move, chi_coords2shift (CHI_FILE_E, CHI_RANK_8));
+	    chi_move_set_to (*move, chi_coords2shift (CHI_FILE_G, CHI_RANK_8));
 	}
 
 	return 0;
@@ -213,31 +219,167 @@ parse_fq_move (pos, move, movestr)
 	    return -1;
     }
 
-    if (ptr[0] == '=') {
+    if (ptr[0] == '=')
 	++ptr;
 	
-	switch (ptr[0]) {
-	    case 'N':
-	    case 'K':
-		move->fields.promote = knight;
-		break;
-	case 'B':
-	    move->fields.promote = bishop;
+    switch (ptr[0]) {
+	case 'N':
+	case 'K':
+	case 'n':
+	case 'k':
+	    chi_move_set_promote (*move, knight);
 	    break;
-	    case 'R':
-		move->fields.promote = rook;
-		break;
-	    case 'Q':
-		move->fields.promote = queen;
-		break;
-	    default: return -1;
+	case 'B':
+	case 'b':
+	    chi_move_set_promote (*move, bishop);
+	    break;
+	case 'R':
+	case 'r':
+	    chi_move_set_promote (*move, rook);
+	    break;
+	case 'Q':
+	case 'q':
+	    chi_move_set_promote (*move, queen);
+	    break;
+    }
+
+    chi_move_set_from (*move, chi_coords2shift (from_file, from_rank));
+    chi_move_set_to (*move, chi_coords2shift (to_file, to_rank));
+
+    return 0;
+}
+
+static void
+fill_move (pos, move)
+     chi_pos* pos;
+     chi_move* move;
+{
+    chi_piece_t attacker = empty;
+    chi_piece_t victim = empty;
+    chi_piece_t promote = chi_move_promote (*move);
+    int is_ep = 0;
+    int material = 0;
+    int from = chi_move_from (*move);
+    int to = chi_move_to (*move);
+    bitv64 from_mask = ((bitv64) 1) << from;
+    bitv64 to_mask = ((bitv64) 1) << to;
+
+    if (chi_on_move (pos) == chi_white) {
+	if (pos->w_pawns & from_mask) {
+	    attacker = pawn;
+	    if (chi_ep (pos) &&
+		(to_mask & CHI_6_MASK) &&
+		(!(to_mask & pos->b_pieces)) &&
+		(to - from) & 1) {
+		is_ep = 1;
+		victim = pawn;
+		material = 1;
+	    } else if (promote) {
+		switch (promote) {
+		    case queen:
+			material = 9;
+			break;
+		    case rook:
+			material = 5;
+			break;
+		    default:
+			material = 3;
+			break;
+		}
+	    }
+	} else if (pos->w_knights & from_mask) {
+	    attacker = knight;
+	} else if (pos->w_bishops & from_mask) {
+	    if (pos->w_rooks & from_mask)
+		attacker = queen;
+	    else 
+		attacker = bishop;  
+	} else if (pos->w_rooks & from_mask) {
+	    attacker = rook;
+	} else if (pos->w_kings & from_mask) {
+	    attacker = king;
+	}
+
+	if (pos->b_pieces & to_mask) {
+	    if (pos->b_pawns & to_mask) {
+		material += 1;
+		victim = pawn;
+	    } else if (pos->b_knights & to_mask) {
+		material += 3;
+		victim = knight;
+	    } else if (pos->b_bishops & to_mask) {
+		if (pos->b_rooks & to_mask) {
+		    material += 9;
+		    victim = queen;
+		} else {
+		    material += 3;
+		    victim = bishop;
+		}
+	    } else if (pos->b_rooks & to_mask) {
+		material += 5;
+		victim = rook;
+	    }
+	}
+    } else {
+	if (pos->b_pawns & from_mask) {
+	    attacker = pawn;
+	    if (chi_ep (pos) &&
+		(to_mask & CHI_3_MASK) &&
+		(!(to_mask & pos->w_pieces)) &&
+		(from - to) & 1) {
+		is_ep = 1;
+		victim = pawn;
+		material = 1;
+	    } else if (promote) {
+		switch (promote) {
+		    case queen:
+			material = 9;
+			break;
+		    case rook:
+			material = 5;
+			break;
+		    default:
+			material = 3;
+			break;
+		}
+	    }
+	} else if (pos->b_knights & from_mask) {
+	    attacker = knight;
+	} else if (pos->b_bishops & from_mask) {
+	    if (pos->b_rooks & from_mask)
+		attacker = queen;
+	    else 
+		attacker = bishop;  
+	} else if (pos->b_rooks & from_mask) {
+	    attacker = rook;
+	} else if (pos->b_kings & from_mask) {
+	    attacker = king;
+	}
+
+	if (pos->w_pieces & to_mask) {
+	    if (pos->w_pawns & to_mask) {
+		material += 1;
+		victim = pawn;
+	    } else if (pos->w_knights & to_mask) {
+		material += 3;
+		victim = knight;
+	    } else if (pos->w_bishops & to_mask) {
+		if (pos->w_rooks & to_mask) {
+		    material += 9;
+		    victim = queen;
+		} else {
+		    material += 3;
+		    victim = bishop;
+		}
+	    } else if (pos->w_rooks & to_mask) {
+		material += 5;
+		victim = rook;
+	    }
 	}
     }
 
-    move->fields.from = chi_coords2shift (from_file, from_rank);
-    move->fields.to = chi_coords2shift (to_file, to_rank);
-
-    return 0;
+    *move |= (material << 24) | (is_ep << 21) | 
+	(victim << 15) | (attacker << 12);
 }
 
 /*

@@ -28,6 +28,8 @@ static const char* error_strings[] = {
     "virtual memory exhausted",
     "parser error",
     "move from an empty square",
+    "no matching move",
+    "side not on move is in check",
     "illegal library usage",
 };
 
