@@ -59,7 +59,7 @@ init_tt_hashs (memuse)
 
     half_tt_size = chi_closest_prime ((memuse / sizeof *tt) / 6);
     fprintf (stderr, "closest prime to %lu: %lu\n",
-	     memuse / sizeof *tt, half_tt_size);
+	     (memuse / sizeof *tt) / 6, half_tt_size);
     tt_size = half_tt_size << 1;
     tt = xrealloc (tt, 6 * half_tt_size * sizeof *tt);
     fprintf (stdout, 
@@ -76,7 +76,7 @@ void
 clear_tt_hashs ()
 {
     fprintf (stdout, "Clearing hash tables.\n");
-    memset (tt, 0, (tt_size << 1) * sizeof *tt);
+    memset (tt, 0, 6 * half_tt_size * sizeof *tt);
 }
 
 int
