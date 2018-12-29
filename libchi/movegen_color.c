@@ -102,15 +102,14 @@ chi_generate_color_captures (pos, moves)
 			((from + SINGLE_PAWN_OFFSET) << 6) |
 			(1 << 12);
 		    
-		    // FIXME: Should not be times 100!!!
 		    *moves++ = move | (queen << 18) | 
-			((queen - 1) << 24);
+			(8 << 22);
 		    *moves++ = move | (rook << 18) | 
-			((rook - 1) << 24);
+			(4 << 22);
 		    *moves++ = move | (bishop << 18) | 
-			((bishop - 1) << 24);
+			(2 << 22);
 		    *moves++ = move | (knight << 18) | 
-			((knight - 1) << 24);
+			(2 << 22);
 		}	
 	    }
 
@@ -121,23 +120,23 @@ chi_generate_color_captures (pos, moves)
 		    bitv64 target_square = to_mask & target_squares;
 		    int to = from + LEFT_PAWN_CAPTURE_OFFSET;
 		    chi_move move = from | (to << 6) | (1 << 12);
-		    int material = 1 << 24;
+		    int material = 1 << 22;
 		    chi_piece_t victim = pawn << 15;
 		    int ep_flag = 0;
 		    chi_move filled;
 
 		    if (target_square & HER_KNIGHTS (pos)) {
-			material = 3 << 24;
+			material = 3 << 22;
 			victim = knight << 15;
 		    } else if (target_square & HER_BISHOPS (pos)) {
-			material = 3 << 24;
+			material = 3 << 22;
 			victim = bishop << 15;
 			if (target_square & HER_ROOKS (pos)) {
-			    material = 9 << 24;
+			    material = 9 << 22;
 			    victim = queen << 15;
 			}
 		    } else if (target_square & HER_ROOKS (pos)) {
-			material = 5 << 24;
+			material = 5 << 22;
 			victim = rook << 15;
 		    } else if (to == ep_offset) {
 			ep_flag = 0x200000;
@@ -145,16 +144,15 @@ chi_generate_color_captures (pos, moves)
 
 		    filled = move | victim | ep_flag | material;
 
-		    // FIXME: Should not be times 100!!!
 		    if (to_mask & PAWN_PROMOTE_RANK_MASK) {
 			*moves++ = filled | (queen << 18) | 
-			    ((queen - 1) << 24);
+			    (8 << 22);
 			*moves++ = filled | (rook << 18) | 
-			    ((rook - 1) << 24);
+			    (4 << 22);
 			*moves++ = filled | (bishop << 18) | 
-			    ((bishop - 1) << 24);
+			    (2 << 22);
 			*moves++ = filled | (knight << 18) | 
-			    ((knight - 1) << 24);
+			    (2 << 22);
 		    } else {
 			*moves++ = filled;
 		    }
@@ -168,23 +166,23 @@ chi_generate_color_captures (pos, moves)
 		    bitv64 target_square = to_mask & target_squares;
 		    int to = from + RIGHT_PAWN_CAPTURE_OFFSET;
 		    chi_move move = from | (to << 6) | (pawn << 12);
-		    int material = 1 << 24;
+		    int material = 1 << 22;
 		    chi_piece_t victim = pawn << 15;
 		    int ep_flag = 0;
 		    chi_move filled;
 
 		    if (target_square & HER_KNIGHTS (pos)) {
-			material = 3 << 24;
+			material = 3 << 22;
 			victim = knight << 15;
 		    } else if (target_square & HER_BISHOPS (pos)) {
-			material = 3 << 24;
+			material = 3 << 22;
 			victim = bishop << 15;
 			if (target_square & HER_ROOKS (pos)) {
-			    material = 9 << 24;
+			    material = 9 << 22;
 			    victim = queen << 15;
 			}
 		    } else if (target_square & HER_ROOKS (pos)) {
-			material = 5 << 24;
+			material = 5 << 22;
 			victim = rook << 15;
 		    } else if (to == ep_offset) {
 			ep_flag = 0x200000;
@@ -192,16 +190,15 @@ chi_generate_color_captures (pos, moves)
 
 		    filled = move | victim | ep_flag | material;
 
-		    // FIXME: Should not be times 100!!!
 		    if (to_mask & PAWN_PROMOTE_RANK_MASK) {
 			*moves++ = filled | (queen << 18) | 
-			    ((queen - 1) << 24);
+			    (8 << 22);
 			*moves++ = filled | (rook << 18) | 
-			    ((rook - 1) << 24);
+			    (4 << 22);
 			*moves++ = filled | (bishop << 18) | 
-			    ((bishop - 1) << 24);
+			    (2 << 22);
 			*moves++ = filled | (knight << 18) | 
-			    ((knight - 1) << 24);
+			    (2 << 22);
 		    } else {
 			*moves++ = filled;
 		    }
@@ -242,7 +239,7 @@ chi_generate_color_captures (pos, moves)
 		victim = rook;
 	    }
 
-	    *moves++ = move | (to << 6) | (victim << 15) | (material << 24);
+	    *moves++ = move | (to << 6) | (victim << 15) | (material << 22);
 
 	    attack_mask = chi_clear_least_set (attack_mask);
 	}
@@ -285,7 +282,7 @@ chi_generate_color_captures (pos, moves)
 		}
 	    
 		*moves++ = from | (to << 6) | (piece << 12) | (victim << 15) |
-		    (material << 24);
+		    (material << 22);
 		break;
 	    }
 
@@ -318,7 +315,7 @@ chi_generate_color_captures (pos, moves)
 		}
 	    
 		*moves++ = from | (to << 6) | (piece << 12) | (victim << 15) |
-		    (material << 24);
+		    (material << 22);
 		break;
 	    }
 
@@ -351,7 +348,7 @@ chi_generate_color_captures (pos, moves)
 		}
 	    
 		*moves++ = from | (to << 6) | (piece << 12) | (victim << 15) |
-		    (material << 24);
+		    (material << 22);
 		break;
 	    }
 
@@ -384,7 +381,7 @@ chi_generate_color_captures (pos, moves)
 		}
 	    
 		*moves++ = from | (to << 6) | (piece << 12) | (victim << 15) |
-		    (material << 24);
+		    (material << 22);
 		break;
 	    }
 
@@ -467,7 +464,7 @@ chi_generate_color_captures (pos, moves)
 	    }
 	    
 	    *moves++ = from | (to << 6) | (piece << 12) | (victim << 15) |
-		(material << 24);
+		(material << 22);
 	    
 	    attack_mask = chi_clear_least_set (attack_mask);
 	}
@@ -505,7 +502,7 @@ chi_generate_color_captures (pos, moves)
 	    }
 	    
 	    *moves++ = from | (to << 6) | (king << 12) | (victim << 15) |
-		(material << 24);
+		(material << 22);
 	    
 	    attack_mask = chi_clear_least_set (attack_mask);
 	}

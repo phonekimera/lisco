@@ -42,6 +42,9 @@ quiescence (tree, ply, alpha, beta)
     int pv_seen = 0;
     int standing_pat;
     chi_move best_move = 0;
+    int original_alpha = alpha;
+    int material;
+    int num_moves;
 
     ++tree->nodes;
     ++tree->qnodes;
@@ -70,10 +73,59 @@ quiescence (tree, ply, alpha, beta)
     if (ply > tree->max_ply)
         tree->max_ply = ply;
 
+    ++tree->qtt_probes;
+    /* Probe the quiescence transposition table.  */
+    switch (probe_tt (tree, tree->signatures[ply],
+		      0, &alpha, &beta)) {
+        case HASH_EXACT:
+            ++tree->qtt_hits;
+	    ++tree->qtt_exact_hits;
+	    if (alpha < beta) {
+		tree->pv[ply].moves[0] = best_tt_move (tree, 
+						       tree->signatures[ply]);
+		tree->pv[ply].length = 1;
+            }
+#if DEBUG_BRAIN
+	    indent_output (tree, ply);
+	    fprintf (stderr, "HX: result hashed");
+	    fprintf (stderr, " alpha: %d, beta: %d\n",
+		     chi_value2centipawns (alpha),
+		     chi_value2centipawns (beta));
+#endif
+	    return alpha;
+        case HASH_ALPHA:
+            ++tree->qtt_hits;
+            ++tree->qtt_alpha_hits;
+
+#if DEBUG_BRAIN
+	    indent_output (tree, ply);
+	    fprintf (stderr, "HA: result hashed");
+	    fprintf (stderr, " alpha: %d, beta: %d\n",
+		     chi_value2centipawns (alpha),
+		     chi_value2centipawns (beta));
+#endif
+
+            return alpha;
+        case HASH_BETA:
+            ++tree->qtt_hits;
+            ++tree->qtt_beta_hits;
+
+#if DEBUG_BRAIN
+	    indent_output (tree, ply);
+	    fprintf (stderr, "HB: result hashed");
+	    fprintf (stderr, " alpha: %d, beta: %d\n",
+		     chi_value2centipawns (alpha),
+		     chi_value2centipawns (beta));
+#endif
+            return beta;
+    }
+
+#if 0
     // FIXME: Maybe this has the opposite effect?!
     tree->in_check[ply] = chi_check_check (pos);
     if (tree->in_check[ply])
         return search (tree, 1, ply, alpha, beta, 1);
+#endif
 
     standing_pat = evaluate (tree, ply, alpha, beta);
 #if DEBUG_BRAIN
@@ -108,8 +160,27 @@ quiescence (tree, ply, alpha, beta)
     tree->move_stack[ply] = moves;
     tree->move_states[ply] = move_state_init;
 
+    material = 100 * (chi_on_move (pos) == chi_white ? 
+		      pos->material : -pos->material);
+
+    num_moves = 0;
+
     while (NULL != (mv = next_move (tree, ply, 0))) {
 	int score;
+	
+	/* Refute moves that will not bring the material balance close
+	   to alpha.  */
+	int min_material = alpha - material - 100;
+
+	// fprintf (stderr, "alpha: %d, material: %d, min_material: %d, move material: %d\n", alpha, material, min_material, chi_move_material (*mv));
+
+	if (!(chi_move_victim (*mv)))
+	    continue;
+
+	if (100 * chi_move_material (*mv) < min_material) {
+	    ++tree->refuted_quiescences;
+	    continue;
+	}
 
 	if (chi_illegal_move (pos, *mv))
 	    continue;
@@ -118,6 +189,8 @@ quiescence (tree, ply, alpha, beta)
 	    chi_zk_update_signature (zk_handle, tree->signatures[ply],
 				     *mv, !chi_on_move (pos));
 	update_castling_state (tree, *mv, ply);
+
+	++num_moves;
 
 #if DEBUG_BRAIN
         chi_on_move (pos) = !chi_on_move (pos);
@@ -151,7 +224,13 @@ quiescence (tree, ply, alpha, beta)
             fprintf (stderr, " failed high with score %d\n",
                      chi_value2centipawns (score));
 #endif	    
-	    ++tree->fh;
+	    ++tree->qfh;
+	    if (num_moves == 1)
+		++tree->qffh;
+	    tree->tt_collisions += store_tt_entry (tree,
+						   tree->signatures[ply], 
+						   *mv, 0, score, 
+						   HASH_BETA);
 	    return score;
 	} else if (score > alpha) {
 	    pv_seen = 1;
@@ -176,10 +255,15 @@ quiescence (tree, ply, alpha, beta)
             fprintf (stderr, " failed low with score: %d\n",
                      chi_value2centipawns (score));
 #endif
-	    ++tree->fl;
+	    ++tree->qfl;
 	}
 
     }
+
+    tree->tt_collisions += store_tt_entry (tree, 
+					   tree->signatures[ply], best_move, 
+					   0, alpha,
+					   original_alpha == alpha ? HASH_ALPHA : HASH_EXACT);
 
     return alpha;
 }

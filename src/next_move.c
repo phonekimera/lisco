@@ -43,15 +43,13 @@ next_move (tree, ply, depth)
 	    tree->cached_moves[ply] = 0;
 
 	    /* Try the pv move first if searching principal variation.  */
-	    if (ply == 0 && tree->pv[ply].length) {
+	    if (!depth && ply == 0 && tree->pv[ply].length) {
 		++tree->cached_moves[ply];
 		*(tree->move_ptr[ply]++) = tree->pv[ply].moves[0];
 		return tree->move_stack[ply];
 	    } else {
-		chi_move best_move = best_tt_move (tree->signatures[ply]);
-
-		if (!best_move)
-		    best_move = best_tt_move (tree->signatures[ply]);
+		chi_move best_move = best_tt_move (tree, 
+						   tree->signatures[ply]);
 
 		if (best_move) {
 		    ++tree->tt_moves;
@@ -59,10 +57,10 @@ next_move (tree, ply, depth)
 		    *(tree->move_ptr[ply]++) = best_move;
 		    return tree->move_stack[ply];
 		}
-
 	    }
 
 	case move_state_pv:
+
 	    mv = chi_generate_captures (&tree->pos, tree->move_ptr[ply]);
 	    tree->moves_left[ply] = mv - tree->move_ptr[ply];
 	    tree->move_states[ply] = move_state_captures;
@@ -89,34 +87,28 @@ next_move (tree, ply, depth)
 	    if (!depth)
 		break;
 
-	    mv = chi_generate_king_castling_moves (&tree->pos, 
-						   tree->move_ptr[ply]);
-	    tree->moves_left[ply] = mv - tree->move_ptr[ply];
-	    tree->move_states[ply] = move_state_king_castlings;
-
             /* FALLTHRU.  */
 
-	case move_state_king_castlings:
-	    while(tree->moves_left[ply]) {
-		int i;
+	case move_state_bonny:
+	    ++tree->cached_moves[ply];
+	    *(tree->move_ptr[ply]++) = tree->bonny[ply];
+	    tree->move_states[ply] = move_state_clyde;
+	    return tree->move_stack[ply];
+	    
+	case move_state_clyde:
+	    ++tree->cached_moves[ply];
+	    *(tree->move_ptr[ply]++) = tree->clyde[ply];
+	    tree->move_states[ply] = move_state_generate_non_captures;
+	    return tree->move_stack[ply];
 
-		mv = tree->move_ptr[ply]++;
-		--tree->moves_left[ply];
+	case move_state_generate_non_captures:
 
-		/* Discard duplicates.  */
-		for (i = 0; i < tree->cached_moves[ply]; ++i) {
-		    if (tree->move_stack[ply][i] == *mv)
-			break;
-		}
-
-		if (i == tree->cached_moves[ply])
-		    return mv;
-	    }
 	    mv = chi_generate_pawn_double_steps (&tree->pos, 
 						 tree->move_ptr[ply]);
 	    tree->moves_left[ply] = mv - tree->move_ptr[ply];
 	    tree->move_states[ply] = move_state_pawn_double_steps;
-	    /* FALLTRHU.  */
+
+            /* FALLTHRU.  */
 
 	case move_state_pawn_double_steps:
 	    while(tree->moves_left[ply]) {
@@ -241,7 +233,31 @@ next_move (tree, ply, depth)
 		    return mv;
 	    }
 
+	    mv = chi_generate_king_castling_moves (&tree->pos, 
+						   tree->move_ptr[ply]);
+	    tree->moves_left[ply] = mv - tree->move_ptr[ply];
+	    tree->move_states[ply] = move_state_king_castlings;
+
 	    /* FALLTRHU.  */
+
+	case move_state_king_castlings:
+	    while(tree->moves_left[ply]) {
+		int i;
+
+		mv = tree->move_ptr[ply]++;
+		--tree->moves_left[ply];
+
+		/* Discard duplicates.  */
+		for (i = 0; i < tree->cached_moves[ply]; ++i) {
+		    if (tree->move_stack[ply][i] == *mv)
+			break;
+		}
+
+		if (i == tree->cached_moves[ply])
+		    return mv;
+	    }
+	    /* FALLTRHU.  */
+
     }
 
     return NULL;

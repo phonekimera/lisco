@@ -203,8 +203,8 @@ typedef struct {
 
 /* A move is represented by 32 bits in host order:
 
-           25-31: raw material balance (viewed from the side on move)
-           23-24: unused
+           28-32: unused
+           23-27: raw material balance (viewed from the side on move)
               22: en passant flag
            19-21: promotion piece (add 2)
            16-18: piece that gets removed
@@ -239,7 +239,7 @@ typedef int chi_move;
 #define chi_move_victim(m) (((m) >> 15) & 0x7)
 #define chi_move_promote(m) (((m) >> 18) & 0x7)
 #define chi_move_is_ep(m) ((m) & 0x200000)
-#define chi_move_material(m) ((m) >> 24)
+#define chi_move_material(m) ((m) >> 22)
 
 /* Macros for setting particular values for a move.  They are all
    expansive and should be avoided in really time-critical situations.
@@ -254,7 +254,7 @@ typedef int chi_move;
 #define chi_move_set_promote(m, p) ((m) = ((m) & ~0x1c0000) | ((p) & 0x7) << 18)
 #define chi_move_set_ep(m) ((m) |= 0x200000)
 #define chi_move_unset_ep(m) ((m) &= ~0x200000)
-#define chi_move_set_material(m, v) ((m) = ((m) & ~0xff000000) | ((v) << 24))
+#define chi_move_set_material(m, v) ((m) = ((m) & ~0x07c00000) | ((v) << 22))
 
 /* A handle for creating Zobrist keys.  */
 typedef @BITV64@* chi_zk_handle;
@@ -446,6 +446,10 @@ extern bitv64 chi_zk_update_signature CHI_PARAMS ((chi_zk_handle chi_arg_zk_hand
 						   bitv64 chi_arg_signature,
 						   chi_move chi_arg_move,
 						   chi_color_t chi_arg_color));
+
+/* Change the side to move in the signature.  */
+extern bitv64 chi_zk_change_side CHI_PARAMS ((chi_zk_handle chi_arg_zk_handle,
+					      bitv64 chi_arg_signature));
 
 /* Return the prime closest to the argument.  In pathological cases,
    there can be a prime one closer to the argument.  In even more 

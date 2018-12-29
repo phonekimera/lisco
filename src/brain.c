@@ -183,25 +183,37 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 	if (tree.status & EVENTMASK_ENGINE_STOP)
 	    break;
 
+	if (score <= MATE) {
+	    /* We will not resign but let our opponent the fun to
+	       beat us.  */
+	    if (elapsed & 0x10) {
+		fprintf (stdout, "offer draw\n"); /* ;-) */
+	    } else if (tree.iteration_depth > 1) {
+		fprintf (stdout, "tellothers Mated in %d. :-(\n",
+			 tree.iteration_depth >> 1);
+	    }
+	    break;
+	} else if (score >= -MATE) {
+	    if (!mate_announce) {
+		mate_announce = tree.iteration_depth >> 1;
+		fprintf (stdout, "tellall Mate in %d! :->\n",
+			 mate_announce);
+		fprintf (stdout, "tellothers");
+		print_pv (&tree, score, 1, 0);
+	    }
+
+	    break;
+	}
+
 #define ASPIRATION_WINDOW 1
 
 #if ASPIRATION_WINDOW
 	if (score <= alpha) {
-#if DEBUG_BRAIN
-	    fprintf (stderr, 
-		     "Failed low (%d), changing window from [%d, %d] to [%d, %d]\n", 
-		     score, alpha, beta, alpha - MIN_EVAL_DIFF, beta);
-#endif
-	    alpha -= MIN_EVAL_DIFF;
+	    alpha = score - MIN_EVAL_DIFF;
 	    --depth;
 	    continue;
 	} else if (score >= beta) {
-#if DEBUG_BRAIN
-	    fprintf (stderr, 
-		     "Failed high (%d), changing window from [%d, %d] to [%d, %d]\n", 
-		     score, alpha, beta, alpha, beta +  MIN_EVAL_DIFF);
-#endif
-	    beta += MIN_EVAL_DIFF;
+	    beta = score + MIN_EVAL_DIFF;
 	    --depth;
 	    continue;
 	}
@@ -211,26 +223,6 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 #endif
 
 	the_score = score;
-	if (the_score <= MATE) {
-	    /* We will not resign but let our opponent the fun to
-	       beat us.  */
-	    if (elapsed & 0x10) {
-		fprintf (stdout, "offer draw\n"); /* ;-) */
-	    } else {
-		fprintf (stdout, "tellothers Mated in %d. :-(\n",
-			 tree.iteration_depth >> 1);
-	    }
-	    tree.status = EVENT_GAME_OVER;
-	    break;
-	} else if (!mate_announce && the_score >= -MATE) {
-	    mate_announce = tree.iteration_depth >> 1;
-	    fprintf (stdout, "tellall Mate in %d! :->\n",
-		     mate_announce);
-	    fprintf (stdout, "tellothers");
-	    print_pv (&tree, the_score, 1, 0);
-	    tree.status = EVENT_GAME_OVER;
-	    break;
-	}
 
 	/* Do not go any deeper, if we have already used up more than
 	   2/3 of our time.  */
@@ -246,22 +238,35 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 	time_cushion += tree.time_for_move - elapsed + inc;
 
     if (1) {
-	printf ("  Nodes searched: %ld (quiescence: %ld)\n", 
-		tree.nodes, tree.qnodes);
+	printf ("  Nodes searched: %ld (quiescence: %ld [%f%%])\n", 
+		tree.nodes, tree.qnodes, (float) tree.qnodes / ((float) tree.nodes + 1));
 	printf ("  Deepest search: %d\n", tree.max_ply);
+	printf ("  Refuted quiescences: %ld\n", tree.refuted_quiescences);
 	printf ("  Score: %#.3g\n", chi_value2pawns (the_score));
 	printf ("  Elapsed: %ld.%02lds\n", elapsed / 100, elapsed % 100);
 	if (elapsed)
 	    printf ("  Nodes per second: %ld\n", (100 * tree.nodes) / elapsed);
 	else
 	    printf ("  Nodes per second: INF\n");
-	printf ("  Failed high: %ld, failed low: %ld\n",
-		tree.fh, tree.fl);
+	printf ("  Failed high: %ld (move ordering: %f%%), failed low: %ld\n",
+		tree.fh, (((float) tree.ffh * 100) / (float) (tree.fh + 1)), 
+		tree.fl);
+	printf ("  Killer rate: %f%%\n",
+		(((float) tree.killers * 100) / (float) (tree.fh + 1)));
+	printf ("  Q: failed high: %ld (move ordering: %f%%), failed low: %ld\n",
+		tree.qfh, (((float) tree.qffh * 100) / (float) (tree.qfh + 1)), 
+		tree.qfl);
 	printf ("  TT probes: %lu\n", tree.tt_probes);
 	printf ("  TT hits: %lu (exact: %lu, alpha: %lu, beta: %lu, moves: %lu)\n", 
 		tree.tt_hits, tree.tt_exact_hits, 
 		tree.tt_alpha_hits, tree.tt_beta_hits,
 		tree.tt_moves);
+	printf ("  TT collisions: %lu\n", tree.tt_collisions);
+	printf ("  QTT probes: %lu\n", tree.qtt_probes);
+	printf ("  QTT hits: %lu (exact: %lu, alpha: %lu, beta: %lu, moves: %lu)\n", 
+		tree.qtt_hits, tree.qtt_exact_hits, 
+		tree.qtt_alpha_hits, tree.qtt_beta_hits,
+		tree.qtt_moves);
 	printf ("  Null moves: %lu (%lu failed high)\n",
 		tree.null_moves, tree.null_fh);
 	printf ("  Evaluations: %lu\n", tree.evals);
@@ -318,6 +323,19 @@ update_castling_state (tree, move, ply)
 	castling_state &= ~0x20;
 
     tree->castling_states[ply + 1] = castling_state;
+}
+
+// FIXME: Should be inlined.
+void
+store_killer (tree, move, ply)
+     TREE* tree;
+     chi_move move;
+     int ply;
+{
+    if (tree->bonny[ply] != move) {
+	tree->clyde[ply] = tree->bonny[ply];
+	tree->bonny[ply] = move;
+    }
 }
 
 #if DEBUG_BRAIN

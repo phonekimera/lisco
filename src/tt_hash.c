@@ -29,21 +29,25 @@
 
 #include "brain.h"
 
-#define MIN_MTT_SIZE (sizeof (TT_Entry) * 2000000)
+#define MIN_MTT_SIZE (sizeof (TT_Entry) * 5000000)
 
 // FIXME: 19 bytes is much too much!
 typedef struct tt_entry {
+    /* Used: 64, needed: 64.  */
     bitv64 signature;
+    /* Used: 32, needed: 27.  */
     chi_move best;
+    /* Used 16, needed: 15.  */
     short int score;
+    /* Used 16, needed 9 (8 for two tables).  */
     unsigned short int depth;
-    unsigned char flags;
 } TT_Entry;
 
 /* The main transposition table.  */
 TT_Entry* mtt = NULL;
 
 unsigned long int mtt_size = 0;
+unsigned long int half_mtt_size = 0;
 
 void
 init_tt_hashs (memuse)
@@ -52,7 +56,8 @@ init_tt_hashs (memuse)
     if (memuse < MIN_MTT_SIZE)
 	memuse = MIN_MTT_SIZE;
 
-    mtt_size = chi_closest_prime (memuse / sizeof *mtt);
+    half_mtt_size = chi_closest_prime ((memuse / sizeof *mtt) >> 1);
+    mtt_size = half_mtt_size << 1;
     mtt = xrealloc (mtt, mtt_size * sizeof *mtt);
     fprintf (stdout, 
 	     "\
@@ -70,24 +75,27 @@ clear_tt_hashs ()
 }
 
 int
-probe_tt (signature, depth, alpha, beta)
+probe_tt (tree, signature, depth, alpha, beta)
+     TREE* tree;
      bitv64 signature;
      int depth;
      int* alpha;
      int* beta;
 {
-    TT_Entry* hit = mtt + (signature % ((bitv64) mtt_size));
+    size_t offset = chi_on_move (&tree->pos) == chi_white ? 0 : half_mtt_size;
+    TT_Entry* hit = mtt + offset + (signature % ((bitv64) half_mtt_size));
 
     if (hit->signature == signature) {
+	unsigned int flags = (hit->best & 0xc0000000) >> 30;
 	if (hit->depth >= depth) {
-	    if (hit->flags == HASH_EXACT) {
+	    if (flags == HASH_EXACT) {
 		*alpha = hit->score;
 		return HASH_EXACT;
-	    } else if (hit->flags == HASH_ALPHA &&
+	    } else if (flags == HASH_ALPHA &&
 		       hit->score <= *alpha) {
 		*alpha = hit->score;
 		return HASH_ALPHA;
-	    } else if (hit->flags == HASH_BETA &&
+	    } else if (flags == HASH_BETA &&
 		       hit->score >= *beta) {
 		*beta = hit->score;
 		return HASH_BETA;
@@ -98,50 +106,63 @@ probe_tt (signature, depth, alpha, beta)
 }
 
 chi_move
-best_tt_move (signature)
+best_tt_move (tree, signature)
+     TREE* tree;
      bitv64 signature;
 {
-    TT_Entry* hit = mtt + (signature % ((bitv64) mtt_size));
+    size_t offset = chi_on_move (&tree->pos) == chi_white ? 0 : half_mtt_size;
+    TT_Entry* hit = mtt + offset + (signature % ((bitv64) half_mtt_size));
 
     if (hit->signature == signature) {
-	return hit->best;
+	return hit->best & 0x3fffffff;
     }
 
     return 0;
 }
 
-void
-store_tt_entry (signature, move, depth, score, flags)
+int
+store_tt_entry (tree, signature, move, depth, score, flags)
+     TREE* tree;
      bitv64 signature;
      chi_move move;
      int depth;
      int score;
      int flags;
 {
-    TT_Entry* old_entry = mtt + (signature % ((bitv64) mtt_size));
+    size_t offset = chi_on_move (&tree->pos) == chi_white ? 0 : half_mtt_size;
+    TT_Entry* old_entry = mtt + offset + 
+	(signature % ((bitv64) half_mtt_size));
+
+    int retval = old_entry->signature && old_entry->signature != signature ? 
+	1 : 0;
 
     /* Collision or not yet seen.  */
     if (!old_entry->signature || old_entry->signature != signature) {
 	old_entry->signature = signature;
 	old_entry->depth = depth;
 	old_entry->score = score;
-	old_entry->flags = flags;
-	old_entry->best = move;
-	return;
+	old_entry->best = move | (flags << 30);
+	return retval;
     }
 
-    if (!old_entry->best)
-	old_entry->best = move;
+    if (!old_entry->best) {
+	old_entry->best &= 0xcfffffff;
+	old_entry->best |= move;
+    }
 
     if (old_entry->depth > depth)
-	return;
+	return retval;
 
     old_entry->signature = signature;
     old_entry->depth = depth;
     old_entry->score = score;
-    old_entry->flags = flags;
-    if (move)
-	old_entry->best = move;
+    if (move) {
+	old_entry->best = move | (flags << 30);
+    } else {
+	old_entry->best &= (old_entry->best & 0xcfffffff) | (flags << 30);	
+    }
+
+    return retval;
 }
 
 /*

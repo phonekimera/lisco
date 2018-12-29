@@ -66,7 +66,7 @@ print_pv (tree, score, whisper, ply)
     if (i < tree->iteration_depth) {
 	/* Must be a hash move.  */
 	bitv64 signature = chi_zk_signature (zk_handle, &tmp_pos);
-	chi_move hash_move = best_tt_move (signature);
+	chi_move hash_move = best_tt_move (tree, signature);
 
 	if (hash_move) {
 	    chi_print_move (&tmp_pos, hash_move, &buf, &bufsize, 0);

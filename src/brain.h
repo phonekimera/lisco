@@ -43,7 +43,7 @@
 #define MIN_EVAL_DIFF (1 << MOBILITY_SHIFT)
 #endif
 
-#define MIN_EVAL_DIFF 100
+#define MIN_EVAL_DIFF 10
 
 extern bitv64 total_nodes;
 extern bitv64 total_centiseconds;
@@ -63,11 +63,17 @@ enum move_state {
     move_state_captures = move_state_pv + 1,
 #define move_state_captures (move_state_pv + 1)
 
-    move_state_king_castlings = move_state_captures + 1,
-#define move_state_king_castlings (move_state_captures + 1)
+    move_state_bonny = move_state_captures + 1,
+#define move_state_bonny (move_state_captures + 1)
 
-    move_state_pawn_double_steps = move_state_king_castlings + 1,
-#define move_state_pawn_double_steps (move_state_king_castlings + 1)
+    move_state_clyde = move_state_bonny + 1,
+#define move_state_clyde (move_state_bonny + 1)
+
+    move_state_generate_non_captures = move_state_clyde + 1,
+#define move_state_generate_non_captures (move_state_clyde + 1)
+
+    move_state_pawn_double_steps = move_state_generate_non_captures + 1,
+#define move_state_pawn_double_steps (move_state_generate_non_captures + 1)
 
     move_state_pawn_single_steps = move_state_pawn_double_steps + 1,
 #define move_state_pawn_single_steps (move_state_pawn_double_steps + 1)
@@ -84,6 +90,8 @@ enum move_state {
     move_state_king_moves = move_state_rook_moves + 1,
 #define move_state_king_moves (move_state_rook_moves + 1)
 
+    move_state_king_castlings = move_state_king_moves + 1,
+#define move_state_king_castlings (move_state_king_moves + 1)
 };
 
 typedef struct tree {
@@ -100,6 +108,11 @@ typedef struct tree {
     int cached_moves[MAX_PLY];
     int in_check[MAX_PLY];
 
+    /* Killer moves.  Naming them murder_1st_degree and murder_2nd_degree
+       would sound too morbid.  */
+    chi_move bonny[MAX_PLY];
+    chi_move clyde[MAX_PLY];
+
     unsigned long nodes;
     unsigned long qnodes;
     unsigned long time_for_move;
@@ -110,11 +123,27 @@ typedef struct tree {
     unsigned long tt_exact_hits;
     unsigned long tt_alpha_hits;
     unsigned long tt_beta_hits;
+    unsigned long killers;
+
+    unsigned long tt_collisions;
+
+    unsigned long qtt_probes;
+    unsigned long qtt_hits;
+    unsigned long qtt_moves;
+    unsigned long qtt_exact_hits;
+    unsigned long qtt_alpha_hits;
+    unsigned long qtt_beta_hits;
 
     unsigned long null_moves;
     unsigned long null_fh;
     unsigned long fh;
+    unsigned long ffh;
     unsigned long fl;
+    unsigned long qfh;
+    unsigned long qffh;
+    unsigned long qfl;
+
+    unsigned long refuted_quiescences;
 
     unsigned long evals;
     unsigned long lazy_one_pawn;
@@ -161,12 +190,15 @@ extern void print_pv PARAMS ((TREE* tree, int score,
 extern void init_tt_hashs PARAMS ((unsigned long int memuse));
 extern void clear_tt_hashs PARAMS ((void));
 
-extern void store_tt_entry PARAMS ((bitv64 signature, chi_move move, int depth,
+extern int store_tt_entry PARAMS ((TREE* tree,
+				   bitv64 signature, chi_move move, int depth,
 				    int score, int flags));
-extern int probe_tt PARAMS ((bitv64 signature, int depth, int* alpha,
+extern int probe_tt PARAMS ((TREE* tree, bitv64 signature, 
+			     int depth, int* alpha,
 			     int* beta));
-extern chi_move best_tt_move PARAMS ((bitv64 signature));
+extern chi_move best_tt_move PARAMS ((TREE* tree, bitv64 signature));
 
 extern void update_castling_state PARAMS ((TREE* tree, chi_move move, int ply));
+extern void store_killer PARAMS ((TREE* tree, chi_move move, int ply));
 
 #endif

@@ -277,13 +277,13 @@ fill_move (pos, move)
 	    } else if (promote) {
 		switch (promote) {
 		    case queen:
-			material = 9;
+			material = 8;
 			break;
 		    case rook:
-			material = 5;
+			material = 4;
 			break;
 		    default:
-			material = 3;
+			material = 2;
 			break;
 		}
 	    }
@@ -333,13 +333,13 @@ fill_move (pos, move)
 	    } else if (promote) {
 		switch (promote) {
 		    case queen:
-			material = 9;
+			material = 8;
 			break;
 		    case rook:
-			material = 5;
+			material = 4;
 			break;
 		    default:
-			material = 3;
+			material = 2;
 			break;
 		}
 	    }
@@ -378,7 +378,7 @@ fill_move (pos, move)
 	}
     }
 
-    *move |= (material << 24) | (is_ep << 21) | 
+    *move |= (material << 22) | (is_ep << 21) | 
 	(victim << 15) | (attacker << 12);
 }
 

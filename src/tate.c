@@ -59,6 +59,7 @@ static int handle_go PARAMS ((void));
 static void display_offsets PARAMS ((void));
 static void display_moves PARAMS ((void));
 static RETSIGTYPE sigio_handler PARAMS ((int));
+static RETSIGTYPE sigxboard_handler PARAMS ((int));
 static void check_input PARAMS ((void));
 
 #define WHITE_SPACE " \t\r\n\v\f"
@@ -230,6 +231,10 @@ get_event ()
 	    handle_edit_command (&current, cmd);
     } else if (strcasecmp (cmd, "xboard") == 0) {
 	xboard = 1;
+	if (signal (SIGINT, sigxboard_handler) != 0)
+	    error (EXIT_SUCCESS, errno, "Cannot install SIGINT handler");
+	if (signal (SIGTERM, sigxboard_handler) != 0)
+	    error (EXIT_SUCCESS, errno, "Cannot install SIGTERM handler");
     } else if (strcasecmp (cmd, "edit") == 0) {
 	init_edit_mode (&current);
 	edit_mode = 1;
@@ -526,6 +531,17 @@ sigio_handler (signum)
 #endif
 }
 
+RETSIGTYPE
+sigxboard_handler (signum)
+     int signum;
+{
+    error (EXIT_FAILURE, 0, "engine received signal %d\n", signum);
+    
+#if RETSIGTYPE != void
+    return 0;
+#endif
+}
+
 static void
 display_offsets ()
 {
@@ -587,7 +603,7 @@ display_moves ()
 
     for (mv_ptr = moves; mv_ptr < mv; ++mv_ptr) {
 	chi_print_move (&current, *mv_ptr, &buf, &bufsize, 0);
-	fprintf (stdout, "  Possible move: %s\n", buf);
+	fprintf (stdout, "  Possible move: %s ", buf);
 
 	fprintf (stdout, "[%08x:", *mv_ptr);
 	fprintf (stdout, "%d:", chi_move_material (*mv_ptr));
@@ -759,7 +775,7 @@ handle_usermove (movestr)
 	    fprintf (stderr, "xpd sig: %016llx\n",
 	         chi_zk_update_signature (zk_handle, old_signature,
 	    			      move, !color));
-	    error (EXIT_FAILURE, 0, "signatures mismatch");
+	    error (EXIT_FAILURE, 0, "usermove: signatures mismatch");
 	}						    
     }
 
@@ -869,79 +885,80 @@ handle_go ()
     if (errnum != 0) {
 	print_game (); fflush (stdout);
 	display_moves (); fflush (stdout);
+	dump_board (&current);
 	fprintf (stderr, "engine move: ");
 
-	fprintf (stdout, "[%08x:", move);
-	fprintf (stdout, "%d:", chi_move_material (move));
-	fprintf (stdout, "%s:", chi_move_is_ep (move) ? "ep" : "-");
+	fprintf (stderr, "[%08x:", move);
+	fprintf (stderr, "%d:", chi_move_material (move));
+	fprintf (stderr, "%s:", chi_move_is_ep (move) ? "ep" : "-");
 	
 	switch (chi_move_promote (move)) {
 	    case knight:
-		fprintf (stdout, "=N:");
+		fprintf (stderr, "=N:");
 		break;
 	    case bishop:
-		fprintf (stdout, "=B:");
+		fprintf (stderr, "=B:");
 		break;
 	    case rook:
-		fprintf (stdout, "=R:");
+		fprintf (stderr, "=R:");
 		break;
 	    case queen:
-		fprintf (stdout, "=Q:");
+		fprintf (stderr, "=Q:");
 		break;
 	    case empty:
-		fprintf (stdout, "-:");
+		fprintf (stderr, "-:");
 		break;
 	    default:
-		fprintf (stdout, "=?%d:", chi_move_promote (move));
+		fprintf (stderr, "=?%d:", chi_move_promote (move));
 		break;
 	}
 	
 	switch (chi_move_victim (move)) {
 	    case pawn:
-		fprintf (stdout, "xP:");
+		fprintf (stderr, "xP:");
 		break;
 	    case knight:
-		fprintf (stdout, "xN:");
+		fprintf (stderr, "xN:");
 		break;
-	case bishop:
-	    fprintf (stdout, "xB:");
-	    break;
+	    case bishop:
+		fprintf (stderr, "xB:");
+		break;
 	    case rook:
-		fprintf (stdout, "xR:");
+		fprintf (stderr, "xR:");
 		break;
 	    case queen:
-		fprintf (stdout, "xQ:");
+		fprintf (stderr, "xQ:");
 		break;
 	    case empty:
-		fprintf (stdout, "-:");
+		fprintf (stderr, "-:");
 		break;
 	    default:
-		fprintf (stdout, "x?%d:", chi_move_victim (move));
+		fprintf (stderr, "x?%d:", chi_move_victim (move));
 		break;
 	}
 	
 	switch (chi_move_attacker (move)) {
 	    case pawn:
-		fprintf (stdout, "P");
+		fprintf (stderr, "P");
 		break;
 	    case knight:
-		fprintf (stdout, "N");
+		fprintf (stderr, "N");
 		break;
 	    case bishop:
-		fprintf (stdout, "B");
+		fprintf (stderr, "B");
 		break;
 	    case rook:
-		fprintf (stdout, "R");
+		fprintf (stderr, "R");
 		break;
 	    case queen:
-		fprintf (stdout, "Q");
+		fprintf (stderr, "Q");
 		break;
 	    case king:
-		fprintf (stdout, "K");
+		fprintf (stderr, "K");
 		break;
 	}
 	
-	fprintf (stdout, "]\n");
+	fprintf (stderr, "]\n");
 	error (EXIT_FAILURE, 0, "engine made illegal move (%d->%d).\n",
 	       chi_move_from (move), chi_move_to (move));
     }
@@ -1009,7 +1026,7 @@ handle_go ()
 	         chi_zk_update_signature (zk_handle, old_signature,
 	    			      move, !color));
 
-	    error (EXIT_FAILURE, 0, "signatures mismatch");
+	    error (EXIT_FAILURE, 0, "go: signatures mismatch");
 	}
     }
 
@@ -1028,16 +1045,23 @@ check_input ()
     struct timeval timeout;
     int result;
 
-    memset (&timeout, 0, sizeof timeout);
-    FD_ZERO (&mask);
-    FD_SET (fileno (stdin), &mask);
-
-    result = select (1, &mask, NULL, NULL, &timeout);
-    if (result == -1)
-	error (EXIT_FAILURE, errno, "select failed");
-    if (result != 0) {
-	event_pending = 1;
-	raise (SIGIO);
+    while (1) {
+	memset (&timeout, 0, sizeof timeout);
+	FD_ZERO (&mask);
+	FD_SET (fileno (stdin), &mask);
+	
+	result = select (1, &mask, NULL, NULL, &timeout);
+#ifdef EINTR
+	if (result == -1 && errno == EINTR)
+	    continue;
+#endif
+	if (result == -1)
+	    error (EXIT_FAILURE, errno, "select failed");
+	if (result != 0) {
+	    event_pending = 1;
+	    raise (SIGIO);
+	}
+	break;
     }
 }
 
