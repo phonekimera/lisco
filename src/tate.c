@@ -91,6 +91,8 @@ int current_score = 0;
 
 int post = 1;
 
+int isa_tty;
+
 static int edit_mode = 0;
 
 struct game_hist_entry* game_hist = NULL;
@@ -120,6 +122,8 @@ main (argc, argv)
 
     greeting ();
 
+    isa_tty = isatty (fileno (stdout));
+
     /* Sanity checks.  */
     if (chi_pos_size * sizeof (bitv64) != sizeof current) {
 	error (EXIT_FAILURE, 0, "\
@@ -138,10 +142,11 @@ Please inform the author of libchi, Guido Flohr (guido@imperia.net)\n",
     game_hist = xmalloc (game_hist_alloc * sizeof *game_hist);
     game_hist[0].pos = current;
     game_hist[0].signature = chi_zk_signature (zk_handle, &current);
-    game_hist[0].castling_state = 0x33;
 
     /* Use minimum size.  */
     init_tt_hashs (0);
+    init_qtt_hashs (0);
+    init_ev_hashs (0);
 
     if (signal (SIGIO, sigio_handler) != 0)
 	error (EXIT_FAILURE, errno, "Cannot install SIGIO handler");
@@ -227,23 +232,11 @@ get_event ()
 	if (cmd [0] == '.' && cmd[1] == 0) {
 	    edit_mode = check_position (&current, 0);
 	    if (!edit_mode) {
-		int castling_state = 0;
-
 		game_hist_ply = 0;
 		game_hist[0].pos = current;
 		game_hist[0].signature = chi_zk_signature (zk_handle, 
 							   &current);
 		
-		if (chi_wk_castle (&current))
-		    castling_state |= 0x1;
-		if (chi_wq_castle (&current))
-		    castling_state |= 0x2;
-		if (chi_bk_castle (&current))
-		    castling_state |= 0x10;
-		if (chi_bq_castle (&current))
-		    castling_state |= 0x20;
-		game_hist[0].castling_state = castling_state;
-
 		current_score = engine_color == chi_white ?
 		    chi_material (&current) * 100 : 
 		    chi_material (&current) * -100;
@@ -461,6 +454,7 @@ get_event ()
 	    }
 	}
 	init_tt_hashs (memuse);
+	init_qtt_hashs (memuse);
     } else if (strcasecmp (cmd, "new") == 0) {
 	if (xboard) {
 	    fprintf (stdout, "tellics set 1 %s %s (libchi %s)\n",
@@ -477,7 +471,6 @@ get_event ()
 	game_hist_ply = 0;
 	game_hist[0].pos = current;
 	game_hist[0].signature = chi_zk_signature (zk_handle, &current);
-	game_hist[0].castling_state = 0x33;
     } else if (strcasecmp (cmd, "display") == 0) {
 	display_board (&current);
 	fprintf (stdout, "\n");
@@ -802,7 +795,6 @@ handle_usermove (movestr)
 {
     chi_move move;
     int errnum;
-    int castling_state;
 
     if (game_over) {
 	fprintf (stdout, "Error (game over): %s\n", movestr);
@@ -849,32 +841,6 @@ handle_usermove (movestr)
     game_hist[game_hist_ply++].move = move;
     game_hist[game_hist_ply].signature = chi_zk_signature (zk_handle, 
 							   &current);
-    castling_state = game_hist[game_hist_ply - 1].castling_state;
-    if (!chi_wk_castle (&current))
-	castling_state &= ~0x1;
-    if (!chi_wq_castle (&current))
-	castling_state &= ~0x2;
-
-    if (!chi_bk_castle (&current))
-	castling_state &= ~0x10;
-    if (!chi_bq_castle (&current))
-	castling_state &= ~0x20;
-
-    if ((0xfff & move) == (3 | (1 << 6))) {
-	castling_state &= 0x70;
-	castling_state |= 0x4;
-    } else if ((0xfff & move) == (3 | (5 << 6))) {
-	castling_state &= 0x70;
-	castling_state |= 0x4;
-    } else if ((0xfff & move) == (59 | (57 << 6))) {
-	castling_state &= 0x7;
-	castling_state |= 0x40;
-    } else if ((0xfff & move) == (59 | (61 << 6))) {
-	castling_state &= 0x7;
-	castling_state |= 0x40;
-    }
-    game_hist[game_hist_ply].castling_state = castling_state;
-
     if (1) {
 	bitv64 new_signature = game_hist[game_hist_ply].signature;
 	bitv64 old_signature = game_hist[game_hist_ply - 1].signature;
@@ -1050,14 +1016,13 @@ handle_go (epd)
     static char* buf = NULL;
     static unsigned int bufsize;
     int result;
-    int castling_state;
 
     force = 0;
 
     if (game_over)
 	return EVENT_GAME_OVER;
 
-    if (engine_color != chi_on_move (&current))
+    if (engine_color == chi_on_move (&current))
 	current_score = -current_score;
 
     engine_color = chi_on_move (&current);
@@ -1169,31 +1134,6 @@ handle_go (epd)
     game_hist[game_hist_ply].signature = chi_zk_signature (zk_handle, 
 							   &current);
     game_hist[game_hist_ply].pos = current;
-    castling_state = game_hist[game_hist_ply - 1].castling_state;
-    if (!chi_wk_castle (&current))
-	castling_state &= ~0x1;
-    if (!chi_wq_castle (&current))
-	castling_state &= ~0x2;
-
-    if (!chi_bk_castle (&current))
-	castling_state &= ~0x10;
-    if (!chi_bq_castle (&current))
-	castling_state &= ~0x20;
-
-    if ((0xfff & move) == (3 | (1 << 6))) {
-	castling_state &= 0x70;
-	castling_state |= 0x4;
-    } else if ((0xfff & move) == (3 | (5 << 6))) {
-	castling_state &= 0x70;
-	castling_state |= 0x4;
-    } else if ((0xfff & move) == (59 | (57 << 6))) {
-	castling_state &= 0x7;
-	castling_state |= 0x40;
-    } else if ((0xfff & move) == (59 | (61 << 6))) {
-	castling_state &= 0x7;
-	castling_state |= 0x40;
-    }
-    game_hist[game_hist_ply].castling_state = castling_state;
 
     if (1) {
 	bitv64 new_signature = game_hist[game_hist_ply].signature;
@@ -1249,16 +1189,6 @@ handle_setboard (fen)
     game_hist_ply = 0;
     game_hist[0].pos = current;
     game_hist[0].signature = chi_zk_signature (zk_handle, &current);
-
-    game_hist[0].castling_state = 0;
-    if (chi_wk_castle (&current))
-	game_hist[0].castling_state |= 0x1;
-    if (chi_wq_castle (&current))
-	game_hist[0].castling_state |= 0x2;
-    if (chi_bk_castle (&current))
-	game_hist[0].castling_state |= 0x10;
-    if (chi_bq_castle (&current))
-	game_hist[0].castling_state |= 0x20;
 
     current_score = engine_color == chi_white ? 
 	chi_material (&current) * 100 : 

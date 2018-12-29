@@ -13,7 +13,7 @@ noinst_HEADERS = board.h brain.h tate.h edit.h book.h time_ctrl.h
 
 tate_SOURCES = tate.c board.c brain.c edit.c book.c time_ctrl.c \
 	evaluate.c next_move.c quiescence.c search.c print_pv.c \
-	tt_hash.c epd.c
+	tt_hash.c epd.c ev_hash.c qtt_hash.c
 
 tate_LDADD = ../lib/libutil.a
 tate_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la

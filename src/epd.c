@@ -65,16 +65,6 @@ handle_epd (epdstr, max_time, epd)
     game_hist[0].pos = current;
     game_hist[0].signature = chi_zk_signature (zk_handle, &current);
 
-    game_hist[0].castling_state = 0;
-    if (chi_wk_castle (&current))
-	game_hist[0].castling_state |= 0x1;
-    if (chi_wq_castle (&current))
-	game_hist[0].castling_state |= 0x2;
-    if (chi_bk_castle (&current))
-	game_hist[0].castling_state |= 0x10;
-    if (chi_bq_castle (&current))
-	game_hist[0].castling_state |= 0x20;
-
     current_score = engine_color == chi_white ? 
 	chi_material (&current) * 100 : 
 	chi_material (&current) * -100;
@@ -83,6 +73,7 @@ handle_epd (epdstr, max_time, epd)
     fprintf (stdout, "    Solving test '%s', solution: %s.\n", 
 	     epd->id, buf);
     clear_tt_hashs ();
+    clear_qtt_hashs ();
     retval = handle_go (epd);
 
     fprintf (stdout, "    Results for test '%s'.\n", epd->id);

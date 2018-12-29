@@ -38,6 +38,97 @@ bitv64 total_nodes = 0;
 bitv64 total_centiseconds = 0;
 bitv64 nps_peak = 0;
 
+typedef struct {
+    chi_move move;
+    TREE* tree;
+    int score;
+    bitv64 nodes;
+} ext_move;
+
+static int compare_ext_moves PARAMS ((const void* a, const void* b));
+static int root_search PARAMS ((TREE* tree, int sdepth, ext_move* root_moves,
+				int num_moves, int alpha, int beta));
+
+#if 0
+static void
+dump_ext_moves (moves, num_moves)
+     ext_move* moves;
+     int num_moves;
+{
+    TREE* tree = moves[0].tree;
+    int i;
+    
+    printf ("\n    bonny: %s-%s, clyde: %s-%s\n",
+	    chi_shift2label (chi_move_from (tree->bonny[0])),
+	    chi_shift2label (chi_move_to (tree->bonny[0])),
+	    chi_shift2label (chi_move_from (tree->clyde[0])),
+	    chi_shift2label (chi_move_to (tree->clyde[0])));
+
+    for (i = 0; i < num_moves; ++i) {
+	chi_move move = moves[i].move;
+	int score = moves[i].score;
+
+	printf (" %s-%s (",
+		chi_shift2label (chi_move_from (move)),
+		chi_shift2label (chi_move_to (move)));
+	printf ("score: %d, ", score);
+	printf ("history: %d)\n", history_lookup (tree, move));
+    }
+}
+#endif
+
+int 
+compare_ext_moves (ext_a, ext_b)
+     const void* ext_a;
+     const void* ext_b;
+{
+    const ext_move* a = (const ext_move*) ext_a;
+    const ext_move* b = (const ext_move*) ext_b;
+    TREE* tree;
+    chi_move best_move;
+    tree = a->tree;
+
+    if (a->move == b->move)
+	return 0;
+
+    if (a->move == tree->pv[0].moves[0])
+	return -1;
+    if (b->move == tree->pv[0].moves[0])
+	return 1;
+
+    if (a->score != b->score)
+	return b->score - a->score;
+
+    best_move = best_tt_move (&tree->pos, tree->signatures[0]);
+    if (a->move == best_move)
+	return -1;
+    if (b->move == best_move)
+	return 1;
+
+//    if (a->nodes != b->nodes)
+//	return b->nodes - a->nodes;
+
+    if (chi_move_material (a->move)) {
+	if (!(chi_move_material (b->move)))
+	    return -1;
+	return b->move - a->move;
+    } else if (chi_move_material (b->move)) {
+	return 1;
+    }
+
+    if (a->move == tree->bonny[0])
+	return -1;
+    if (b->move == tree->bonny[0])
+	return 1;
+    if (a->move == tree->clyde[0])
+	return -1;
+    if (b->move == tree->clyde[0])
+	return 1;
+
+    return history_lookup (tree, b->move) - 
+	history_lookup (tree, a->move);
+}
+
 void
 evaluate_move (move)
      chi_move move;
@@ -52,7 +143,6 @@ evaluate_move (move)
 
     /* Initialize signature.  */
     tree.signatures[0] = game_hist[game_hist_ply].signature;
-    tree.castling_states[0] = game_hist[game_hist_ply].castling_state;
 
     /* Apply the move to the position.  */
     errnum = chi_apply_move (&tree.pos, move);
@@ -67,7 +157,6 @@ evaluate_move (move)
     tree.signatures[1] = 
 	chi_zk_update_signature (zk_handle, tree.signatures[0],
 				 move, chi_on_move (&tree.pos));
-    update_castling_state (&tree, move, 0);
 
     score = -evaluate (&tree, 1, 
 		       100 * chi_material (&tree.pos), 
@@ -83,6 +172,134 @@ evaluate_move (move)
     fprintf (stdout, "  mobility: %d\n", score);
 }
 
+static int
+root_search (tree, depth, moves, num_moves, alpha, beta)
+     TREE* tree;
+     int depth;
+     ext_move* moves;
+     int num_moves;
+     int alpha;
+     int beta;
+{
+    int i = 0;
+    chi_pos tmp_pos;
+    chi_pos* pos = &tree->pos;
+    int wtm = chi_on_move (pos) == chi_white;
+    int* hist_hash = wtm ? tree->black_tree_hist : tree->white_tree_hist;
+    int pv_seen = 0;
+    int original_alpha = alpha;
+    bitv64 last_nodes = tree->nodes - tree->qnodes;
+    int best_score = -INF;
+    chi_move best_move = 0;
+
+    /* Initialize principal variation.  */
+    tree->cv.length = 1;
+    tree->pv[0].length = 1;
+
+    chi_copy_pos (&tmp_pos, pos);
+
+    qsort (moves, num_moves, sizeof *moves, compare_ext_moves);
+    for (i = 0; i < num_moves; ++i) {
+	int score;
+	bitv64 signature;
+	chi_move move = moves[i].move;
+
+	chi_apply_move (pos, move);
+
+	tree->in_check[1] = chi_check_check (pos);
+
+	signature = tree->signatures[1] = 
+	    chi_zk_update_signature (zk_handle, tree->signatures[0],
+				     move, !wtm);
+
+	tree->cv.moves[0] = move;
+
+	++hist_hash[signature % HASH_HIST_SIZE];
+	if (pv_seen) {
+	    if (!xboard)
+		print_current_move (tree, &tmp_pos,
+				    move, i + 1, num_moves, 
+				    -alpha - 1, -alpha);
+
+	    score = -search (tree, depth - ONEPLY, 
+			     1, -alpha - 1, -alpha, 1);
+
+	    if ((score > alpha) && (score < beta)) {
+		if (tree->status & EVENTMASK_ENGINE_STOP)
+		    return alpha;
+
+		if (!xboard) {
+		    print_current_move (tree, &tmp_pos,
+					move, i + 1, num_moves, 
+					-beta, -alpha);
+		}
+		score = -search (tree, 
+				 depth - ONEPLY,
+				 1, -beta, -alpha, 1);
+	    }
+	} else {
+	    if (!xboard)
+		print_current_move (tree, &tmp_pos,
+				    move, i + 1, num_moves, 
+				    -beta, -alpha);
+	    score = -search (tree, depth - ONEPLY,
+			     1, -beta, -alpha, 1);
+	}
+	--hist_hash[signature % HASH_HIST_SIZE];
+	chi_copy_pos (pos, &tmp_pos);
+	moves[i].score = score;
+	moves[i].nodes = tree->nodes - tree->qnodes - last_nodes;
+	last_nodes = tree->nodes - tree->qnodes;
+
+	if (score > best_score) {
+	    current_score = best_score = score;
+	    best_move = move;
+
+	    tree->pv[0].moves[0] = move;
+	    if (tree->pv[1].length) {
+		memcpy (tree->pv[0].moves + 1, tree->pv[1].moves,
+			tree->pv[1].length * sizeof move);
+		tree->pv[0].length = tree->pv[1].length + 1;
+	    } else {
+		tree->pv[0].length = 1;
+	    }
+	}
+
+	if (tree->status & EVENTMASK_ENGINE_STOP)
+	    return best_score;
+
+	if (score > alpha) {
+	    if (score >= beta) {
+		store_killer (tree, move, depth, 0);
+		++tree->fh;
+		if (i == 0)
+		    ++tree->ffh;
+		else if ((move == tree->bonny[0]) || (move == tree->clyde[0]))
+		    ++tree->killers;
+
+		store_tt_entry (pos, tree->signatures[0], move, depth, 
+				score, HASH_BETA);
+
+		return score;
+	    } else {
+		pv_seen = 1;
+		alpha = score;
+		print_pv (tree, score, 0, 0);
+	    }
+	}
+    }
+
+    store_killer (tree, tree->pv[0].moves[0], depth, 0);
+
+    store_tt_entry (pos, tree->signatures[0], tree->pv[0].moves[0],
+		    depth, best_score, best_score != original_alpha ?
+		    HASH_EXACT : HASH_ALPHA);
+
+    return best_score;
+}
+
+#define ASPIRATION 50
+
 int
 think (mv, epd)
      chi_move* mv;
@@ -90,21 +307,24 @@ think (mv, epd)
 {
     chi_move moves[CHI_MAX_MOVES];
     chi_move* move_ptr;
-    int the_score = current_score;
+    ext_move ext_moves[CHI_MAX_MOVES];
+
     TREE tree;
-    int result = EVENT_CONTINUE;
-    long int elapsed;
-    int sdepth;
-    int num_moves;
-    int last_nodes = 0;
-    long int last_elapsed = 0;
     int alpha = -INF;
     int beta = +INF;
+    int result = EVENT_CONTINUE;
+    int sdepth;
+    int last_nodes = 0;
+    long int last_elapsed = 0;
+    long int elapsed;
+    int num_moves;
     int i;
     chi_color_t hash_color;
     int three_fold = 0;
     bitv64 this_signature = game_hist[game_hist_ply].signature;
     bitv64 nps = 0;  /* Shut up compiler.  */
+    unsigned int aspiration = ASPIRATION;
+    int direction = 0;
 
     memset (&tree, 0, sizeof tree);
 
@@ -114,6 +334,12 @@ think (mv, epd)
 
     num_moves = move_ptr - moves;
 
+#if 0
+    current_score = chi_material (&current) * 100;
+    if (chi_on_move (&current) != chi_white)
+	current_score = - current_score;
+#endif
+    fprintf (stdout, "Current score is: %d\n", current_score);
     if (num_moves == 0) {
 	if (chi_check_check (&current)) {
 	    if (chi_on_move (&current) == chi_white) {
@@ -156,7 +382,7 @@ think (mv, epd)
     }
     
     /* Better than nothing ...  */
-    tree.best_move = *mv = moves[0];
+    *mv = moves[0];
     if (num_moves == 1) {
 	time_cushion += inc * 100;
 	return 0;
@@ -164,9 +390,9 @@ think (mv, epd)
 
     /* Initialize signature.  */
     tree.signatures[0] = game_hist[game_hist_ply].signature;
-    tree.castling_states[0] = game_hist[game_hist_ply].castling_state;
+    tree.w_castled = chi_w_castled (&current);
+    tree.b_castled = chi_b_castled (&current);
 
-    fprintf (stdout, "Initial castling state: 0x%x\n", tree.castling_states[0]);
     tree.epd = epd;
 
     // FIXME: Check for book move.
@@ -201,13 +427,54 @@ think (mv, epd)
     tree.time_for_move = 999999;
 #endif
 
-#if ASPIRATION_WINDOW
-    fprintf (stdout, "Current score is: %d\n", current_score);
-    alpha = current_score - MIN_EVAL_DIFF;
-    beta = current_score + MIN_EVAL_DIFF;
-#endif
+    for (i = 0; i < num_moves; ++i) {
+	ext_moves[i].move = moves[i];
+	ext_moves[i].score = -INF;
+	ext_moves[i].tree = &tree;
+	ext_moves[i].nodes = 0ULL;
+    }
 
-    for (sdepth = 1; sdepth <= max_ply; ++sdepth) {
+    for (sdepth = 2; sdepth <= max_ply; ++sdepth) {
+	int hash_type;
+
+	if (HASH_UNKNOWN != (hash_type = probe_tt (&tree.pos, 
+						   tree.signatures[0], 
+						   PLIES2DEPTH (sdepth), 
+						   &alpha, &beta))) {
+	    chi_move best = best_tt_move (&tree.pos, tree.signatures[0]);
+
+	    if (!best)
+		break;
+	    
+	    switch (hash_type) {
+		case HASH_EXACT:
+		case HASH_ALPHA:
+		    current_score = alpha;
+		    break;
+		case HASH_BETA:
+		    current_score = beta;
+		    break;
+	    }
+	    tree.pv[0].moves[0] = best;
+	    tree.pv[0].length = 1;
+	} else {
+	    break;
+	}
+    }
+
+    tree.iteration_sdepth = sdepth;
+    if (sdepth != 2)
+	print_pv (&tree, current_score, 0, 0);
+
+    alpha = current_score - aspiration;
+    beta = current_score + aspiration;
+
+    qsort (ext_moves, num_moves, sizeof *ext_moves, compare_ext_moves);
+    tree.pv[0].moves[0] = ext_moves[0].move;
+    tree.pv[0].length = 1;
+
+    for (; sdepth <= max_ply; ++sdepth) {
+	long int elapsed;
 	int score;
 
 	tree.iteration_sdepth = sdepth;
@@ -218,7 +485,10 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 		 num_moves, chi_material (&tree.pos), sdepth, alpha, beta);
 #endif
 	
-	score = search (&tree, PLIES2DEPTH (sdepth), 0, alpha, beta, 0);
+	score = root_search (&tree, PLIES2DEPTH (sdepth), ext_moves, 
+			     num_moves, alpha, beta);
+
+	clean_current_move (&tree);
 
 	total_nodes += tree.nodes - last_nodes;
 	last_nodes = tree.nodes;
@@ -226,16 +496,70 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 	total_centiseconds += elapsed - last_elapsed;
 	last_elapsed = elapsed;
 
-	*mv = tree.best_move;
-
 	if (tree.status & EVENTMASK_ENGINE_STOP)
 	    break;
 	
+	*mv = tree.pv[0].moves[0];
+
 	current_score = score;
-
+	
+	if (score <= alpha) {
+	    print_fail_low (&tree, score, 0);
+	    if (direction > 0) {
+		aspiration >>= 1;
+		direction = - 1;
+	    } else {
+		aspiration <<= 1;
+	    }
+	    
+	    if (aspiration < ASPIRATION)
+		aspiration = ASPIRATION;
+	    else if (aspiration > CHI_VALUE_QUEEN)
+		aspiration = CHI_VALUE_QUEEN;
+	    
+	    alpha = score - aspiration;
+	    beta = score + (aspiration >> 1);
+	    
+#if DEBUG_BRAIN
+	    fprintf (stderr, "\
+Re-searching (failed low) best of %d moves in position (material %d) with depth %d [%d, %d]\n",
+		     num_moves, chi_material (&tree.pos), sdepth, alpha, beta);
+#endif
+	    --sdepth;
+	    continue;
+	} else if (score >= beta) {
+	    print_fail_high (&tree, score, 0);
+	    if (direction < 0) {
+		aspiration >>= 1;
+		direction = 1;
+	    } else {
+		aspiration <<= 1;
+	    }
+	    
+	    if (aspiration < ASPIRATION)
+		aspiration = ASPIRATION;
+	    else if (aspiration > CHI_VALUE_QUEEN)
+		aspiration = CHI_VALUE_QUEEN;
+	    
+	    beta = score + aspiration;
+	    alpha = score - (aspiration >> 1);
+	    
+#if DEBUG_BRAIN
+	    fprintf (stderr, "\
+Re-searching (failed high) best of %d moves in position (material %d) with depth %d [%d, %d]\n",
+		     num_moves, chi_material (&tree.pos), sdepth, alpha, beta);
+#endif
+	    --sdepth;
+	    continue;
+	}
+	    
+	aspiration = ASPIRATION;
+	alpha = score - 1;
+	beta = score + 1;
+	
 	if (score <= MATE) {
-	    print_pv (&tree, score, 0, 0);
-
+	    // print_pv (&tree, score, 0, 0);
+	    
 	    /* We will not resign but let our opponent the fun to
 	       beat us.  */
 	    if (elapsed & 0x10) {
@@ -246,8 +570,8 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 	    }
 	    break;
 	} else if (score >= -MATE) {
-	    print_pv (&tree, score, 0, 0);
-
+	    // print_pv (&tree, score, 0, 0);
+	    
 	    if (!mate_announce) {
 		mate_announce = (MATE + score) >> 1;
 		if (mate_announce > 1) {
@@ -259,44 +583,15 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 	    }
 	    break;
 	}
+	
+	aspiration = ASPIRATION;
 
-#define ASPIRATION_WINDOW 1
-
-	if (score > MATE && score < -MATE) {
-#if ASPIRATION_WINDOW
-	    if (score <= alpha) {
-		alpha = score - MIN_EVAL_DIFF;
-#if DEBUG_BRAIN
-		fprintf (stderr, "\
-Re-searching (failed low) best of %d moves in position (material %d) with depth %d [%d, %d]\n",
-			 num_moves, chi_material (&tree.pos), sdepth, alpha, beta);
-#endif
-		--sdepth;
-		continue;
-	    } else if (score >= beta) {
-		beta = score + MIN_EVAL_DIFF;
-#if DEBUG_BRAIN
-		fprintf (stderr, "\
-Re-searching (failed high) best of %d moves in position (material %d) with depth %d [%d, %d]\n",
-			 num_moves, chi_material (&tree.pos), sdepth, alpha, beta);
-#endif
-		--sdepth;
-		continue;
-	    }
-	    
-	    alpha = score - MIN_EVAL_DIFF;
-	    beta = score + MIN_EVAL_DIFF;
-	}
-#endif
-
-	the_score = score;
-
-	/* if (tree.iteration_sdepth > tree.pv_printed) */
+	// if (tree.iteration_sdepth > tree.pv_printed)
 	print_pv (&tree, score, 0, 0);
 
 	/* Do not go any deeper, if we have already used up more than
 	   2/3 of our time.  */
-	if (!epd && sdepth > 2) {
+	if (!tree.epd && sdepth > 2) {
 	    elapsed = rdifftime (rtime (), start_time);
 	    if (elapsed > tree.time_for_move * 2.1 / 3.0)
 		break;
@@ -319,7 +614,6 @@ Re-searching (failed high) best of %d moves in position (material %d) with depth
 		tree.nodes, tree.qnodes, 100 * (float) tree.qnodes / ((float) tree.nodes + 1));
 	printf ("  Deepest search: %d\n", tree.max_ply);
 	printf ("  Refuted quiescences: %ld\n", tree.refuted_quiescences);
-	printf ("  Score: %#.3g\n", chi_value2pawns (the_score));
 	printf ("  Elapsed: %ld.%02lds\n", elapsed / 100, elapsed % 100);
 	if (elapsed)
 	    printf ("  Nodes per second: %llu\n", nps);
@@ -338,13 +632,16 @@ Re-searching (failed high) best of %d moves in position (material %d) with depth
 		tree.tt_hits, tree.tt_exact_hits, 
 		tree.tt_alpha_hits, tree.tt_beta_hits,
 		tree.tt_moves);
+	printf ("  QTT probes: %lu\n", tree.qtt_probes);
+	printf ("  QTT hits: %lu (exact: %lu, alpha: %lu, beta: %lu)\n", 
+		tree.qtt_hits, tree.qtt_exact_hits, 
+		tree.qtt_alpha_hits, tree.qtt_beta_hits);
+	printf ("  Evaluations: %lu (cache hits: %lu, lazy: %lu)\n",
+		tree.evals, tree.ev_hits, tree.lazy_evals);
 	printf ("  Null moves: %lu (%lu failed high)\n",
 		tree.null_moves, tree.null_fh);
 	printf ("  Futility-pruned moves: %lu\n",
 		tree.fprunes);
-	printf ("  Evaluations: %lu\n", tree.evals);
-	printf ("  One-Pawn lazy evals: %lu\n", tree.lazy_one_pawn);
-	printf ("  Two-pawn lazy evals: %lu\n", tree.lazy_two_pawns);
 	printf ("  Total nodes searched: %llu\n", total_nodes);
 	if (total_centiseconds)
 	    printf ("  Total nodes per second: %llu (peak: %llu)\n", 
@@ -355,48 +652,6 @@ Re-searching (failed high) best of %d moves in position (material %d) with depth
     time_left -= elapsed;
 
     return result;
-}
-
-void
-update_castling_state (tree, move, ply)
-     TREE* tree;
-     chi_move move;
-     int ply;
-{
-    int castling_state = tree->castling_states[ply];
-    chi_pos* pos = &tree->pos;
-
-#define wk_castle_move (((~king & 0x7) << 13) | (1 << 6) | 3)
-#define wq_castle_move (((~king & 0x7) << 13) | (5 << 6) | 3)
-#define bk_castle_move (((~king & 0x7) << 13) | (57 << 6) | 59)
-#define bq_castle_move (((~king & 0x7) << 13) | (61 << 6) | 59)
-
-    switch (move) {
-	case wk_castle_move:
-	case wq_castle_move:
-	    castling_state &= 0x70;
-	    castling_state |= 0x4;
-	    break;
-	case bk_castle_move:
-	case bq_castle_move:
-	    castling_state &= 0x7;
-	    castling_state |= 0x40;
-	    break;
-    }
-
-    if (!chi_wk_castle (pos))
-	castling_state &= ~0x1;
-
-    if (!chi_wq_castle (pos))
-	castling_state &= ~0x2;
-    
-    if (!chi_bk_castle (pos))
-	castling_state &= ~0x10;
-
-    if (!chi_bq_castle (pos))
-	castling_state &= ~0x20;
-
-    tree->castling_states[ply + 1] = castling_state;
 }
 
 unsigned int history[8192];

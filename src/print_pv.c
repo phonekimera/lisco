@@ -41,6 +41,82 @@ print_pv (tree, score, whisper, ply)
     return flagged_print_pv (tree, score, whisper, ply, 0);
 }
 
+void
+print_current_result (tree, score, type)
+     TREE* tree;
+     int score;
+     int type;
+{
+return;
+    switch (type) {
+	case HASH_EXACT:
+	    tree->pv_junk += fprintf (stdout, " (PV: %d)", score);
+	    break;
+	case HASH_ALPHA:
+	    tree->pv_junk += fprintf (stdout, " (FL: %d)", score);
+	    break;
+	default:
+	    tree->pv_junk += fprintf (stdout, " (FH: %d)", score);
+	    break;
+    }
+    fflush (stdout);
+}
+
+void 
+print_current_move (tree, pos, move,
+		    count, num_moves, alpha, beta)
+     TREE* tree;
+     chi_pos* pos;
+     chi_move move;
+     int count;
+     int num_moves;
+     int alpha;
+     int beta;
+{
+    static char* buf = NULL;
+    static unsigned int bufsize = 0;
+    unsigned long int elapsed = rdifftime (rtime (), start_time);
+    int printed = 0;
+    int i;
+
+    if (isa_tty && tree->pv_junk)
+	fputc ('\r', stdout);
+
+    printed = fprintf (stdout, "%3d %5d %7ld %10ld ",
+		       tree->iteration_sdepth, current_score, elapsed,
+		       tree->nodes);
+    
+    chi_print_move (pos, move, &buf, &bufsize, 1);
+    printed += fprintf (stdout, " %d/%d %s [%d;%d]", 
+			count, num_moves, buf, -beta, -alpha);
+    for (i = printed; i < tree->pv_junk; ++i)
+	fputc (' ', stdout);
+    if (isa_tty) {
+	tree->pv_junk = printed;
+
+	fputc ('\r', stdout);
+    } else {
+	fputc ('\n', stdout);
+    }
+
+    fflush (stdout);   
+}
+
+void
+clean_current_move (tree)
+     TREE* tree;
+{
+    int i;
+
+    if (isa_tty && tree->pv_junk) {
+	fputc ('\r', stdout);
+	for (i = 0; i < tree->pv_junk; ++i)
+	    fputc (' ', stdout);
+	tree->pv_junk = 0;
+	fputc ('\r', stdout);
+    }
+}
+
 static void
 flagged_print_pv (tree, score, whisper, ply, fail_flag)
      TREE* tree;
@@ -60,8 +136,12 @@ flagged_print_pv (tree, score, whisper, ply, fail_flag)
     chi_move hashed_move;
     int printed = 0;
     int hash_cont = 0;
-
+    int first_hashed = 1;
+    
     tree->pv_printed = tree->iteration_sdepth;
+
+    if (tree->pv_junk)
+	fputc ('\r', stdout);
 
     if (!whisper)
 	printed += fprintf (stdout, "%3d %5d %7ld %10ld ",
@@ -94,7 +174,14 @@ flagged_print_pv (tree, score, whisper, ply, fail_flag)
 	if (chi_on_move (&tmp_pos) != chi_white)
 	    printed += fprintf (stdout, " %d.", 1 + tmp_pos.half_moves / 2);
 	
-	printed += fprintf (stdout, " %s", buf);
+	if (errnum)
+	    printed += fprintf (stdout, " [illegal (0x%08x): %s-%s: %s]",
+				tree->pv[0].moves[i],
+				chi_shift2label (chi_move_from (tree->pv[0].moves[i])),
+				chi_shift2label (chi_move_to (tree->pv[0].moves[i])),
+				chi_strerror (errnum));
+	else
+	    printed += fprintf (stdout, " %s", buf);
 
 	if (i == 0) {
 	    if (fail_flag > 0)
@@ -103,9 +190,6 @@ flagged_print_pv (tree, score, whisper, ply, fail_flag)
 		printed += fprintf (stdout, "??");
 	}
 
-	if (errnum)
-	    printed += fprintf (stdout, " [illegal: %s]", 
-				chi_strerror (errnum));
 	signature = chi_zk_signature (zk_handle, &tmp_pos);
     }
 
@@ -113,14 +197,14 @@ flagged_print_pv (tree, score, whisper, ply, fail_flag)
     if (hash_cont) {
 	printed += fprintf (stdout, " {");
 	if (chi_on_move (&tmp_pos) != chi_white)
-	    printed += fprintf (stdout, " %d. ...", 
+	    printed += fprintf (stdout, "%d. ... ", 
 				1 + tmp_pos.half_moves / 2);
     }
 
-    signature = chi_zk_signature (zk_handle, &tmp_pos);
     while (0 != (hashed_move = best_tt_move (&tmp_pos, signature))) {
 	int alpha = +INF;
 	int beta = -INF;
+	int errnum;
 	int j;
 
 	if (printed >= 4000)
@@ -131,16 +215,31 @@ flagged_print_pv (tree, score, whisper, ply, fail_flag)
 	    seen = xrealloc (seen, seen_size * sizeof signature);
 	}
 
-	if (chi_print_move (&tmp_pos, hashed_move, &buf, &bufsize, 1))
-	    break;
+	errnum = chi_print_move (&tmp_pos, hashed_move, &buf, &bufsize, 1);
+	errnum |= chi_apply_move (&tmp_pos, hashed_move);
 
-	if (chi_apply_move (&tmp_pos, hashed_move))
-	    break;
-	if (chi_on_move (&tmp_pos) != chi_white)
-	    printed += fprintf (stdout, " %d.", 1 + tmp_pos.half_moves / 2);
-	
-	printed += fprintf (stdout, " %s", buf);
-	
+	signature = chi_zk_signature (zk_handle, &tmp_pos);
+	seen[i++] = signature;
+
+	if (chi_on_move (&tmp_pos) != chi_white) {
+	    if (!first_hashed)
+		printed += fprintf (stdout, " ");
+	    printed += fprintf (stdout, "%d.", 1 + tmp_pos.half_moves / 2);
+	}
+
+	if (!first_hashed)
+	    printed += fprintf (stdout, " ");
+	first_hashed = 0;
+
+	if (errnum)
+	    printed += fprintf (stdout, "[illegal (0x%08x): %s-%s: %s]",
+				hashed_move,
+				chi_shift2label (chi_move_from (hashed_move)),
+				chi_shift2label (chi_move_to (hashed_move)),
+				chi_strerror (errnum));
+	else
+	    printed += fprintf (stdout, "%s", buf);
+
 	switch (probe_tt (&tmp_pos, signature, 0, &alpha, &beta)) {
 	    case HASH_ALPHA:
 		fprintf (stdout, "?!");
@@ -149,9 +248,6 @@ flagged_print_pv (tree, score, whisper, ply, fail_flag)
 		fprintf (stdout, "!?");
 		break;
 	}
-
-	signature = chi_zk_signature (zk_handle, &tmp_pos);
-	seen[i++] = signature;
 
 	for (j = 0; j < i - 1; ++j) {
 	    if (seen[j] == signature)
@@ -173,15 +269,15 @@ flagged_print_pv (tree, score, whisper, ply, fail_flag)
     if (tree->epd) {
 	chi_epd_pos* epd = tree->epd;
 	int solved_before = epd->solution == epd->suggestion;
-	int solved_after = epd->solution == tree->best_move;
+	int solved_after = epd->solution == tree->pv[0].moves[0];
 	
 #if 0
 	fprintf (stderr, "Solution: %s-%s\n", 
 		 chi_shift2label (chi_move_from (epd->solution)),
 		 chi_shift2label (chi_move_to (epd->solution)));
 	fprintf (stderr, "Best move: %s-%s\n", 
-		 chi_shift2label (chi_move_from (tree->best_move)),
-		 chi_shift2label (chi_move_to (tree->best_move)));
+		 chi_shift2label (chi_move_from (tree->pv[0].moves[0])),
+		 chi_shift2label (chi_move_to (tree->pv[0].moves[0])));
 #endif
 
 	if (solved_before != solved_after) {
@@ -197,10 +293,15 @@ flagged_print_pv (tree, score, whisper, ply, fail_flag)
 		fprintf (stdout, " :-(");
 	    }
 	}
-	epd->suggestion = tree->best_move;
+	epd->suggestion = tree->pv[0].moves[0];
     }
 
-    fprintf (stdout, "\n");
+    for (i = printed; i < tree->pv_junk; ++i)
+	fputc (' ', stdout);
+    tree->pv_junk = 0;
+
+    fputc ('\n', stdout);
+fflush (stdout);
 }
 
 void dump_pv (tree)

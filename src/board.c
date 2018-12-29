@@ -192,12 +192,8 @@ display_board (pos)
 		printf ("Material: %+d.", chi_material (pos));
 		break;
 	    case CHI_RANK_3:
-		if (game_hist[game_hist_ply].castling_state & 0x4)
-		    printf ("White has castled: yes (%x).", 
-			    game_hist[game_hist_ply].castling_state);
-		else
-		    printf ("White has castled: no (%x).",
-			    game_hist[game_hist_ply].castling_state);
+		    printf ("White has castled: %s.",
+			    chi_w_castled (pos) ? "yes" : "no");
 		break;
 	}
 
@@ -225,12 +221,8 @@ display_board (pos)
 			chi_zk_signature (zk_handle, pos));
 		break;
 	    case CHI_RANK_3:
-		if (game_hist[game_hist_ply].castling_state & 0x40)
-		    printf ("Black has castled: yes (%x).", 
-			    game_hist[game_hist_ply].castling_state);
-		else
-		    printf ("Black has castled: no (%x).",
-			    game_hist[game_hist_ply].castling_state);
+		printf ("Black has castled: %s.",
+			chi_b_castled (pos) ? "yes" : "no");
 		break;
 	}
 

@@ -39,12 +39,12 @@ quiescence (tree, ply, alpha, beta)
     chi_move move;
     chi_pos saved_pos;
     chi_pos* pos = &tree->pos;
-    int pv_seen = 0;
     int standing_pat;
     int best_score;
     chi_move best_move = 0;
     int material;
     int num_moves;
+    int original_alpha = alpha;
 
     chi_copy_pos (&saved_pos, pos);
 
@@ -71,7 +71,6 @@ quiescence (tree, ply, alpha, beta)
 
 	if (rdifftime (rtime (), start_time) >= tree->time_for_move) {
 	    tree->status = EVENT_MOVE_NOW;
-	    fprintf (stdout, "  Time used up!\n");
 	    return beta;
 	}
 	next_time_control = 0x2000;
@@ -82,6 +81,25 @@ quiescence (tree, ply, alpha, beta)
 
     if (ply > tree->max_ply)
         tree->max_ply = ply;
+
+    /* Probe the transposition table.  */
+    ++tree->qtt_probes;
+    switch (probe_qtt (pos, tree->signatures[ply], &alpha, &beta)) {	
+	case HASH_EXACT:
+	    ++tree->qtt_exact_hits;
+	    ++tree->qtt_hits;		
+	    return alpha;
+	    
+	case HASH_BETA:
+	    ++tree->qtt_beta_hits;
+	    ++tree->qtt_hits;
+	    return beta;
+	    
+	case HASH_ALPHA:
+	    ++tree->qtt_alpha_hits;
+	    ++tree->qtt_hits;
+	    return alpha;
+    }
 
     // FIXME: Maybe this has the opposite effect?!
     if (tree->in_check[ply])
@@ -102,6 +120,7 @@ quiescence (tree, ply, alpha, beta)
         fprintf (stderr, "fh: standing pat failed high with score %d\n",
                  chi_value2centipawns (standing_pat));
 #endif
+	store_qtt_entry (pos, tree->signatures[ply], standing_pat, HASH_BETA);
         return standing_pat;
     } else if (standing_pat > alpha) {
         alpha = standing_pat;
@@ -136,6 +155,10 @@ quiescence (tree, ply, alpha, beta)
 	int min_material = alpha - material - MAX_POS_SCORE;
 	int this_material = 100 * chi_move_material (move);
 
+	/* Maybe we should try at least one move, regardless of 
+	   futility refutations and razoring, because that is a 
+	   relatively cheap way to negate a stalemate situation.  */
+
 	if (!(chi_move_victim (move)) && !(chi_move_promote (move)))
 	    continue;
 
@@ -157,7 +180,6 @@ quiescence (tree, ply, alpha, beta)
 	tree->signatures[ply + 1] = 
 	    chi_zk_update_signature (zk_handle, tree->signatures[ply],
 				     move, !chi_on_move (pos));
-	update_castling_state (tree, move, ply);
 
 	++num_moves;
 	tree->cv.moves[ply] = move;
@@ -174,30 +196,22 @@ quiescence (tree, ply, alpha, beta)
         chi_on_move (pos) = !chi_on_move (pos);
 #endif
 
-	if (pv_seen) {
-	    score = -quiescence (tree, ply + 1, -alpha - 1, -alpha);
-	    if ((score > alpha) && (score < beta)) {
-		score = -quiescence (tree, ply + 1, -beta, -alpha);
-	    }
-	} else {
-	    score = -quiescence (tree, ply + 1, -beta, -alpha);
-	}
+	score = -quiescence (tree, ply + 1, -beta, -alpha);
 	chi_copy_pos (pos, &saved_pos);
 
 	if (tree->status & EVENTMASK_ENGINE_STOP)
 	    return alpha;
+
+	if (score > best_score) {
+	    best_score = score;
+	    best_move = move;
+	}
 
 	if (score > alpha) {
 	    if (score >= beta) {
 		// FIXME: A mate as a return value is not necessarily
 		// correct!?
 
-		/* Is this correct? */
-		tree->pv[ply].moves[0] = move;
-		memcpy (tree->pv[ply].moves + 1, tree->pv[ply + 1].moves,
-			tree->pv[ply + 1].length * sizeof move);
-		tree->pv[ply].length = tree->pv[ply + 1].length + 1;
-		
 #if DEBUG_BRAIN
 		indent_output (tree, ply);
 		fprintf (stderr, "fh: ");
@@ -205,17 +219,15 @@ quiescence (tree, ply, alpha, beta)
 		fprintf (stderr, " failed high with score %d\n",
 			 chi_value2centipawns (score));
 #endif	    
+
+		store_qtt_entry (pos, tree->signatures[ply], score, HASH_BETA);
+
 		++tree->qfh;
 		if (num_moves == 1)
 		    ++tree->qffh;
 		return score;
 	    } else {
-		pv_seen = 1;
 		alpha = score;
-		if (score > best_score) {
-		    best_score = score;
-		    best_move = move;
-		}
 		tree->pv[ply].moves[0] = move;
 		memcpy (tree->pv[ply].moves + 1, tree->pv[ply + 1].moves,
 			tree->pv[ply + 1].length * sizeof move);
@@ -229,12 +241,10 @@ quiescence (tree, ply, alpha, beta)
 			 chi_value2centipawns (score));
 		dump_pv (tree);
 #endif
+
+		store_qtt_entry (pos, tree->signatures[ply], score, HASH_ALPHA);	    
 	    }
 	} else {
-	    if (score > best_score) {
-		best_score = score;
-		best_move = move;
-	    }
 #if DEBUG_BRAIN
             indent_output (tree, ply);
             fprintf (stderr, "fl: ");
@@ -244,7 +254,6 @@ quiescence (tree, ply, alpha, beta)
 #endif
 	    ++tree->qfl;
 	}
-	
     }
     
 #if DEBUG_BRAIN
@@ -255,16 +264,8 @@ quiescence (tree, ply, alpha, beta)
     
     tree->cv.length = ply;
     
-    if (best_move && !tree->pv[ply].length) {
-	tree->pv[ply].length = 1;
-	tree->pv[ply].moves[0] = best_move;
-#if DEBUG_BRAIN
-	fprintf (stderr, "best of fl moves ");
-	my_print_move (best_move);
-	fprintf (stderr, " becomes new pv\n");
-	dump_pv (tree);
-#endif
-    }
+    store_qtt_entry (pos, tree->signatures[ply], best_score, 
+		     best_score != original_alpha ? HASH_EXACT : HASH_ALPHA);
     
     return best_score;
 }

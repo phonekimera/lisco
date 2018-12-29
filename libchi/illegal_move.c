@@ -108,8 +108,8 @@ chi_illegal_move (pos, move, ext_check)
     tmp_pos = *pos;
 
     if (chi_move_from (move) == 3) {
-	bitv64 from_mask = ((bitv64) 1) << 3;
 	int to = chi_move_to (move);
+	bitv64 from_mask = ((bitv64) 1) << 3;
 	
 	if ((to == 5 || to == 1) && from_mask & pos->w_kings) {
 	    int tmp_to = (3 + to) >> 1;
@@ -121,24 +121,26 @@ chi_illegal_move (pos, move, ext_check)
 	    chi_make_move (&tmp_pos, move);
 	    if (chi_check_check (&tmp_pos))
 		return CHI_ERR_ILLEGAL_MOVE;
-	    tmp_pos = *pos;
+	    chi_copy_pos (&tmp_pos, pos);
 	    chi_move_set_to (move, to);
 	}
     } else if (chi_move_from (move) == 59) {
-	bitv64 from_mask = ((bitv64) 1) << 59;
 	int to = chi_move_to (move);
+	bitv64 from_mask = ((bitv64) 1) << 59;
 	
 	if ((to == 61 || to == 57) && from_mask & pos->b_kings) {
-	    int tmp_to = (3 + to) >> 1;
+	    int tmp_to = (59 + to) >> 1;
 	    
 	    if (chi_check_check (pos))
 		return CHI_ERR_ILLEGAL_MOVE;
 	    
 	    chi_move_set_to (move, tmp_to);
 	    chi_make_move (&tmp_pos, move);
+
 	    if (chi_check_check (&tmp_pos))
 		return CHI_ERR_ILLEGAL_MOVE;
-	    tmp_pos = *pos;
+
+	    chi_copy_pos (&tmp_pos, pos);
 	    chi_move_set_to (move, to);
 	}
     }
@@ -149,7 +151,7 @@ chi_illegal_move (pos, move, ext_check)
     if (chi_check_check (&tmp_pos))
 	return CHI_ERR_IN_CHECK;
     
-    *pos = tmp_pos;
+    chi_copy_pos (pos, &tmp_pos);
 
     if (chi_on_move (pos) == chi_white)
 	chi_material (pos) += chi_move_material (move);

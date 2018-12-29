@@ -45,7 +45,6 @@ typedef struct tt_entry {
    entry has at least the same depth as the old entry, the second and 
    third third, will always be overwritten.  */
 TT_Entry* tt = NULL;
-TT_Entry* tt_end;
 
 static unsigned long int tt_size = 0;
 static unsigned long int half_tt_size = 0;
@@ -54,7 +53,6 @@ void
 init_tt_hashs (memuse)
      unsigned long int memuse;
 {
-    fprintf (stderr, "Requested size: %lu\n", memuse);
     if (memuse < MIN_TT_SIZE)
 	memuse = MIN_TT_SIZE;
 
@@ -68,18 +66,16 @@ Allocated %lu bytes (%lu entries) for main transposition table.\n",
 	     6 * half_tt_size * sizeof *tt, 6 * half_tt_size);
 
     clear_tt_hashs ();
-
-    tt_end = tt + 6 * half_tt_size * sizeof *tt;
 }
 
 void
 clear_tt_hashs ()
 {
-    fprintf (stdout, "Clearing hash tables.\n");
+    fprintf (stdout, "Clearing main transposition table.\n");
     memset (tt, 0, (tt_size << 1) * sizeof *tt);
 }
 
-int
+unsigned int
 probe_tt (pos, signature, depth, alpha, beta)
      chi_pos* pos;
      bitv64 signature;
@@ -98,19 +94,12 @@ probe_tt (pos, signature, depth, alpha, beta)
 
     hit = tt + offset;
 
-    if (hit >= tt_end)
-	error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
-	       __FILE__, __LINE__, hit, tt_end);
-
     if (hit->signature && hit->signature != signature) {
 	if (wtm)
 	    offset = half_tt_size + signature % ((bitv64) tt_size);
 	else
 	    offset = (tt_size << 1) + signature % ((bitv64) tt_size);
 	hit = tt + offset;
-	if (hit >= tt_end)
-	    error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
-		   __FILE__, __LINE__, hit, tt_end);
     }
 
 #if DEBUG_BRAIN
@@ -121,7 +110,7 @@ probe_tt (pos, signature, depth, alpha, beta)
 #endif
 
     if (hit->signature == signature) {
-	unsigned int flags = (hit->best & 0xc0000000) >> 30;
+	unsigned int flags = hit->best >> 30;
 
 	if (hit->depth >= depth) {
 	    if (flags == HASH_EXACT) {
@@ -135,8 +124,7 @@ probe_tt (pos, signature, depth, alpha, beta)
 
 		*alpha = hit->score;
 		return HASH_EXACT;
-	    } else if (flags == HASH_ALPHA &&
-		       hit->score <= *alpha) {
+	    } else if (flags == HASH_ALPHA && hit->score >= *beta) {
 #if DEBUG_BRAIN
 		fprintf (stderr, 
 			 "Hit for depth %d (score: %d, flags: HASH_ALPHA, ",
@@ -146,8 +134,7 @@ probe_tt (pos, signature, depth, alpha, beta)
 #endif
 		*alpha = hit->score;
 		return HASH_ALPHA;
-	    } else if (flags == HASH_BETA &&
-		       hit->score >= *beta) {
+	    } else if (flags == HASH_BETA && hit->score <= *alpha) {
 #if DEBUG_BRAIN
 		fprintf (stderr, 
 			 "Hit for depth %d (score: %d, flags: HASH_BETA, ",
@@ -157,19 +144,26 @@ probe_tt (pos, signature, depth, alpha, beta)
 #endif
 		*beta = hit->score;
 		return HASH_BETA;
-#if DEBUG_BRAIN
 	    } else if (flags == HASH_ALPHA) {
+#if DEBUG_BRAIN
 		fprintf (stderr, "HASH_ALPHA score %d too high at depth %d, ",
 			 hit->score, depth);
 		my_print_move (hit->best & 0x3fffffff);
 		fprintf (stderr, "\n");
+#endif
 	    } else if (flags == HASH_BETA) {
+#if DEBUG_BRAIN
 		fprintf (stderr, "HASH_BETA score %d too low at depth %d, ",
 			 hit->score, depth);
 		my_print_move (hit->best & 0x3fffffff);
 		fprintf (stderr, "\n");
 #endif
 	    }
+
+	    if (flags == HASH_BETA && hit->score < *beta)
+		*beta = hit->score;
+	    else if (flags == HASH_ALPHA && hit->score > *alpha)
+		*alpha = hit->score;
 	}
     }
 
@@ -196,24 +190,16 @@ best_tt_move (pos, signature)
 
     hit = tt + offset;
 
-    if (hit >= tt_end)
-	error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
-	       __FILE__, __LINE__, hit, tt_end);
-
     if (hit->signature && hit->signature != signature) {
 	if (wtm)
 	    offset = half_tt_size + signature % ((bitv64) tt_size);
 	else
 	    offset = (tt_size << 1) + signature % ((bitv64) tt_size);
 	hit = tt + offset;
-	if (hit >= tt_end)
-	    error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
-		   __FILE__, __LINE__, hit, tt_end);
     }
 
-    if (hit->signature == signature) {
+    if (hit->signature == signature)
 	return hit->best & 0x3fffffff;
-    }
 
     return 0;
 }
@@ -225,7 +211,7 @@ store_tt_entry (pos, signature, move, depth, score, flags)
      chi_move move;
      int depth;
      int score;
-     int flags;
+     unsigned int flags;
 {
     size_t offset;
     TT_Entry* hit;
@@ -237,11 +223,6 @@ store_tt_entry (pos, signature, move, depth, score, flags)
 	offset = tt_size + half_tt_size + signature % ((bitv64) half_tt_size);
 
     hit = tt + offset;
-
-    if (hit >= tt_end)
-	error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
-	       __FILE__, __LINE__, hit, tt_end);
-
 
 #if DEBUG_BRAIN
     fprintf (stderr, "TTStore score %d for %s with move ", 
@@ -260,7 +241,7 @@ store_tt_entry (pos, signature, move, depth, score, flags)
 	   has the same depth, HASH_EXACT is preferred over HASH_BETA, and
 	   HASH_BETA is preferred over HASH_ALPHA.  */
 	int move_entry = 0;
-	int old_flags = hit->best >> 30;
+	unsigned int old_flags = 0x3 & (hit->best >> 30);
 	size_t offset_always;
 	TT_Entry* always;
 
@@ -270,10 +251,6 @@ store_tt_entry (pos, signature, move, depth, score, flags)
 	    offset_always = (tt_size << 1) + signature % ((bitv64) tt_size);
 
 	always = tt + offset_always;
-
-	if (always >= tt_end)
-	    error (EXIT_FAILURE, 0, "%s:%d: assertion 'always' (%p) < tt_end (%p) failed!",
-		   __FILE__, __LINE__, hit, tt_end);
 
 	if (hit->depth < depth)
 	    move_entry = 1;
@@ -285,12 +262,12 @@ store_tt_entry (pos, signature, move, depth, score, flags)
 	    hit->signature = signature;
 	    hit->depth = depth;
 	    hit->score = score;
-	    hit->best = move | flags << 30;
+	    hit->best = move | (flags << 30);
 	} else {
 	    always->signature = signature;
 	    always->depth = depth;
 	    always->score = score;
-	    always->best = move | flags << 30;
+	    always->best = move | (flags << 30);
 	}
     } else {
 	/* No conflict.  */

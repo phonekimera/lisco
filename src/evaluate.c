@@ -181,22 +181,34 @@ evaluate (tree, ply, alpha, beta)
      int beta;
 {
     chi_pos* pos = &tree->pos;
-    int score = 100 * chi_material (pos);
+    bitv64 signature = tree->signatures[ply];
+    int score;
     int total_white_pieces, total_black_pieces;
 
     ++tree->evals;
+
+    /* Check for a cache hit first.  */
+    if (probe_ev (pos, signature, &score)) {
+	++tree->ev_hits;
+	return score;
+    }
 
     if (tree->in_check[ply]) {
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move* mv = moves;
 
 	mv = chi_legal_moves (pos, moves);
-	if (mv - moves == 0)
+	if (mv - moves == 0) {
+	    store_ev_entry (pos, signature, MATE - ply);
 	    return MATE - ply;
+	}
     }
-
-    if (pos->half_move_clock >= 100)
+    /* We will miss a stalemate here.  Is that a problem? We will see
+       it at the next ply.  */
+    if (pos->half_move_clock >= 100) {
+	store_ev_entry (pos, signature, DRAW);
 	return DRAW;
+    }
 
     total_white_pieces = popcount (pos->w_pieces);
     total_black_pieces = popcount (pos->b_pieces);
@@ -205,6 +217,7 @@ evaluate (tree, ply, alpha, beta)
 	/* Check for draw by lack of material.  */
 	if (!pos->w_rooks && !pos->b_rooks && 
 	    !pos->w_bishops && !pos->b_bishops) {
+	    store_ev_entry (pos, signature, DRAW);
 	    return DRAW;
 	} else if (!pos->w_rooks && !pos->b_rooks) {
 	    /* Only bishops and knights left.  We report two knights
@@ -216,25 +229,29 @@ evaluate (tree, ply, alpha, beta)
 
 	    if ((white_bishops < 2 && !white_knights) ||
 		(black_bishops < 2 && !black_knights))
+		store_ev_entry (pos, signature, DRAW);
 		return DRAW;
 	}
     }
 
+    score = 100 * chi_material (pos);
+
     if ((abs (score - alpha) > MAX_POS_SCORE) &&
 	(abs (score - beta) > MAX_POS_SCORE)) {
-	++tree->lazy_one_pawn;
+
+	++tree->lazy_evals;
 	if (chi_on_move (pos) == chi_white)
 	    return score;
 	else
 	    return -score;
 
     } else if (total_white_pieces > 10 && total_black_pieces > 10) {
-	int root_castling_state = tree->castling_states[0];
 
-	if (root_castling_state & 0x33) {
+	if (!(tree->w_castled && tree->b_castled)) {
 	    score += evaluate_dev_white (tree, ply);
 	    score += evaluate_dev_black (tree, ply);
 	}
+
     }
 
     score += evaluate_mobility (tree);
@@ -357,10 +374,11 @@ evaluate (tree, ply, alpha, beta)
 	}
     }
 
-    if (chi_on_move (pos) == chi_white)
-	return score;
-    else
-	return -score;
+    if (chi_on_move (pos) != chi_white)
+	score = -score;
+
+    store_ev_entry (pos, signature, score);
+    return score;
 }
 
 int
@@ -374,7 +392,6 @@ evaluate_dev_white (tree, ply)
     bitv64 w_bishops = pos->w_bishops & ~pos->w_rooks;
     bitv64 center_pawns = w_pawns & (CHI_D_MASK | CHI_E_MASK);
     bitv64 w_queens = pos->w_bishops & pos->w_rooks;
-    int castling_state = tree->castling_states[ply];
 
     // FIXME: We can precompute the relevant mask.
     while (w_pawns) {
@@ -386,7 +403,7 @@ evaluate_dev_white (tree, ply)
 
     /* Penalty for premature queen moves.  */
     if (!(w_queens & CHI_D_MASK & CHI_1_MASK) &&
-	((castling_state & 0x3) ||
+	(!tree->w_castled ||
 	 (pos->w_knights & (CHI_B_MASK | CHI_G_MASK) & CHI_1_MASK) ||
 	 (w_bishops & (CHI_C_MASK | CHI_F_MASK) & CHI_1_MASK)))
 	score -= EVAL_PREMATURE_QUEEN_MOVE;
@@ -403,14 +420,14 @@ evaluate_dev_white (tree, ply)
     if ((center_pawns << 8) & (pos->w_pieces | pos->b_pieces))
 	score -= EVAL_BLOCKED_CENTER_PAWN;
 
-    if (!(castling_state & 0x4)) {
+    if (!tree->w_castled && !chi_w_castled (pos)) {
 	/* Penalty for not having castled.  */
 	score -= EVAL_NOT_CASTLED;
 
-	if (!(castling_state & 0x2))
+	if (!chi_wk_castle (pos))
 	    score -= EVAL_LOST_CASTLE;
 
-	if (!(castling_state & 0x1))
+	if (!chi_wq_castle (pos))
 	    score -= EVAL_LOST_CASTLE;
     }
 
@@ -428,7 +445,6 @@ evaluate_dev_black (tree, ply)
     bitv64 b_bishops = pos->b_bishops & ~pos->b_rooks;
     bitv64 center_pawns = b_pawns & (CHI_D_MASK | CHI_E_MASK);
     bitv64 b_queens = pos->b_bishops & pos->b_rooks;
-    int castling_state = tree->castling_states[ply];
 
     while (b_pawns) {
 	unsigned int from = 
@@ -439,7 +455,7 @@ evaluate_dev_black (tree, ply)
 
     /* Penalty for premature queen moves.  */
     if (!(b_queens & CHI_D_MASK & CHI_8_MASK) &&
-	((castling_state & 0x30) ||
+	(!chi_b_castled (pos) ||
 	 (pos->b_knights & (CHI_B_MASK | CHI_G_MASK) & CHI_8_MASK) ||
 	 (b_bishops & (CHI_C_MASK | CHI_F_MASK) & CHI_8_MASK)))
 	score += EVAL_PREMATURE_QUEEN_MOVE;
@@ -456,14 +472,14 @@ evaluate_dev_black (tree, ply)
     if ((center_pawns >> 8) & (pos->w_pieces | pos->b_pieces))
 	score += EVAL_BLOCKED_CENTER_PAWN;
 
-    if (!(castling_state & 0x40)) {
+    if (!tree->b_castled && !chi_b_castled (pos)) {
 	/* Penalty for not having castled.  */
 	score += EVAL_NOT_CASTLED;
 
-	if (!(castling_state & 0x20))
+	if (!chi_bk_castle (pos))
 	    score += EVAL_LOST_CASTLE;
 
-	if (!(castling_state & 0x10))
+	if (!chi_bq_castle (pos))
 	    score += EVAL_LOST_CASTLE;
     }
 

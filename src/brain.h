@@ -33,8 +33,9 @@
 #define DEBUG_BRAIN 0
 
 #define ONEPLY (64)
-#define DEPTH2PLIES(d) (d >> 6)
-#define PLIES2DEPTH(p) (p << 6)
+#define TWOPLY (ONEPLY << 1)
+#define DEPTH2PLIES(d) ((d) >> 6)
+#define PLIES2DEPTH(p) ((p) << 6)
 
 #define CHECK_EXT ONEPLY
 #define MATE_EXT  (48)
@@ -50,13 +51,11 @@
 #define MIN_EVAL_DIFF (1 << MOBILITY_SHIFT)
 #endif
 
-#define MIN_EVAL_DIFF 30 
+#define MAX_POS_SCORE 99999
 
-#define MAX_POS_SCORE 150
-
-#define FUTILITY_MARGIN 400
-#define EXT_FUTILITY_MARGIN 600
-#define RAZOR_MARGIN 1000
+#define FUTILITY_MARGIN 99999
+#define EXT_FUTILITY_MARGIN 99999
+#define RAZOR_MARGIN 99999
 
 extern bitv64 total_nodes;
 extern bitv64 total_centiseconds;
@@ -111,14 +110,16 @@ typedef struct tree {
 
     chi_move pv_move[MAX_PLY];
 
+    /* Initial castling state.  */
+    int w_castled;
+    int b_castled;
+
     /* Small hash tables for recently seen positions.  */
 #define HASH_HIST_SIZE (1023)
     int white_game_hist[HASH_HIST_SIZE];
     int black_game_hist[HASH_HIST_SIZE];
     int white_tree_hist[HASH_HIST_SIZE];
     int black_tree_hist[HASH_HIST_SIZE];
-
-    chi_move best_move;
 
     unsigned long nodes;
     unsigned long qnodes;
@@ -130,6 +131,13 @@ typedef struct tree {
     unsigned long tt_exact_hits;
     unsigned long tt_alpha_hits;
     unsigned long tt_beta_hits;
+
+    unsigned long qtt_probes;
+    unsigned long qtt_hits;
+    unsigned long qtt_exact_hits;
+    unsigned long qtt_alpha_hits;
+    unsigned long qtt_beta_hits;
+
     unsigned long killers;
 
     unsigned long null_moves;
@@ -145,23 +153,22 @@ typedef struct tree {
     unsigned long refuted_quiescences;
 
     unsigned long evals;
-    unsigned long lazy_one_pawn;
-    unsigned long lazy_two_pawns;
+    unsigned long ev_hits;
+    unsigned long lazy_evals;
 
     int max_ply;
     int status;
     int iteration_sdepth;
     int pv_printed;
+    int pv_junk;
 
     chi_epd_pos* epd;
-
-    char castling_states[MAX_PLY + 1];
 } TREE;
 
-#define HASH_UNKNOWN 0
-#define HASH_ALPHA 1
-#define HASH_BETA  2
-#define HASH_EXACT 3
+#define HASH_UNKNOWN ((unsigned int) 0)
+#define HASH_ALPHA   ((unsigned int) 1)
+#define HASH_BETA    ((unsigned int) 2)
+#define HASH_EXACT   ((unsigned int) 3)
 
 extern unsigned int history[];
 #define history_lookup(tree, move) \
@@ -195,6 +202,13 @@ extern int quiescence PARAMS ((TREE* tree, int ply,
 
 extern void print_pv PARAMS ((TREE* tree, int score, 
 			      int whisper, int ply));
+extern void print_current_move PARAMS ((TREE* tree, chi_pos* pos,
+					chi_move move, int count, 
+					int num_moves, int alpha, int beta));
+extern void print_current_result PARAMS ((TREE* tree, int score, int type));
+					  
+extern void clean_current_move PARAMS ((TREE* tree));
+
 extern void print_fail_high PARAMS ((TREE* tree, int score, int whisper));
 extern void print_fail_low PARAMS ((TREE* tree, int score, int whisper));
 
@@ -203,13 +217,27 @@ extern void clear_tt_hashs PARAMS ((void));
 
 extern void store_tt_entry PARAMS ((chi_pos* pos,
 				    bitv64 signature, chi_move move, int depth,
-				    int score, int flags));
-extern int probe_tt PARAMS ((chi_pos* pos, bitv64 signature, 
-			     int depth, int* alpha,
-			     int* beta));
+				    int score, unsigned int flags));
+extern unsigned int probe_tt PARAMS ((chi_pos* pos, bitv64 signature, 
+				      int depth, int* alpha,
+				      int* beta));
 extern chi_move best_tt_move PARAMS ((chi_pos* pos, bitv64 signature));
 
-extern void update_castling_state PARAMS ((TREE* tree, chi_move move, int ply));
+extern void init_qtt_hashs PARAMS ((unsigned long int memuse));
+extern void clear_qtt_hashs PARAMS ((void));
+
+extern void store_qtt_entry PARAMS ((chi_pos* pos,
+				     bitv64 signature,
+				     int score, unsigned int flags));
+extern unsigned int probe_qtt PARAMS ((chi_pos* pos, bitv64 signature, 
+				       int* alpha, int* beta));
+
+extern void init_ev_hashs PARAMS ((unsigned long int memuse));
+extern void clear_ev_hashs PARAMS ((void));
+extern void store_ev_entry PARAMS ((chi_pos* pos, bitv64 signature, 
+				    int score));
+extern int probe_ev PARAMS ((chi_pos* pos, bitv64 signature, int* score));
+
 extern void store_killer PARAMS ((TREE* tree, chi_move move, 
 				  int depth, int ply));
 extern void init_killers PARAMS ((void));

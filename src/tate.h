@@ -46,7 +46,7 @@
 #define EVENTMASK_ENGINE_STOP 0x1f
 
 #define MAX_PLY 512
-#define MATE    -9999
+#define MATE    -10000
 #define INF     ((-(MATE)) << 1)
 // FIXME: contempt factor!
 #define DRAW    0
@@ -55,15 +55,6 @@ struct game_hist_entry {
     bitv64   signature;
     chi_move move;
     chi_pos  pos;
-    /* Bitmask for keeping track of castling state. 
-       0x1 - white can castle on one side
-       0x2 - white can castle on two sides
-       0x4 - white has castled
-       0x10 - black can castle on one side
-       0x20 - black can castle on two sides
-       0x40 - black has castled
-    */
-    int castling_state;
 };
 
 extern struct game_hist_entry* game_hist;
@@ -87,6 +78,8 @@ extern int event_pending;
 extern int post;
 extern int mate_announce;
 extern int current_score;
+
+extern int isa_tty;
 
 extern int get_event PARAMS ((void));
 extern int handle_epd PARAMS ((const char* epdstr, unsigned long max_time,
