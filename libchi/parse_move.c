@@ -275,6 +275,7 @@ parse_san_move (pos, move, movestr)
     chi_move* match = NULL;
     int check_matched = 0;
     int capture_matched = 0;
+    int enough = 0;
 
     switch (ptr[0]) {
 	case 'P':
@@ -446,6 +447,17 @@ parse_san_move (pos, move, movestr)
     fprintf (stderr, "  Promote: %d\n", promote);
     fprintf (stderr, "  Check: %s\n", is_check ? "yes" : "no");
 #endif
+
+    if (from_file >= 0)
+	++enough;
+    if (to_file >= 0)
+	++enough;
+    if (from_rank >= 0)
+	++enough;
+    if (to_rank >= 0)
+	++enough;
+    if (enough < 2)
+	return -1;
 
     move_end = chi_legal_moves (pos, legalmoves);
 

@@ -43,8 +43,6 @@
 #define PRE_FRONTIER_DEPTH PLIES2DEPTH(2)
 #define PRE_PRE_FRONTIER_DEPTH PLIES2DEPTH(3)
 
-#define NULL_R PLIES2DEPTH(2)
-
 #define ASPIRATION_WINDOW 1
 
 #if 0
@@ -62,6 +60,7 @@
 
 extern bitv64 total_nodes;
 extern bitv64 total_centiseconds;
+extern int next_time_control;
 
 typedef struct path {
     int length;
@@ -157,8 +156,6 @@ typedef struct tree {
     chi_epd_pos* epd;
 
     char castling_states[MAX_PLY + 1];
-
-    unsigned long marker;
 } TREE;
 
 #define HASH_UNKNOWN 0
@@ -176,6 +173,9 @@ extern void stop_thinking PARAMS ((void));
 
 extern int evaluate PARAMS ((TREE* tree, int ply, 
 			     int alpha, int beta));
+extern int evaluate_dev_white PARAMS ((TREE* tree, int ply));
+extern int evaluate_dev_black PARAMS ((TREE* tree, int ply));
+extern int evaluate_mobility PARAMS ((TREE* tree));
 
 extern void evaluate_move PARAMS ((chi_move move));
 

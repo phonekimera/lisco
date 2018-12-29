@@ -29,7 +29,7 @@
 
 #include "brain.h"
 
-#define MIN_TT_SIZE (sizeof (TT_Entry) * 5000000)
+#define MIN_TT_SIZE (sizeof (TT_Entry) * 1000000)
 
 typedef struct tt_entry {
     bitv64 signature;
@@ -54,18 +54,18 @@ void
 init_tt_hashs (memuse)
      unsigned long int memuse;
 {
+    fprintf (stderr, "Requested size: %lu\n", memuse);
     if (memuse < MIN_TT_SIZE)
 	memuse = MIN_TT_SIZE;
 
     half_tt_size = chi_closest_prime ((memuse / sizeof *tt) / 6);
-    fprintf (stderr, "closest prime to %lu: %lu\n",
-	     (memuse / sizeof *tt) / 6, half_tt_size);
+
     tt_size = half_tt_size << 1;
     tt = xrealloc (tt, 6 * half_tt_size * sizeof *tt);
     fprintf (stdout, 
 	     "\
 Allocated %lu bytes (%lu entries) for main transposition table.\n",
-	     tt_size * sizeof *tt, 6 * half_tt_size);
+	     6 * half_tt_size * sizeof *tt, 6 * half_tt_size);
 
     clear_tt_hashs ();
 
@@ -76,7 +76,7 @@ void
 clear_tt_hashs ()
 {
     fprintf (stdout, "Clearing hash tables.\n");
-    memset (tt, 0, 6 * half_tt_size * sizeof *tt);
+    memset (tt, 0, (tt_size << 1) * sizeof *tt);
 }
 
 int
@@ -100,7 +100,7 @@ probe_tt (pos, signature, depth, alpha, beta)
 
     if (hit >= tt_end)
 	error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
-	       hit, tt_end);
+	       __FILE__, __LINE__, hit, tt_end);
 
     if (hit->signature && hit->signature != signature) {
 	if (wtm)
@@ -110,7 +110,7 @@ probe_tt (pos, signature, depth, alpha, beta)
 	hit = tt + offset;
 	if (hit >= tt_end)
 	    error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
-		   hit, tt_end);
+		   __FILE__, __LINE__, hit, tt_end);
     }
 
 #if DEBUG_BRAIN
@@ -198,7 +198,7 @@ best_tt_move (pos, signature)
 
     if (hit >= tt_end)
 	error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
-	       hit, tt_end);
+	       __FILE__, __LINE__, hit, tt_end);
 
     if (hit->signature && hit->signature != signature) {
 	if (wtm)
@@ -208,7 +208,7 @@ best_tt_move (pos, signature)
 	hit = tt + offset;
 	if (hit >= tt_end)
 	    error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
-		   hit, tt_end);
+		   __FILE__, __LINE__, hit, tt_end);
     }
 
     if (hit->signature == signature) {
@@ -240,7 +240,7 @@ store_tt_entry (pos, signature, move, depth, score, flags)
 
     if (hit >= tt_end)
 	error (EXIT_FAILURE, 0, "%s:%d: assertion hit (%p) < tt_end (%p) failed!",
-	       hit, tt_end);
+	       __FILE__, __LINE__, hit, tt_end);
 
 
 #if DEBUG_BRAIN
@@ -273,7 +273,7 @@ store_tt_entry (pos, signature, move, depth, score, flags)
 
 	if (always >= tt_end)
 	    error (EXIT_FAILURE, 0, "%s:%d: assertion 'always' (%p) < tt_end (%p) failed!",
-		   hit, tt_end);
+		   __FILE__, __LINE__, hit, tt_end);
 
 	if (hit->depth < depth)
 	    move_entry = 1;

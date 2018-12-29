@@ -27,6 +27,9 @@
 
 #include "brain.h"
 #include "time_ctrl.h"
+
+int next_time_control = 0x2000;
+
 #define M1 ((bitv64) 0x5555555555555555)
 #define M2 ((bitv64) 0x3333333333333333)
 
@@ -92,10 +95,12 @@ search (tree, depth, ply, alpha, beta, allow_null)
     int wtm;
     int sdepth = DEPTH2PLIES (depth);
     int primary_extensions = 0;
-
+    int num_pieces = -1;
+    
     chi_copy_pos (&saved_pos, pos);
 
     ++tree->nodes;
+    --next_time_control;
 
     tree->cv.moves[ply] = 0;
     tree->cv.length = ply;
@@ -104,11 +109,13 @@ search (tree, depth, ply, alpha, beta, allow_null)
     tree->pv[ply].length = 0;
 
     /* Check for time control and user input.  */
-    if (tree->nodes & 0x2000) {
+    if (next_time_control < 0) {
 	if (event_pending) {
 	    int result = get_event ();
-	    if (result & EVENTMASK_ENGINE_STOP)
+	    if (result & EVENTMASK_ENGINE_STOP) {
 		tree->status = result;
+	    }
+
 	    return beta;
 	}
 
@@ -117,6 +124,7 @@ search (tree, depth, ply, alpha, beta, allow_null)
 	    fprintf (stdout, "  Time used up!\n");
 	    return beta;
 	}
+	next_time_control = 0x2000;
     }
 
     if (ply >= MAX_PLY - 1)
@@ -155,20 +163,33 @@ search (tree, depth, ply, alpha, beta, allow_null)
     }
 
     /* Maybe a draw by 3-fold repetition.  */
-    if (ply > 0 && pos->half_move_clock >= 8 && 
+    if (ply > 1 && pos->half_move_clock >= 8 && 
 	game_hist_hash[hist_hash_key] > 1) {
 	int seen = 0;
 	int i;
 	
-	fprintf (stderr, "checking for 3-fold repetition.\n");
+#if DEBUG_BRAIN
+	fprintf (stderr, "searching for 3-fold repetition at ply %d (%016llx).\n", ply, this_signature);
+#endif
 	for (i = ply % 2; 
 	     ((i <= game_hist_ply) && 
 	      (pos->half_move_clock - i - ply >= 0)); 
 	     i += 2) {
 
-	    fprintf (stderr, "checking with i = %d\n", i);
+#if DEBUG_BRAIN
+	    fprintf (stderr, "checking with i = %d (%016llx<%016llx>%016llx\n", 
+		     i, 
+		     game_hist[game_hist_ply - i - 1].signature,
+		     game_hist[game_hist_ply - i].signature,
+		     game_hist[game_hist_ply - i + 1].signature
+		     );
+#endif
+
 	    if (game_hist[game_hist_ply - i].signature == this_signature) {
 		++seen;
+#if DEBUG_BRAIN
+		fprintf (stderr, "Hit #%d\n", seen);
+#endif
 		if (seen >= 2) {
 #if DEBUG_BRAIN
 		    indent_output (tree, ply);
@@ -268,35 +289,45 @@ search (tree, depth, ply, alpha, beta, allow_null)
 
     /* Try a null move if applicable.  */
     while (allow_null) {
-	int num_pieces;
-
 	if (tree->in_check[ply] || ply == 0) {
 	    allow_null = 0;
 	    break;
 	}
 
-	if (sdepth < 7)
+	if (sdepth < PLIES2DEPTH (7))
 	    break;
 
 	if (wtm)
-	    num_pieces = popcount (pos->w_knights | pos->w_bishops | 
-				   pos->w_rooks);
+	    num_pieces = popcount (pos->w_pieces);
 	else
-	    num_pieces = popcount (pos->b_knights | pos->b_bishops | 
-				   pos->b_rooks);
+	    num_pieces = popcount (pos->b_pieces);
 
-	if (num_pieces < 5) {
+	if (num_pieces <= 6) {
 	    allow_null = 0;
 	    break;
 	}
+
 	break;
     }
 
     if (allow_null) {
 	int null_score;
 	int saved_pv_length = tree->pv[ply].length;
+	int null_dist = PLIES2DEPTH (3);
 
 	++tree->null_moves;
+
+	if (depth > PLIES2DEPTH (6)) {
+	    if (num_pieces < 0) {
+		if (wtm)
+		    num_pieces = popcount (pos->w_pieces);
+		else
+		    num_pieces = popcount (pos->b_pieces);
+	    }
+
+	    if (num_pieces > 8)
+		null_dist = PLIES2DEPTH (4);
+	}
 
 #if DEBUG_BRAIN
         indent_output (tree, ply);
@@ -312,8 +343,8 @@ search (tree, depth, ply, alpha, beta, allow_null)
 	tree->castling_states[ply + 1] = tree->castling_states[ply];
 	tree->in_check[ply + 1] = 0;
 
-	if (depth - NULL_R < ONEPLY)
-	    null_score = -search (tree, depth - NULL_R, ply + 1,
+	if (depth - null_dist >= ONEPLY)
+	    null_score = -search (tree, depth - null_dist, ply + 1,
 				  -beta, -beta + 1, 0);
 	else
 	    null_score = -quiescence (tree, ply + 1, -beta, -beta + 1);
@@ -416,7 +447,7 @@ search (tree, depth, ply, alpha, beta, allow_null)
 #if DEBUG_BRAIN
 		chi_on_move (pos) = !chi_on_move (pos);
 		indent_output (tree, ply);
-		fprintf (stderr, "ST out of bounds: ");
+		fprintf (stderr, "ST: score %d out of bounds: ", score);
 		my_print_move (*mv);
 		fprintf (stderr, " alpha: %d, beta: %d\n",
 			 chi_value2centipawns (alpha),

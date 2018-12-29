@@ -98,7 +98,7 @@ print_pv (tree, score, whisper, ply)
 	if (printed >= 4000)
 	    break;
 
-	if (seen_size < 5) {
+	while (i >= seen_size) {
 	    seen_size += 5;
 	    seen = xrealloc (seen, seen_size * sizeof signature);
 	}
@@ -192,7 +192,7 @@ void dump_pv (tree)
     fprintf (stderr, "\n");
 
     fprintf (stderr, "Complete PV:\n");
-    for (i = 0; tree->pv[i].length; ++i) {
+    for (i = 0; i < tree->max_ply; ++i) {
 	int j;
 	fprintf (stderr, "%02d ", i);
 

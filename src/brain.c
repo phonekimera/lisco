@@ -36,6 +36,7 @@
 
 bitv64 total_nodes = 0;
 bitv64 total_centiseconds = 0;
+bitv64 nps_peak = 0;
 
 void
 evaluate_move (move)
@@ -73,6 +74,13 @@ evaluate_move (move)
 		       100 * chi_material (&tree.pos));
 
     fprintf (stdout, "  static score: %d\n", score);
+
+    score = evaluate_dev_white (&tree, 1);
+    fprintf (stdout, "  development white: %d\n", score);
+    score = evaluate_dev_black (&tree, 1);
+    fprintf (stdout, "  development black: %d\n", score);
+    score = evaluate_mobility (&tree);
+    fprintf (stdout, "  mobility: %d\n", score);
 }
 
 int
@@ -96,9 +104,9 @@ think (mv, epd)
     chi_color_t hash_color;
     int three_fold = 0;
     bitv64 this_signature = game_hist[game_hist_ply].signature;
+    bitv64 nps = 0;  /* Shut up compiler.  */
 
     memset (&tree, 0, sizeof tree);
-    tree.marker = 0xbeefbabe;
 
     start_time = rtime ();
 
@@ -109,9 +117,9 @@ think (mv, epd)
     if (num_moves == 0) {
 	if (chi_check_check (&current)) {
 	    if (chi_on_move (&current) == chi_white) {
-		fprintf (stdout, "1-0 {Black mates}\n");
+		fprintf (stdout, "0-1 {Black mates}\n");
 	    } else {
-		fprintf (stdout, "0-1 {White mates}\n");
+		fprintf (stdout, "1-0 {White mates}\n");
 	    }
 	} else {
 	    fprintf (stdout, "1/2-1/2 {Stalemate}\n");
@@ -130,8 +138,6 @@ think (mv, epd)
 	bitv64 signature = game_hist[game_hist_ply - i].signature;
 	int hash_key = signature % HASH_HIST_SIZE;
 
-	hash_color = !hash_color;
-
 	if (signature == this_signature)
 	    ++three_fold;
 
@@ -145,6 +151,8 @@ think (mv, epd)
 	} else {
 	    ++tree.black_game_hist[hash_key];
 	}
+
+	hash_color = !hash_color;
     }
     
     /* Better than nothing ...  */
@@ -199,9 +207,6 @@ think (mv, epd)
 
     for (sdepth = 1; sdepth <= max_ply; ++sdepth) {
 	int score;
-
-	if (tree.marker != 0xbeefbabe)
-	    fprintf (stdout, "!!! Marker overwritten !!!\n");
 
 	tree.iteration_sdepth = sdepth;
 
@@ -302,6 +307,13 @@ Re-searching (failed low) best of %d moves in position (material %d) with depth 
     if (moves_to_tc && !pondering)
 	time_cushion += tree.time_for_move - elapsed + inc;
 
+    if (elapsed) {
+	nps = (100 * (bitv64) tree.nodes) / (bitv64) elapsed;
+	
+	if (tree.nodes > 100000 && nps > nps_peak)
+	    nps_peak = nps;
+    }
+
     if (1) {
 	printf ("  Nodes searched: %ld (quiescence: %ld [%f%%])\n", 
 		tree.nodes, tree.qnodes, 100 * (float) tree.qnodes / ((float) tree.nodes + 1));
@@ -310,7 +322,7 @@ Re-searching (failed low) best of %d moves in position (material %d) with depth 
 	printf ("  Score: %#.3g\n", chi_value2pawns (the_score));
 	printf ("  Elapsed: %ld.%02lds\n", elapsed / 100, elapsed % 100);
 	if (elapsed)
-	    printf ("  Nodes per second: %ld\n", (100 * tree.nodes) / elapsed);
+	    printf ("  Nodes per second: %llu\n", nps);
 	else
 	    printf ("  Nodes per second: INF\n");
 	printf ("  Failed high: %ld (move ordering: %f%%), failed low: %ld\n",
@@ -335,8 +347,9 @@ Re-searching (failed low) best of %d moves in position (material %d) with depth 
 	printf ("  Two-pawn lazy evals: %lu\n", tree.lazy_two_pawns);
 	printf ("  Total nodes searched: %llu\n", total_nodes);
 	if (total_centiseconds)
-	    printf ("  Total nodes per second: %lld\n", 
-		    (100 * total_nodes) / total_centiseconds);
+	    printf ("  Total nodes per second: %llu (peak: %llu)\n", 
+		    (100 * total_nodes) / total_centiseconds,
+		    nps_peak);
     }
 
     time_left -= elapsed;
@@ -353,10 +366,10 @@ update_castling_state (tree, move, ply)
     int castling_state = tree->castling_states[ply];
     chi_pos* pos = &tree->pos;
 
-#define wk_castle_move ((king << 12) | (1 << 6) | 3)
-#define wq_castle_move ((king << 12) | (5 << 6) | 3)
-#define bk_castle_move ((king << 12) | (57 << 6) | 59)
-#define bq_castle_move ((king << 12) | (61 << 6) | 59)
+#define wk_castle_move (((~king & 0x7) << 13) | (1 << 6) | 3)
+#define wq_castle_move (((~king & 0x7) << 13) | (5 << 6) | 3)
+#define bk_castle_move (((~king & 0x7) << 13) | (57 << 6) | 59)
+#define bq_castle_move (((~king & 0x7) << 13) | (61 << 6) | 59)
 
     switch (move) {
 	case wk_castle_move:

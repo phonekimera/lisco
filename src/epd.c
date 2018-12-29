@@ -85,7 +85,7 @@ handle_epd (epdstr, max_time, epd)
     clear_tt_hashs ();
     retval = handle_go (epd);
 
-    fprintf (stdout, "    Results for test '%s.\n", epd->id);
+    fprintf (stdout, "    Results for test '%s'.\n", epd->id);
     fprintf (stdout, "        Solved: %s.\n", 
 	     epd->solution == epd->suggestion ? "yes" : "no");
     if (epd->depth_stable_solution) {
@@ -152,8 +152,7 @@ handle_epdfile (filename, max_time)
 	}
 
 	epds[num_epds] = (chi_epd_pos*) xmalloc (sizeof epd);
-	epds[num_epds][0] = epd;
-	++num_epds;
+	*(epds[num_epds++]) = epd;
     }
     
     fclose (f);

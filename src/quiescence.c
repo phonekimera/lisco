@@ -50,6 +50,7 @@ quiescence (tree, ply, alpha, beta)
 
     ++tree->nodes;
     ++tree->qnodes;
+    --next_time_control;
 
     tree->pv[ply].length = 0;
     tree->pv[ply].moves[0] = 0;
@@ -58,11 +59,13 @@ quiescence (tree, ply, alpha, beta)
     tree->cv.length = ply;
 
     /* Check for time control and user input.  */
-    if (tree->nodes & 0x2000) {
+    if (next_time_control < 0) {
 	if (event_pending) {
 	    int result = get_event ();
-	    if (result & EVENTMASK_ENGINE_STOP)
+	    if (result & EVENTMASK_ENGINE_STOP) {
 		tree->status = result;
+	    }
+
 	    return beta;
 	}
 
@@ -71,6 +74,7 @@ quiescence (tree, ply, alpha, beta)
 	    fprintf (stdout, "  Time used up!\n");
 	    return beta;
 	}
+	next_time_control = 0x2000;
     }
 
     if (ply >= MAX_PLY - 1)

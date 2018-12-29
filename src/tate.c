@@ -58,6 +58,7 @@ static int handle_hashmove PARAMS ((void));
 static int handle_evaluate PARAMS ((const char* movestr));
 static int handle_setboard PARAMS ((const char* fen));
 static int handle_perft PARAMS ((unsigned int depth, int post_flag));
+static int handle_hash PARAMS ((unsigned long int memuse));
 static void display_offsets PARAMS ((void));
 static void display_moves PARAMS ((void));
 static RETSIGTYPE sigio_handler PARAMS ((int));
@@ -421,7 +422,6 @@ get_event ()
 	    fixed_time = 100 * parsed;
 	}
     } else if (strcasecmp (cmd, "sd") == 0) {
-#if 0
 	char* depth_str = cmd + 3;
 	char* end_ptr;
 	long int parsed = strtol (depth_str, &end_ptr, 10);
@@ -432,7 +432,6 @@ get_event ()
 	} else {
 	    max_ply = parsed;
 	}
-#endif
     } else if (strcasecmp (cmd, "random") == 0) {
 	/* Ignore.  */
     } else if (strcasecmp (cmd, "quit") == 0) {
@@ -441,6 +440,28 @@ get_event ()
 	dump_board (&current);
     } else if (strcasecmp (cmd, "print") == 0) {
 	print_game ();
+    } else if (strcasecmp (cmd, "hash") == 0) {
+	/* This next line makes the unsafe assumption, that strtok
+	   will only insert one single null-byte... */
+	char* size_str = linebuf + 5;
+	char* end_ptr;
+	unsigned long int memuse = strtoul (size_str, &end_ptr, 10);
+    
+	if (memuse == 0 && end_ptr == size_str) {
+	    fprintf (stdout, "error (illegal hash table size): %s\n",
+		     size_str);
+	} else {
+	    switch (end_ptr[0]) {
+		case 'm':
+		case 'M':
+		    memuse <<= 10;
+		case 'k':
+		case 'K':
+		    memuse <<= 10;
+		    break;
+	    }
+	}
+	init_tt_hashs (memuse);
     } else if (strcasecmp (cmd, "new") == 0) {
 	if (xboard) {
 	    fprintf (stdout, "tellics set 1 %s %s (libchi %s)\n",
@@ -1220,7 +1241,7 @@ handle_setboard (fen)
 
     mate_announce = 0;
     game_over = 0;
-    force = 0;
+    force = 1;
     go_fast = 0;
     engine_color = !chi_on_move (&current);
     game_hist_ply = 0;

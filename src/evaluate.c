@@ -38,18 +38,12 @@
 
 #define EVAL_BLOCKED_C_PAWN (6)
 #define EVAL_BLOCKED_CENTER_PAWN (12)
-#define EVAL_PREMATURE_QUEEN_MOVE (12)
-#if 1
+
+/* Doubled compared to crafty.  */
+#define EVAL_PREMATURE_QUEEN_MOVE (24)
+
 #define EVAL_NOT_CASTLED (24)
 #define EVAL_LOST_CASTLE (10)
-#else
-#define EVAL_NOT_CASTLED (48)
-#define EVAL_LOST_CASTLE (10)
-#endif
-
-static int evaluate_dev_white PARAMS ((TREE* tree, int ply));
-static int evaluate_dev_black PARAMS ((TREE* tree, int ply));
-static int evaluate_mobility PARAMS ((TREE* tree));
 
 #include <libchi/bitmasks.h>
 
@@ -190,6 +184,11 @@ evaluate (tree, ply, alpha, beta)
     if ((abs (score - alpha) > MAX_POS_SCORE) &&
 	(abs (score - beta) > MAX_POS_SCORE)) {
 	++tree->lazy_one_pawn;
+	if (chi_on_move (pos) == chi_white)
+	    return score;
+	else
+	    return -score;
+
     } else if (total_white_pieces > 10 && total_black_pieces > 10) {
 	int root_castling_state = tree->castling_states[0];
 
@@ -238,8 +237,8 @@ evaluate (tree, ply, alpha, beta)
 	return -score;
 }
 
-static
-int evaluate_dev_white (tree, ply)
+int
+evaluate_dev_white (tree, ply)
      TREE* tree;
      int ply;
 {
@@ -292,8 +291,8 @@ int evaluate_dev_white (tree, ply)
     return score;
 }
 
-static
-int evaluate_dev_black (tree, ply)
+int
+evaluate_dev_black (tree, ply)
      TREE* tree;
      int ply;
 {
@@ -345,7 +344,7 @@ int evaluate_dev_black (tree, ply)
     return score;
 }
 
-static int
+int 
 evaluate_mobility (tree)
      TREE* tree;
 {
