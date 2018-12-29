@@ -9,3 +9,7 @@ Makefile
 *.lo
 /autom4te.cache
 lib*.a
+.libs/
+*.la
+/stamp-h
+src/tate
