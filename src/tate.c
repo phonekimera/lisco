@@ -57,6 +57,7 @@ static int handle_legalmove PARAMS ((const char* movestr));
 static int handle_hashmove PARAMS ((void));
 static int handle_evaluate PARAMS ((const char* movestr));
 static int handle_go PARAMS ((void));
+static int handle_setboard PARAMS ((const char* fen));
 static void display_offsets PARAMS ((void));
 static void display_moves PARAMS ((void));
 static RETSIGTYPE sigio_handler PARAMS ((int));
@@ -155,8 +156,6 @@ main (argc, argv)
 	while (event_pending) {
 	    int status = get_event ();
 	    if (status & EVENT_TERMINATE)
-		fprintf (stderr, "get_event status: 0x%x\n", status);
-	    if (status & EVENT_TERMINATE)
 		return EXIT_SUCCESS;
 	}
 	sleep (1);
@@ -187,6 +186,19 @@ get_event ()
     char* cmd;
 
     event_pending = 0;
+    if (feof (stdin))
+	error (EXIT_SUCCESS, errno, "stdin eof");
+    if (feof (stdout))
+	error (EXIT_SUCCESS, errno, "stdout eof");
+    if (feof (stderr))
+	error (EXIT_SUCCESS, errno, "stderr eof");
+    if (ferror (stdin))
+	error (EXIT_SUCCESS, errno, "stdin error");
+    if (ferror (stdout))
+	error (EXIT_SUCCESS, errno, "stdout error");
+    if (ferror (stderr))
+	error (EXIT_SUCCESS, errno, "stderr error");
+
     if (input_available) {
 	if (-1 == getline (&linebuf, &bufsize, stdin)) {
 	    if (feof (stdin))
@@ -242,15 +254,10 @@ get_event ()
 	init_edit_mode (&current);
 	edit_mode = 1;
     } else if (strcasecmp (cmd, "setboard") == 0) {
-#if 0
 	/* This next line makes the unsafe assumption, that strtok
 	   will only insert one single null-byte... */
 	char* position = linebuf + 9;
-	setboard (&current, position);
-#else
-	fprintf (stdout, "Error (currently not implemented): %s\n",
-		 linebuf);
-#endif
+	handle_setboard (position);
     } else if (strcasecmp (cmd, "force") == 0) {
 	force = 1;
 	// FIXME: Stop clocks.
@@ -490,7 +497,7 @@ feature_requests ()
     /* Send all features we would like to see.  */
     fprintf (stdout, "feature done=0\n");
     fprintf (stdout, "feature ping=1\n");
-//    fprintf (stdout, "feature setboard=1\n");
+    fprintf (stdout, "feature setboard=1\n");
     fprintf (stdout, "feature playother=1\n");
     fprintf (stdout, "feature san=1\n");
     fprintf (stdout, "feature san=0\n");
@@ -1107,6 +1114,43 @@ handle_go ()
     thinking = 0;
 
     // FIXME: Start pondering.
+
+    return EVENT_CONTINUE;
+}
+
+static int
+handle_setboard (fen)
+     const char* fen;
+{
+    chi_pos new_pos;
+    int errnum = chi_set_position (&new_pos, fen);
+
+    if (errnum) {
+	fprintf (stdout, "Error (%s): %s\n",
+		 chi_strerror (errnum), fen);
+	return EVENT_CONTINUE;
+    }
+
+    current = new_pos;
+
+    mate_announce = 0;
+    game_over = 0;
+    force = 0;
+    go_fast = 0;
+    engine_color = !chi_on_move (&current);
+    game_hist_ply = 0;
+    game_hist[0].pos = current;
+    game_hist[0].signature = chi_zk_signature (zk_handle, &current);
+
+    game_hist[0].castling_state = 0;
+    if (chi_wk_castle (&current))
+	game_hist[0].castling_state |= 0x1;
+    if (chi_wq_castle (&current))
+	game_hist[0].castling_state |= 0x2;
+    if (chi_bk_castle (&current))
+	game_hist[0].castling_state |= 0x10;
+    if (chi_bq_castle (&current))
+	game_hist[0].castling_state |= 0x20;
 
     return EVENT_CONTINUE;
 }

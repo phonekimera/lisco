@@ -140,7 +140,9 @@ next_move (tree, ply, depth)
 
 		    *mark |= 0x80000000;
 
-		    if (tree->pv_move[ply] == the_move)
+		    if (tree->pv_move[ply] == the_move ||
+			tree->bonny[ply] == the_move ||
+			tree->clyde[ply] == the_move)
 			*mark &= 0x7fffffff;
 		}
 	    }

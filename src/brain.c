@@ -90,6 +90,7 @@ think (mv)
     long int last_elapsed = 0;
     int alpha = -INF;
     int beta = +INF;
+    chi_move best_move;
 
     memset (&tree, 0, sizeof tree);
 
@@ -118,8 +119,7 @@ think (mv)
     }
 
     /* Better than nothing ...  */
-    tree.pv[0].length = 1;
-    tree.pv[0].moves[0] = *mv = moves[0];
+    best_move = *mv = moves[0];
     if (num_moves == 1) {
 	time_cushion += inc * 100;
 	return 0;
@@ -129,7 +129,7 @@ think (mv)
     tree.signatures[0] = game_hist[game_hist_ply].signature;
     tree.castling_states[0] = game_hist[game_hist_ply].castling_state;
 
-    fprintf (stderr, "Initial castling state: 0x%x\n", tree.castling_states[0]);
+    fprintf (stdout, "Initial castling state: 0x%x\n", tree.castling_states[0]);
     // FIXME: Check for book move.
 
     /* How many time will we afford ourselves? */
@@ -157,6 +157,7 @@ think (mv)
 
 #if DEBUG_BRAIN
     max_ply = DEBUG_BRAIN;
+    tree.time_for_move = 999999;
 #endif
 
     for (depth = 1; depth <= max_ply; ++depth) {
@@ -178,12 +179,12 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 	total_centiseconds += elapsed - last_elapsed;
 	last_elapsed = elapsed;
 
-	*mv = tree.pv[0].moves[0];
-
 	if (tree.status & EVENTMASK_ENGINE_STOP)
 	    break;
 
 	if (score <= MATE) {
+	    print_pv (&tree, score, 0, 0);
+
 	    /* We will not resign but let our opponent the fun to
 	       beat us.  */
 	    if (elapsed & 0x10) {
@@ -194,14 +195,17 @@ Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
 	    }
 	    break;
 	} else if (score >= -MATE) {
-	    if (!mate_announce) {
-		mate_announce = (score - MATE) >> 1;
-		fprintf (stdout, "tellall Mate in %d! :->\n",
-			 mate_announce);
-		fprintf (stdout, "tellothers");
-		print_pv (&tree, score, 1, 0);
-	    }
+	    print_pv (&tree, score, 0, 0);
 
+	    if (!mate_announce) {
+		mate_announce = (MATE + score) >> 1;
+		if (mate_announce > 1) {
+		    fprintf (stdout, "tellall Mate in %d! :->\n",
+			     mate_announce);
+		    fprintf (stdout, "tellothers");
+		    print_pv (&tree, score, 1, 0);
+		}
+	    }
 	    break;
 	}
 
@@ -236,10 +240,13 @@ Re-searching (failed low) best of %d moves in position (material %d) with depth 
 	}
 #endif
 
+	if (tree.pv[0].length)
+	    best_move = *mv = tree.pv[0].moves[0];
+
 	the_score = score;
 
-	if (tree.iteration_depth > tree.pv_printed)
-	    print_pv (&tree, the_score, 0, 0);
+	/* if (tree.iteration_depth > tree.pv_printed) */
+	print_pv (&tree, score, 0, 0);
 
 	/* Do not go any deeper, if we have already used up more than
 	   2/3 of our time.  */
@@ -415,6 +422,7 @@ my_print_move (chi_move mv)
 	    break;
     }
 
+#if 0
     fprintf (stderr, "[%08x:", mv);
     fprintf (stderr, "%d:", chi_move_material (mv));
     fprintf (stderr, "%s:", chi_move_is_ep (mv) ? "ep" : "-");
@@ -486,6 +494,7 @@ my_print_move (chi_move mv)
     }
 
     fprintf (stderr, "]");
+#endif
 }
 
 /*

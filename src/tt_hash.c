@@ -85,23 +85,70 @@ probe_tt (pos, signature, depth, alpha, beta)
     size_t offset = chi_on_move (pos) == chi_white ? 0 : half_mtt_size;
     TT_Entry* hit = mtt + offset + (signature % ((bitv64) half_mtt_size));
 
+#if DEBUG_BRAIN
+    fprintf (stderr, "TTProbe at depth %d (on move: %s, ",
+	     depth, chi_on_move (pos) == chi_white ? "white" : "black");
+    fprintf (stderr, "alpha: %d, beta: %d, signature: 0x%016llx)\n", 
+	     *alpha, *beta, signature);
+#endif
+
     if (hit->signature == signature) {
 	unsigned int flags = (hit->best & 0xc0000000) >> 30;
+
 	if (hit->depth >= depth) {
 	    if (flags == HASH_EXACT) {
+#if DEBUG_BRAIN
+		fprintf (stderr, 
+			 "Hit for depth %d (score: %d, flags: HASH_EXACT, ",
+			 hit->depth, hit->score);
+		my_print_move (hit->best & 0x3fffffff);
+		fprintf (stderr, ")\n");
+#endif
+
 		*alpha = hit->score;
 		return HASH_EXACT;
 	    } else if (flags == HASH_ALPHA &&
 		       hit->score <= *alpha) {
+#if DEBUG_BRAIN
+		fprintf (stderr, 
+			 "Hit for depth %d (score: %d, flags: HASH_ALPHA, ",
+			 hit->depth, hit->score);
+		my_print_move (hit->best & 0x3fffffff);
+		fprintf (stderr, ")\n");
+#endif
 		*alpha = hit->score;
 		return HASH_ALPHA;
 	    } else if (flags == HASH_BETA &&
 		       hit->score >= *beta) {
+#if DEBUG_BRAIN
+		fprintf (stderr, 
+			 "Hit for depth %d (score: %d, flags: HASH_BETA, ",
+			 hit->depth, hit->score);
+		my_print_move (hit->best & 0x3fffffff);
+		fprintf (stderr, ")\n");
+#endif
 		*beta = hit->score;
 		return HASH_BETA;
+#if DEBUG_BRAIN
+	    } else if (flags == HASH_ALPHA) {
+		fprintf (stderr, "HASH_ALPHA score %d too high at depth %d, ",
+			 hit->score, depth);
+		my_print_move (hit->best & 0x3fffffff);
+		fprintf (stderr, "\n");
+	    } else if (flags == HASH_BETA) {
+		fprintf (stderr, "HASH_BETA score %d too low at depth %d, ",
+			 hit->score, depth);
+		my_print_move (hit->best & 0x3fffffff);
+		fprintf (stderr, "\n");
+#endif
 	    }
 	}
     }
+
+#if DEBUG_BRAIN
+    fprintf (stderr, "TTProbe failed\n");
+#endif
+
     return HASH_UNKNOWN;
 }
 
@@ -137,11 +184,14 @@ store_tt_entry (pos, signature, move, depth, score, flags)
 	1 : 0;
 
 #if DEBUG_BRAIN
-    fprintf (stderr, "Storing score %d with move ", score);
+    fprintf (stderr, "TTStore score %d for %s with move ", 
+	     score, chi_on_move (pos) == chi_white ? "white" : "black");
     my_print_move (move);
-    fprintf (stderr, " at depth %d (%s)\n", depth, flags == HASH_EXACT ? 
-	"HASH_EXACT" : flags == HASH_ALPHA ? "HASH_ALPHA" :
-	flags == HASH_BETA ? "HASH_BETA" : "unknown flag");
+    fprintf (stderr, " at depth %d (%s), signature: %016llx\n", 
+	     depth, flags == HASH_EXACT ? 
+	     "HASH_EXACT" : flags == HASH_ALPHA ? "HASH_ALPHA" :
+	     flags == HASH_BETA ? "HASH_BETA" : "unknown flag",
+	     signature);
 #endif
 
 #if 0

@@ -45,10 +45,15 @@ search (tree, depth, ply, alpha, beta, allow_null)
     int pv_seen = 0;
     int original_alpha = alpha;
     int best_score = -INF;
+    chi_move best_move = 0;
 
     ++tree->nodes;
 
     tree->cv.moves[ply] = 0;
+    tree->cv.length = ply;
+
+    tree->pv[ply].moves[0] = 0;
+    tree->pv[ply].length = 0;
 
     /* Check for time control and user input.  */
     if (tree->nodes > 0x2000) {
@@ -76,11 +81,15 @@ search (tree, depth, ply, alpha, beta, allow_null)
 			  &alpha, &beta)) {
 	    
 	    case HASH_EXACT:
+		if (alpha >= original_alpha)
+		    tree->pv[ply].length = 0;
 		++tree->tt_exact_hits;
 		++tree->tt_hits;		
 		return alpha;
 		
 	    case HASH_BETA:
+		if (beta >= original_alpha)
+		    tree->pv[ply].length = 0;
 		++tree->tt_beta_hits;
 		++tree->tt_hits;
 		return beta;
@@ -105,26 +114,33 @@ search (tree, depth, ply, alpha, beta, allow_null)
 #endif
 
 #if DEBUG_BRAIN
-	chi_on_move (pos) = !chi_on_move (pos);
-	indent_output (tree, ply - 1);
+	indent_output (tree, ply);
 	fprintf (stderr, 
-		 "Returning quiescence score %d\n", -score);
-	chi_on_move (pos) = !chi_on_move (pos);
+		 "Returning quiescence score %d\n", score);
+
+	indent_output (tree, ply);
+	fprintf (stderr, "tree->signatures[ply]: 0x%016llx\n",
+		 tree->signatures[ply]);
+	fflush (stderr);
+#if 0
+	display_board (pos);
+	fflush (stdout);
+#endif
 #endif
 
 	if (score > alpha) {
 	    if (score >= beta) {
 		store_tt_entry (pos, tree->signatures[ply], 
-				0, depth, 
+				tree->cv.moves[ply], 0, 
 				score, HASH_BETA);
 	    } else {
 		store_tt_entry (pos, tree->signatures[ply],
-				0, depth,
+				tree->pv[ply].moves[0], 0,
 				score, HASH_EXACT);
 	    }
 	} else {
 	    store_tt_entry (pos, tree->signatures[ply],
-			    0, 0,
+			    tree->pv[ply].moves[0], 0,
 			    score, HASH_ALPHA);
 	}
 	
@@ -133,11 +149,9 @@ search (tree, depth, ply, alpha, beta, allow_null)
 
     tree->in_check[ply] = chi_check_check (pos);
 
-#if 0
     /* Try a null move if applicable.  */
     if (depth <= NULL_R)
 	allow_null = 0;
-#endif
 
     if (allow_null && !tree->in_check[ply]) {
 	int null_score;
@@ -196,7 +210,6 @@ search (tree, depth, ply, alpha, beta, allow_null)
     tree->cv.moves[ply] = 0;
     tree->cv.length = ply + 1;
 
-allow_null = 0;
     while (NULL != (mv = next_move (tree, ply, depth))) {
 	int score;
 
@@ -248,14 +261,51 @@ allow_null = 0;
 	}
 	*pos = saved_pos;
 
-	if (score > best_score)
+	if (score > best_score) {
 	    best_score = score;
+	    best_move = *mv;
+	}
 
 	if (tree->status & EVENTMASK_ENGINE_STOP)
 	    return alpha;
 
 	if (score > alpha) {
-	    if (score >= beta) {
+	    if (score >= -MATE) {
+#if DEBUG_BRAIN
+		indent_output (tree, ply);
+		fprintf (stderr, "MATE: ");
+		my_print_move (*mv);
+		fprintf (stderr, " new pv with score: %d\n",
+			 chi_value2centipawns (score));
+#endif
+
+		tree->pv[ply].moves[0] = *mv;
+		if (tree->pv[ply + 1].length) {
+		    memcpy (tree->pv[ply].moves + 1, tree->pv[ply + 1].moves,
+			    tree->pv[ply + 1].length * sizeof *mv);
+		    tree->pv[ply].length = tree->pv[ply + 1].length + 1;
+		} else {
+		    tree->pv[ply].length = 1;
+		}
+
+		if (ply == 0)
+		    print_pv (tree, score, 0, ply);
+#if DEBUG_BRAIN
+		dump_pv (tree);
+#endif
+		store_killer (tree, *mv, depth, ply);
+		++tree->fh;
+		if (num_moves == 1)
+		    ++tree->ffh;
+		else if (*mv == tree->bonny[ply] || *mv == tree->clyde[ply])
+		    ++tree->killers;
+
+		store_tt_entry (pos, tree->signatures[ply], *mv, depth, 
+				score, HASH_EXACT);
+
+		return score;
+
+	    } else if (score >= beta) {
 #if DEBUG_BRAIN
 		indent_output (tree, ply);
 		fprintf (stderr, "FH: ");
@@ -298,6 +348,9 @@ allow_null = 0;
 
 		if (ply == 0)
 		    print_pv (tree, score, 0, ply);
+#if DEBUG_BRAIN
+		dump_pv (tree);
+#endif
 	    }
 	} else {
 #if DEBUG_BRAIN
@@ -320,12 +373,40 @@ allow_null = 0;
 	alpha = best_score;
     }
 
+    tree->cv.length = ply;
+    if (best_move && !tree->pv[ply].moves[0]) {
+	if (best_score < alpha)
+	    alpha = best_score;
+
+	tree->pv[ply].moves[0] = best_move;
+	if (tree->pv[ply + 1].length) {
+	    memcpy (tree->pv[ply].moves + 1, tree->pv[ply + 1].moves,
+		    tree->pv[ply + 1].length * sizeof *mv);
+	    tree->pv[ply].length = tree->pv[ply + 1].length + 1;
+	} else {
+	    tree->pv[ply].length = 1;
+	}
+
+#if DEBUG_BRAIN
+	fprintf (stderr, "best of FL moves ");
+	my_print_move (best_move);
+	fprintf (stderr, " becomes new pv\n");
+#endif
+
+	tree->tt_collisions += store_tt_entry (pos,
+					       tree->signatures[ply],
+					       tree->pv[ply].moves[0], 
+					       depth, alpha,
+					       HASH_ALPHA);
+	return alpha;
+    }
+
     store_killer (tree, tree->pv[ply].moves[0], depth, ply);
 
     tree->tt_collisions += store_tt_entry (pos,
 					   tree->signatures[ply],
 					   tree->pv[ply].moves[0], 
-					   depth, alpha,
+					   depth, best_score,
 					   alpha != original_alpha ?
 					   HASH_EXACT : HASH_ALPHA);
 					   

@@ -41,30 +41,49 @@ print_pv (tree, score, whisper, ply)
     static char* buf = NULL;
     static unsigned int bufsize = 0;
     bitv64 signature;
+    static bitv64* seen = NULL;
+    static unsigned int seen_size = 0;
     chi_move hashed_move;
+    int printed = 0;
 
     tree->pv_printed = tree->iteration_depth;
 
     if (!whisper)
-	fprintf (stdout, "%3d %5d %7ld %8ld  ",
-		 tree->iteration_depth, chi_value2centipawns (score), 
-		 elapsed, tree->nodes);
+	printed += fprintf (stdout, "%3d %5d %7ld %8ld  ",
+			    tree->iteration_depth, 
+			    chi_value2centipawns (score), 
+			    elapsed, tree->nodes);
     
     if (chi_on_move (&tmp_pos) != chi_white)
-	fprintf (stdout, " %d. ...", 1 + tmp_pos.half_moves / 2);
+	printed += fprintf (stdout, " %d. ...", 1 + tmp_pos.half_moves / 2);
 
+    signature = chi_zk_signature (zk_handle, &tmp_pos);
     for (i = 0; i < tree->pv[0].length && i >= ply; ++i) {
 	int errnum;
-	chi_print_move (&tmp_pos, tree->pv[0].moves[i], &buf, &bufsize, 0);
-	errnum = chi_apply_move (&tmp_pos, tree->pv[0].moves[i]);
+
+	/* Long lines confuse xboard.  */
+	if (printed >= 4000)
+	    break;
+
+	if (seen_size < 8) {
+	    seen_size += 8;
+	    seen = xrealloc (seen, seen_size * sizeof signature);
+	}
+
+	seen[i] = signature;
+
+	errnum = chi_print_move (&tmp_pos, tree->pv[0].moves[i], &buf, &bufsize, 0);
+	errnum |= chi_apply_move (&tmp_pos, tree->pv[0].moves[i]);
 	
 	if (chi_on_move (&tmp_pos) != chi_white)
-	    fprintf (stdout, " %d.", 1 + tmp_pos.half_moves / 2);
+	    printed += fprintf (stdout, " %d.", 1 + tmp_pos.half_moves / 2);
 	
-	fprintf (stdout, " %s", buf);
+	printed += fprintf (stdout, " %s", buf);
 
 	if (errnum)
-	    fprintf (stdout, " [illegal: %s]", chi_strerror (errnum));
+	    printed += fprintf (stdout, " [illegal: %s]", 
+				chi_strerror (errnum));
+	signature = chi_zk_signature (zk_handle, &tmp_pos);
     }
 
     signature = chi_zk_signature (zk_handle, &tmp_pos);
@@ -73,8 +92,18 @@ print_pv (tree, score, whisper, ply)
 	int right_char;
 	int alpha = +INF;
 	int beta = -INF;
+	int j;
 
-	chi_print_move (&tmp_pos, hashed_move, &buf, &bufsize, 0);
+	if (printed >= 4000)
+	    break;
+
+	if (seen_size < 8) {
+	    seen_size += 8;
+	    seen = xrealloc (seen, seen_size * sizeof signature);
+	}
+
+	if (chi_print_move (&tmp_pos, hashed_move, &buf, &bufsize, 0))
+	    break;
 
 	switch (probe_tt (&tmp_pos, signature, 0, &alpha, &beta)) {
 	    case HASH_ALPHA:
@@ -95,16 +124,56 @@ print_pv (tree, score, whisper, ply)
 	if (chi_apply_move (&tmp_pos, hashed_move))
 	    break;
 	if (chi_on_move (&tmp_pos) != chi_white)
-	    fprintf (stdout, " %d.", 1 + tmp_pos.half_moves / 2);
+	    printed += fprintf (stdout, " %d.", 1 + tmp_pos.half_moves / 2);
 	
-	fprintf (stdout, " %c", left_char);
-
-	fprintf (stdout, "%s%c", buf, right_char);
+	printed += fprintf (stdout, " %c%s%c", left_char, buf, right_char);
 	
 	signature = chi_zk_signature (zk_handle, &tmp_pos);
+	seen[i++] = signature;
+
+	for (j = 0; j < i - 1; ++j) {
+	    if (seen[j] == signature)
+		break;
+	}
+
+	if (j < i - 1 && seen[j] == signature) {
+	    printed += fprintf (stdout, " ...");
+	    break;
+	}
     }
 
+    if (printed >= 4000)
+	fprintf (stdout, " {cut}");
+
     fprintf (stdout, "\n");
+
+}
+
+void dump_pv (tree)
+     TREE* tree;
+{
+    int i;
+
+    fprintf (stderr, "Current variation: ");
+    for (i = 0; i < tree->cv.length; ++i) {
+	fprintf (stderr, " ");
+	my_print_move (tree->cv.moves[i]);
+    }
+    fprintf (stderr, "\n");
+
+    fprintf (stderr, "Complete PV:\n");
+    for (i = 0; tree->pv[i].length; ++i) {
+	int j;
+	fprintf (stderr, "%02d ", i);
+
+	for (j = 0; j < tree->pv[i].length; ++j) {
+	    fprintf (stderr, "|");
+	    my_print_move (tree->pv[i].moves[j]);
+	}
+	
+	fprintf (stderr, "\n");
+    }
+    fflush (stderr);
 }
 
 void

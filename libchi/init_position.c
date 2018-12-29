@@ -68,7 +68,7 @@ chi_init_position (pos)
 
 	pos->half_move_clock = pos->half_moves = 0;
 
-	pos->to_move = chi_white;
+	chi_on_move (pos) = chi_white;
 }
 
 /*

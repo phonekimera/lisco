@@ -60,8 +60,16 @@ typedef @BITV64@ bitv64;
 #define CHI_ERR_ILLEGAL_MOVE 4
 /* Side not on move is in check.  */
 #define CHI_ERR_IN_CHECK 5
+/* Illegal FEN string.  */
+#define CHI_ERR_ILLEGAL_FEN 6
+/* One side has two or more kings.  */
+#define CHI_ERR_TWO_KINGS 7
+/* One side has no king.  */
+#define CHI_ERR_NO_KING 8
+/* Illegal castling state.  */
+#define CHI_ERR_ILLEGAL_CASTLING_STATE 9
 /* Illegal library usage (NULL pointers, etc.).  */
-#define CHI_ERR_YOUR_FAULT 6
+#define CHI_ERR_YOUR_FAULT 10
 /* End marker.  */
 #define CHI_ERRMAX      CHI_ERR_YOUR_FAULT
 
@@ -167,7 +175,7 @@ typedef struct {
 
 	unsigned int half_move_clock;
 	unsigned int half_moves;
-        chi_color_t  to_move;
+        chi_color_t  on_move;
 
 #define chi_flags(p) ((p)->union_flags.flags)
 #define chi_wk_castle(p) ((p)->union_flags.sflags.wk_castle)
@@ -176,7 +184,7 @@ typedef struct {
 #define chi_bq_castle(p) ((p)->union_flags.sflags.bq_castle)
 #define chi_ep(p) ((p)->union_flags.sflags.ep)
 #define chi_ep_file(p) ((p)->union_flags.sflags.ep_file)
-#define chi_on_move(p) ((p)->to_move)
+#define chi_on_move(p) ((p)->on_move)
 #define chi_ep_rank(p) (chi_to_move(p) ? \
 			  CHI_RANK_6 : CHI_RANK_3)
     
@@ -205,10 +213,10 @@ typedef struct {
 
            28-32: unused
            23-27: raw material balance (viewed from the side on move)
-              22: en passant flag
-           19-21: promotion piece (add 2)
-           16-18: piece that gets removed
-           13-15: piece that moves (resp. attacker)
+           20-22: promotion piece
+           17-19: piece that gets removed
+           14-16: piece that moves (resp. attacker)
+              13: en passant flag
             7-12: to offset (0-63)
             1- 6: from offset (0-63)
 
@@ -235,10 +243,10 @@ typedef unsigned int chi_move;
 #define chi_move_packed(m) (m)
 #define chi_move_from(m) ((m) & 0x3f)
 #define chi_move_to(m) (((m) >> 6) & 0x3f)
-#define chi_move_attacker(m) (((m) >> 12) & 0x7)
-#define chi_move_victim(m) (((m) >> 15) & 0x7)
-#define chi_move_promote(m) (((m) >> 18) & 0x7)
-#define chi_move_is_ep(m) ((m) & 0x200000)
+#define chi_move_attacker(m) (((~m) >> 13) & 0x7)
+#define chi_move_victim(m) (((m) >> 16) & 0x7)
+#define chi_move_promote(m) (((m) >> 19) & 0x7)
+#define chi_move_is_ep(m) ((m) & 0x1000)
 #define chi_move_material(m) ((m) >> 22)
 
 /* Macros for setting particular values for a move.  They are all
@@ -249,11 +257,11 @@ typedef unsigned int chi_move;
 #define chi_move_set_packed(m, v) ((m) = (v))
 #define chi_move_set_from(m, v) ((m) = ((m) & ~0x3f) | ((v) & 0x3f))
 #define chi_move_set_to(m, v) ((m) = ((m) & ~0xfc0) | ((v) & 0x3f) << 6)
-#define chi_move_set_attacker(m, a) ((m) = ((m) & ~0x7000) | ((a) & 0x7) << 12)
-#define chi_move_set_victim(m, v) ((m) = ((m) & ~0x38000) | ((v) & 0x7) << 15)
-#define chi_move_set_promote(m, p) ((m) = ((m) & ~0x1c0000) | ((p) & 0x7) << 18)
-#define chi_move_set_ep(m) ((m) |= 0x200000)
-#define chi_move_unset_ep(m) ((m) &= ~0x200000)
+#define chi_move_set_attacker(m, a) ((m) = ((m) & ~0xe000) | ((~a) & 0x7) << 13)
+#define chi_move_set_victim(m, v) ((m) = ((m) & ~0x70000) | ((v) & 0x7) << 16)
+#define chi_move_set_promote(m, p) ((m) = ((m) & ~0x380000) | ((p) & 0x7) << 19)
+#define chi_move_set_ep(m) ((m) |= 0x1000)
+#define chi_move_unset_ep(m) ((m) &= ~0x1000)
 #define chi_move_set_material(m, v) ((m) = ((m) & ~0x07c00000) | ((v) << 22))
 
 /* A handle for creating Zobrist keys.  */
@@ -283,6 +291,10 @@ extern void chi_init_position CHI_PARAMS ((chi_pos* chi_arg_pos));
 
 /* Set a position to empty (no pieces), unset all flags etc.  */
 extern void chi_clear_position CHI_PARAMS ((chi_pos* chi_arg_pos));
+
+/* Set a position according to a FEN notation.  */
+extern int chi_set_position CHI_PARAMS ((chi_pos* chi_arg_pos,
+					 const char* chi_arg_fen));
 
 /* Place a piece (also empty!) of given color on board.  Will not update
    en_passant state, castling state, move clocks etc.  */
@@ -349,7 +361,8 @@ extern chi_move* chi_legal_moves CHI_PARAMS ((chi_pos* chi_arg_pos,
    castling, will cross attacked squares.  In case of legality, the
    move is also applied to the position.  */
 extern int chi_illegal_move CHI_PARAMS ((chi_pos* chi_arg_pos, 
-					 chi_move chi_arg_move, int ext_check));
+					 chi_move chi_arg_move,
+					 int chi_arg_ext_check));
 
 /* Check if a given move is legal (done by generating all legal moves
    and trying to find it there.  */

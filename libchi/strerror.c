@@ -30,6 +30,10 @@ static const char* error_strings[] = {
     "move from an empty square",
     "no matching move",
     "side not on move is in check",
+    "illegal fen position",
+    "one side has two or more kings",
+    "one side has no kings",
+    "illegal castling state",
     "illegal library usage",
 };
 
