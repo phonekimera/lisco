@@ -1,1 +1,47 @@
-No news yet.
+2019-12-30 - version 0.3.3
+    * extended moves?
+    * evaluation cache
+    * quiescence transposition table
+    
+2019-12-27 - version 0.3.2
+    * restored penalty for premature queen moves
+    * evaluate advanced pawns
+ 
+2019-12-26 - version 0.3.1
+    * higher penalty for premature queen moves
+    * changes with selective depth
+    * changed default transposition table size
+
+2018-12-25 - version 0.2.1
+    * implemented EPD
+    * perft function
+    * move legality check bugfix
+    * standard algebraic notation
+    * modified evaluation function
+
+2018-12-22 - version 0.1.5
+    * parse and handle FEN positions
+
+2018-12-18 - version 0.1.4
+    * minor optimizations
+
+2018-12-16 - version 0.1.3
+    * killer moves
+    * various optimizations
+
+2018-12-12 - version 0.1.2
+    * bugfix for legality check
+    * transposition table for quiescence search
+    * change sides in zobrist keys
+    
+2018-12-10 - version 0.1.1
+    * minor changes to the evaluation function
+    * more debugging output
+    
+2018-12-09 - version 0.1.0
+    The first "real" version. It implements the negamax search with quiescence
+    search, zobrist keys, time controls and so.  It also uses a real evaluation
+    function.
+
+2018-11-02 - version 0.1
+    * engine picks a random legal move
