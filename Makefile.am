@@ -5,6 +5,7 @@
 
 AUTOMAKE_OPTIONS = 1.5 gnu no-dependencies
 ACLOCAL_AMFLAGS = -I m4
+AM_CFLAGS = -g -O2
 SUBDIRS = lib libchi src
 
 EXTRA_DIST = m4/gnulib-cache.m4

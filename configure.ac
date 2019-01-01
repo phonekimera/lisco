@@ -12,10 +12,13 @@ AM_INIT_AUTOMAKE
 
 AC_CONFIG_HEADERS([config.h])
 
+AC_PROG_CPP
 AC_PROG_CC
 gl_EARLY
 gl_INIT
 LT_INIT
+
+AC_LANG([C])
 
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
@@ -28,20 +31,15 @@ AC_C_BACKSLASH_A
 
 AC_CHECK_LIB(m, log10, , AC_MSG_ERROR(unable to find function log10))
 
-AC_CHECK_SIZEOF(unsigned int)
 AC_CHECK_SIZEOF(unsigned long)
 AC_CHECK_SIZEOF(unsigned long long)
-if test $ac_cv_sizeof_unsigned_int = 8; then
-        BITV64="unsigned int"
+if test $ac_cv_sizeof_unsigned_long_long = 8; then
+        BITV64="unsigned long long"
 else
         if test $ac_cv_sizeof_unsigned_long = 8; then
                 BITV64="unsigned long"
         else
-                if test $ac_cv_sizeof_unsigned_long_long = 8; then
-                        BITV64="unsigned long long"
-                else
-                        AC_MSG_ERROR(unable to find a 64 bit unsigned type)
-                fi
+                AC_MSG_ERROR(unable to find a 64 bit unsigned type)
         fi
 fi
 

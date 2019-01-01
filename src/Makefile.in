@@ -803,7 +803,6 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AUTOMAKE_OPTIONS = gnits
 noinst_HEADERS = board.h brain.h tate.h edit.h book.h time_ctrl.h
 tate_SOURCES = tate.c board.c brain.c edit.c book.c time_ctrl.c \
 	evaluate.c next_move.c quiescence.c search.c print_pv.c \
@@ -812,10 +811,9 @@ tate_SOURCES = tate.c board.c brain.c edit.c book.c time_ctrl.c \
 tate_LDADD = ../lib/libtate.la
 tate_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
 AM_CPPFLAGS = -I. -I$(srcdir) -I.. -I$(top_srcdir)/lib -I../lib \
-	-I$(top_srcdir)/libchi -I../libchi
+	-I$(top_srcdir)/libchi -I../libchi $(AM_CFLAGS)
 
 LDADD = ../lib/libtate.la ../libchi/libchi.la
-AM_LDFLAGS = -L$(top_srcdir)/libchi -L../libchi
 all: all-am
 
 .SUFFIXES:
@@ -829,9 +827,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnits src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnits src/Makefile
+	  $(AUTOMAKE) --gnu src/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -898,22 +896,6 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-
-installcheck-binPROGRAMS: $(bin_PROGRAMS)
-	bad=0; pid=$$$$; list="$(bin_PROGRAMS)"; for p in $$list; do \
-	  case ' $(AM_INSTALLCHECK_STD_OPTIONS_EXEMPT) ' in \
-	   *" $$p "* | *" $(srcdir)/$$p "*) continue;; \
-	  esac; \
-	  f=`echo "$$p" | \
-	     sed 's,^.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
-	  for opt in --help --version; do \
-	    if "$(DESTDIR)$(bindir)/$$f" $$opt >c$${pid}_.out \
-	         2>c$${pid}_.err </dev/null \
-		 && test -n "`cat c$${pid}_.out`" \
-		 && test -z "`cat c$${pid}_.err`"; then :; \
-	    else echo "$$f does not support $$opt" 1>&2; bad=1; fi; \
-	  done; \
-	done; rm -f c$${pid}_.???; exit $$bad
 
 tate$(EXEEXT): $(tate_OBJECTS) $(tate_DEPENDENCIES) $(EXTRA_tate_DEPENDENCIES) 
 	@rm -f tate$(EXEEXT)
@@ -1158,7 +1140,7 @@ install-ps: install-ps-am
 
 install-ps-am:
 
-installcheck-am: installcheck-binPROGRAMS
+installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/board.Po
@@ -1205,11 +1187,10 @@ uninstall-am: uninstall-binPROGRAMS
 	install-exec install-exec-am install-html install-html-am \
 	install-info install-info-am install-man install-pdf \
 	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installcheck-binPROGRAMS \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
-	uninstall-am uninstall-binPROGRAMS
+	installcheck installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags tags-am uninstall uninstall-am uninstall-binPROGRAMS
 
 .PRECIOUS: Makefile
 

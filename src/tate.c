@@ -35,9 +35,10 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include <error.h>
-
 #include <libchi.h>
+
+#include "error.h"
+#include "xalloc.h"
 
 #include "tate.h"
 #include "edit.h"
@@ -125,7 +126,7 @@ main (argc, argv)
     /* Sanity checks.  */
     if (chi_pos_size * sizeof (bitv64) != sizeof current) {
 	error (EXIT_FAILURE, 0, "\
-data type chi_pos has incorrect size %u, this should not happen!\n\
+data type chi_pos has incorrect size %zu, this should not happen!\n\
 Please inform the author of libchi, Guido Flohr (guido@imperia.net)\n",
 	       sizeof current);
     }
