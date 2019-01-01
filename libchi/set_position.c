@@ -27,7 +27,7 @@
 #include <libchi.h>
 
 int
-chi_set_position (chi_pos *argpos, const char *fen)
+chi_set_position(chi_pos *argpos, const char *fen)
 {
 	const char* ptr = fen;
 	int ep_file = -1;
@@ -157,7 +157,12 @@ chi_set_position (chi_pos *argpos, const char *fen)
 		num = strtoul (ptr, &num_end_ptr, 10);
 		if (num_end_ptr == ptr)
 			return CHI_ERR_ILLEGAL_FEN;
-		pos->half_moves = num;
+
+		if (chi_on_move(pos) == chi_white)
+			pos->half_moves = (num - 1) << 1;
+		else
+			pos->half_moves = ((num - 1) << 1) + 1;
+
 		ptr = num_end_ptr;
 
 		while (*ptr == ' ' || *ptr == '\t' || *ptr == '\r' || *ptr == '\n')
