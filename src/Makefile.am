@@ -11,10 +11,9 @@ tate_SOURCES = tate.c board.c brain.c edit.c book.c time_ctrl.c \
 	evaluate.c next_move.c quiescence.c search.c print_pv.c \
 	tt_hash.c epd.c ev_hash.c qtt_hash.c
 
-tate_LDADD = ../lib/libtate.la
+tate_LDADD = ../lib/libtate.la ../libchi/libchi.la
 tate_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
 
 AM_CPPFLAGS = -I. -I$(srcdir) -I.. -I$(top_srcdir)/lib -I../lib \
 	-I$(top_srcdir)/libchi -I../libchi $(AM_CFLAGS)
-LIBS = -lgdbm -lchi
-LDADD = ../lib/libtate.la ../libchi/libchi.la
+LIBS = -lgdbm
