@@ -26,179 +26,169 @@
 #include <libchi.h>
 
 static const int rotate90[64] = {
-     7, 15, 23, 31, 39, 47, 55, 63,
-     6, 14, 22, 30, 38, 46, 54, 62,
-     5, 13, 21, 29, 37, 45, 53, 61,
-     4, 12, 20, 28, 36, 44, 52, 60,
-     3, 11, 19, 27, 35, 43, 51, 59,
-     2, 10, 18, 26, 34, 42, 50, 58,
-     1,  9, 17, 25, 33, 41, 49, 57,
-     0,  8, 16, 24, 32, 40, 48, 56,
+	7, 15, 23, 31, 39, 47, 55, 63,
+	6, 14, 22, 30, 38, 46, 54, 62,
+	5, 13, 21, 29, 37, 45, 53, 61,
+	4, 12, 20, 28, 36, 44, 52, 60,
+	3, 11, 19, 27, 35, 43, 51, 59,
+	2, 10, 18, 26, 34, 42, 50, 58,
+	1,  9, 17, 25, 33, 41, 49, 57,
+	0,  8, 16, 24, 32, 40, 48, 56,
 };
 
 int
-chi_parse_fen_position (argpos, fen, end_ptr)
-     chi_pos* argpos;
-     const char* fen;
-     const char** end_ptr;
+chi_parse_fen_position (chi_pos *argpos, const char *fen, const char **end_ptr)
 {
-    int file = 0;
-    int rank = 0;
-    int shift = 63;
-    bitv64 mask = ((bitv64) 1) << shift;
-    const char* ptr = fen;
-    int material = 0;
-    chi_pos tmp_pos;
-    chi_pos* pos = &tmp_pos;
+	int file = 0;
+	int rank = 0;
+	int shift = 63;
+	bitv64 mask = ((bitv64) 1) << shift;
+	const char* ptr = fen;
+	int material = 0;
+	chi_pos tmp_pos;
+	chi_pos* pos = &tmp_pos;
 
-    if (!argpos || !fen)
-	return CHI_ERR_YOUR_FAULT;
+	if (!argpos || !fen)
+		return CHI_ERR_YOUR_FAULT;
 
-    chi_clear_position (pos);
+	chi_clear_position (pos);
 
-    while (*ptr == ' ' || *ptr == '\t')
-	++ptr;
+	while (*ptr == ' ' || *ptr == '\t')
+		++ptr;
 
-    while (shift >= 0) {
-	switch (*ptr) {
-	    case 'P':
-		if (rank == 0 || rank == 7)
-		    return CHI_ERR_ILLEGAL_FEN;
-		pos->w_pawns |= mask;
-		material += 1;
-		break;
-	    case 'p':
-		if (rank == 0 || rank == 7)
-		    return CHI_ERR_ILLEGAL_FEN;
-		pos->b_pawns |= mask;
-		material -= 1;
-		break;
-	    case 'N':
-		material += 3;
-		pos->w_knights |= mask;
-		break;
-	    case 'n':
-		material -= 3;
-		pos->b_knights |= mask;
-		break;
-	    case 'B':
-		material += 3;
-		pos->w_bishops |= mask;
-		break;
-	    case 'b':
-		material -= 3;
-		pos->b_bishops |= mask;
-		break;
-	    case 'R':
-		material += 5;
-		pos->w_rooks |= mask;
-		break;
-	    case 'r':
-		material -= 5;
-		pos->b_rooks |= mask;
-		break;
-	    case 'Q':
-		material += 9;
-		pos->w_bishops |= mask;
-		pos->w_rooks |= mask;
-		break;
-	    case 'q':
-		material -= 9;
-		pos->b_bishops |= mask;
-		pos->b_rooks |= mask;
-		break;
-	    case 'K':
-		if (pos->w_kings)
-		    return CHI_ERR_TWO_KINGS;
-		pos->w_kings |= mask;
-		break;
-	    case 'k':
-		if (pos->b_kings)
-		    return CHI_ERR_TWO_KINGS;
-		pos->b_kings |= mask;
-		break;
-	    case '1':
-		break;
-	    case '2':
-		file += 1;
-		break;
-	    case '3':
-		file += 2;
-		break;
-	    case '4':
-		file += 3;
-		break;
-	    case '5':
-		file += 4;
-		break;
-	    case '6':
-		file += 5;
-		break;
-	    case '7':
-		file += 6;
-		break;
-	    case '8':
-		file += 7;
-		break;
-	    case '/':
-		++rank;
-		file = -1;
-		break;
-	    case ' ':
-	    case '\t':
-		break;
-	    default:
-		return CHI_ERR_ILLEGAL_FEN;
+	while (shift >= 0) {
+		switch (*ptr) {
+		case 'P':
+			if (rank == 0 || rank == 7)
+				return CHI_ERR_ILLEGAL_FEN;
+			pos->w_pawns |= mask;
+			material += 1;
+			break;
+		case 'p':
+			if (rank == 0 || rank == 7)
+				return CHI_ERR_ILLEGAL_FEN;
+			pos->b_pawns |= mask;
+			material -= 1;
+			break;
+		case 'N':
+			material += 3;
+			pos->w_knights |= mask;
+			break;
+		case 'n':
+			material -= 3;
+			pos->b_knights |= mask;
+			break;
+		case 'B':
+			material += 3;
+			pos->w_bishops |= mask;
+			break;
+		case 'b':
+			material -= 3;
+			pos->b_bishops |= mask;
+			break;
+		case 'R':
+			material += 5;
+			pos->w_rooks |= mask;
+			break;
+		case 'r':
+			material -= 5;
+			pos->b_rooks |= mask;
+			break;
+		case 'Q':
+			material += 9;
+			pos->w_bishops |= mask;
+			pos->w_rooks |= mask;
+			break;
+		case 'q':
+			material -= 9;
+			pos->b_bishops |= mask;
+			pos->b_rooks |= mask;
+			break;
+		case 'K':
+			if (pos->w_kings)
+			return CHI_ERR_TWO_KINGS;
+			pos->w_kings |= mask;
+			break;
+		case 'k':
+			if (pos->b_kings)
+				return CHI_ERR_TWO_KINGS;
+			pos->b_kings |= mask;
+			break;
+		case '1':
+			break;
+		case '2':
+			file += 1;
+			break;
+		case '3':
+			file += 2;
+			break;
+		case '4':
+			file += 3;
+			break;
+		case '5':
+			file += 4;
+			break;
+		case '6':
+			file += 5;
+			break;
+		case '7':
+			file += 6;
+			break;
+		case '8':
+			file += 7;
+			break;
+		case '/':
+			++rank;
+			file = -1;
+			break;
+		case ' ':
+		case '\t':
+			break;
+		default:
+			return CHI_ERR_ILLEGAL_FEN;
+		}
+
+		++file;
+
+		if (file > 8 || rank > 8)
+			return CHI_ERR_ILLEGAL_FEN;
+
+		if (*ptr == ' ' || *ptr == '\t') {
+			if (rank != 7)
+				return CHI_ERR_ILLEGAL_FEN;
+			break;
+		}
+
+		++ptr;
+		shift = 63 - (rank * 8 + file);
+		mask = ((bitv64) 1) << shift;
 	}
-	++file;
 
-	if (file > 8 || rank > 8)
-	    return CHI_ERR_ILLEGAL_FEN;
+	if (!pos->w_kings || !pos->b_kings)
+		return CHI_ERR_NO_KING;
 
-	if (*ptr == ' ' || *ptr == '\t') {
-	    if (rank != 7)
-		return CHI_ERR_ILLEGAL_FEN;
-	    break;
-	}
+	chi_material (pos) = material;
 
-	++ptr;
-	shift = 63 - (rank * 8 + file);
-	mask = ((bitv64) 1) << shift;
-    }
-
-    if (!pos->w_kings || !pos->b_kings)
-	return CHI_ERR_NO_KING;
-
-    chi_material (pos) = material;
-
-    pos->w_pieces = pos->w_pawns | pos->w_knights | pos->w_bishops | 
+	pos->w_pieces = pos->w_pawns | pos->w_knights | pos->w_bishops | 
 	pos->w_rooks | pos->w_kings;
-    pos->b_pieces = pos->b_pawns | pos->b_knights | pos->b_bishops | 
+	pos->b_pieces = pos->b_pawns | pos->b_knights | pos->b_bishops | 
 	pos->b_rooks | pos->b_kings;
 
-    for (shift = 0; shift < 64; ++shift) {
-	int shift90 = rotate90[shift];
-	bitv64 mask90 = ((bitv64) 1) << shift90;
+	for (shift = 0; shift < 64; ++shift) {
+		int shift90 = rotate90[shift];
+		bitv64 mask90 = ((bitv64) 1) << shift90;
 	
-	mask = ((bitv64) 1) << shift;
+		mask = ((bitv64) 1) << shift;
 
-	if (mask & pos->w_pieces)
-	    pos->w_pieces90 |= mask90;
-	else if (mask & pos->b_pieces)
-	    pos->b_pieces90 |= mask90;
-    }
+		if (mask & pos->w_pieces)
+			pos->w_pieces90 |= mask90;
+		else if (mask & pos->b_pieces)
+			pos->b_pieces90 |= mask90;
+	}
 
-    *end_ptr = ptr;
-    
-    *argpos = *pos;
+	*end_ptr = ptr;
 
-    return 0;
+	*argpos = *pos;
+
+	return 0;
 }
-
-/*
-Local Variables:
-mode: c
-c-style: K&R
-c-basic-shift: 8
-End:
-*/

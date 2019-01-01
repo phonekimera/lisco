@@ -147,8 +147,8 @@ typedef enum {
 typedef struct {
 	bitv64 w_pieces;
 	bitv64 b_pieces;
-        bitv64 w_pieces90;
-        bitv64 b_pieces90;
+	bitv64 w_pieces90;
+	bitv64 b_pieces90;
 
 	bitv64 w_pawns;
 	bitv64 w_knights;
@@ -179,20 +179,20 @@ typedef struct {
 #define chi_w_castled(p) ((p)->flags.w_castled)
 #define chi_b_castled(p) ((p)->flags.b_castled)
 
-        struct {
-	    unsigned wk_castle: 1;
-	    unsigned wq_castle: 1;
-	    unsigned bk_castle: 1;
-	    unsigned bq_castle: 1;
-	    unsigned ep: 1;
-	    unsigned ep_file: 3;
-	    unsigned on_move: 1;
-	    signed material: 8;
-	    unsigned w_castled: 1;
-	    unsigned b_castled: 1;
-        } flags;
-    
-        /* The material (p = 1, n = 3, b = 3, r = 5, q = 9) from
+	struct {
+		unsigned wk_castle: 1;
+		unsigned wq_castle: 1;
+		unsigned bk_castle: 1;
+		unsigned bq_castle: 1;
+		unsigned ep: 1;
+		unsigned ep_file: 3;
+		unsigned on_move: 1;
+		signed material: 8;
+		unsigned w_castled: 1;
+		unsigned b_castled: 1;
+	} flags;
+
+	/* The material (p = 1, n = 3, b = 3, r = 5, q = 9) from
 	   white's point of view.  This gets updated by chi_apply_move().
 	   In normal chess, the maximum is 9 queens, 2 rooks, and 4 minors,
 	   which sums up to 103.  Luckily less than 128 which leaves
