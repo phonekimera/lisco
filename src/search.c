@@ -205,7 +205,6 @@ search (TREE *tree, int depth, int ply, int alpha, int beta, int allow_null)
 	else
 		selective = 1;
 
-allow_null = 0;
 	/* Try a null move if applicable.  */
 	while (allow_null) {
 		if (tree->in_check[ply]) {
