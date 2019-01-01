@@ -2,9 +2,11 @@ dnl -*- m4 -*-
 dnl (w) Guido Flohr
 dnl $Id: configure.in,v 1.4 2001/09/10 00:10:25 guido Exp $
 dnl Process this file with autoconf to produce a configure script.
+AC_PREREQ([2.63])
 AC_INIT([tate], [0.5.0])
 AC_CONFIG_SRCDIR([src/tate.c])
-AM_INIT_AUTOMAKE
+AC_CONFIG_AUX_DIR([build-aux])
+AM_INIT_AUTOMAKE([1.13 silent-rules parallel-tests])
 
 AM_CONFIG_HEADER(config.h)
 
@@ -50,8 +52,6 @@ AC_CHECK_HEADERS([sys/timeb.h])
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([ftime gettimeofday memcpy])
 AC_REPLACE_FUNCS([memset strcasecmp strncasecmp])
-AM_FUNC_ERROR_AT_LINE
-AM_FUNC_GETLINE
 if test $am_cv_func_working_getline != yes; then
   AC_CHECK_FUNCS(getdelim)
 fi
