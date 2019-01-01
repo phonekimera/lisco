@@ -25,6 +25,8 @@
 
 #include <libchi.h>
 
+#include "xalloc.h"
+
 #include "brain.h"
 #include "time_ctrl.h"
 

@@ -21,10 +21,10 @@
 # include <config.h>
 #endif
 
-// FIXME: configure.in...
 #include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
+#include <stdlib.h>
 
 #include "time_ctrl.h"
 #include "tate.h"

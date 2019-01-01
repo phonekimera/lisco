@@ -94,6 +94,8 @@ static const int rotate90[64] = {
      0,  8, 16, 24, 32, 40, 48, 56,
 };
 
+#if 0
+/* FIXME! What was that for? */
 static const int square_values[64] = {
     1, 1, 1, 1, 1, 1, 1, 1,
     1, 2, 2, 2, 2, 2, 2, 1,
@@ -104,6 +106,7 @@ static const int square_values[64] = {
     1, 2, 2, 2, 2, 2, 2, 1,
     1, 1, 1, 1, 1, 1, 1, 1,
 };
+#endif
 
 static const int white_outposts[64] = {
      0,  0,  0,  0,  0,  0,  0,  0,

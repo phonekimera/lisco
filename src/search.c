@@ -21,6 +21,8 @@
 # include <config.h>
 #endif
 
+#include <string.h>
+
 #include <libchi.h>
 
 #include "brain.h"

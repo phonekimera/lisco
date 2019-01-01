@@ -41,7 +41,7 @@ void
 fatal_func (error_msg)
      char* error_msg;
 {
-    error (EXIT_FAILURE, 0, error_msg);
+    error (EXIT_FAILURE, 0, "%s", error_msg);
 }
 
 void
@@ -55,7 +55,7 @@ create_book (filename, maxply, minapp, wpc)
 
     dbf = gdbm_open (BOOK_NAME, 0, GDBM_WRCREAT | GDBM_NOLOCK, 0, fatal_func);
     if (dbf == NULL) {
-	char* error_msg = gdbm_errno ? gdbm_strerror (gdbm_errno)
+	const char* error_msg = gdbm_errno ? gdbm_strerror (gdbm_errno)
 	    : strerror (errno);
 
 	fprintf (stdout, "Error (creating database): %s: %s\n",
