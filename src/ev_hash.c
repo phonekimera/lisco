@@ -21,8 +21,7 @@
 # include <config.h>
 #endif
 
-#include <system.h>
-
+#include <stdio.h>
 #include <string.h>
 
 #include <libchi.h>

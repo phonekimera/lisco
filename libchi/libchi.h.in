@@ -26,8 +26,6 @@
 # include <config.h>
 #endif
 
-#include <system.h>
-
 typedef @BITV64@ bitv64;
 
 #define CHI_VERSION "@VERSION@"
@@ -547,9 +545,7 @@ extern bitv64 chi_zk_change_side CHI_PARAMS ((chi_zk_handle chi_arg_zk_handle,
 
 /* Return the prime closest to the argument.  In pathological cases,
    there can be a prime one closer to the argument.  In even more 
-   pathological case, the returned prime is no prime at all.
-   The odds for the latter are less than the odds for you beign a
-   natural blonde and understanding the source.  */
+   pathological case, the returned prime is no prime at all.  */
 extern unsigned long int chi_closest_prime CHI_PARAMS ((unsigned long int));
 
 CHI_END_DECLS

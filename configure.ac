@@ -6,14 +6,16 @@ AC_PREREQ([2.63])
 AC_INIT([tate], [0.5.0])
 AC_CONFIG_SRCDIR([src/tate.c])
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([1.13 silent-rules parallel-tests])
+AC_CONFIG_MACRO_DIRS([m4])
+dnl AM_INIT_AUTOMAKE([1.13 silent-rules parallel-tests])
+AM_INIT_AUTOMAKE
 
-AM_CONFIG_HEADER(config.h)
-
-AM_MAINTAINER_MODE
+AC_CONFIG_HEADERS([config.h])
 
 AC_PROG_CC
-AC_PROG_RANLIB
+gl_EARLY
+gl_INIT
+LT_INIT
 
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
@@ -57,5 +59,6 @@ if test $am_cv_func_working_getline != yes; then
 fi
 AC_TYPE_SIGNAL
 
-AC_OUTPUT([Makefile lib/Makefile libchi/libchi.h libchi/Makefile \
-           m4/Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile libchi/libchi.h libchi/Makefile \
+                 src/Makefile])
+AC_OUTPUT

@@ -24,8 +24,6 @@
 # include <config.h>
 #endif
 
-#include <system.h>
-
 #include <libchi.h>
 
 #include "tate.h"
@@ -174,72 +172,67 @@ extern unsigned int history[];
 #define history_lookup(tree, move) \
     history[(move & 0xfff) + (chi_on_move (&tree->pos) << 6)]
 
-extern int think PARAMS ((chi_move* mv, chi_epd_pos* epd));
-extern int move_now PARAMS ((chi_move* mv));
-extern void stop_thinking PARAMS ((void));
+extern int think(chi_move* mv, chi_epd_pos* epd);
+extern int move_now(chi_move* mv);
+extern void stop_thinking(void);
 
-extern int evaluate PARAMS ((TREE* tree, int ply, 
-			     int alpha, int beta));
-extern int evaluate_dev_white PARAMS ((TREE* tree, int ply));
-extern int evaluate_dev_black PARAMS ((TREE* tree, int ply));
-extern int evaluate_mobility PARAMS ((TREE* tree));
+extern int evaluate(TREE* tree, int ply, int alpha, int beta);
+extern int evaluate_dev_white(TREE* tree, int ply);
+extern int evaluate_dev_black(TREE* tree, int ply);
+extern int evaluate_mobility(TREE* tree);
 
-extern void evaluate_move PARAMS ((chi_move move));
+extern void evaluate_move(chi_move move);
 
-extern chi_move next_move PARAMS ((TREE* tree, int ply, int depth));
+extern chi_move next_move(TREE* tree, int ply, int depth);
 #if DEBUG_BRAIN
-extern void indent_output PARAMS ((TREE* tree, int depth));
+extern void indent_output(TREE* tree, int depth);
 #endif
-extern void my_print_move PARAMS ((chi_move move));
+extern void my_print_move(chi_move move);
 
-extern void update_signature PARAMS ((TREE* tree, chi_move move, int ply));
+extern void update_signature(TREE* tree, chi_move move, int ply);
 
-extern int search PARAMS ((TREE* tree, int depth, int ply,
-			   int alpha, int beta, int make_null));
+extern int search(TREE* tree, int depth, int ply,
+			      int alpha, int beta, int make_null);
 
-extern int quiescence PARAMS ((TREE* tree, int ply,
-			       int alpha, int beta));
+extern int quiescence(TREE* tree, int ply, int alpha, int beta);
 
-extern void print_pv PARAMS ((TREE* tree, int score, 
-			      int whisper, int ply));
-extern void print_current_move PARAMS ((TREE* tree, chi_pos* pos,
-					chi_move move, int count, 
-					int num_moves, int alpha, int beta));
-extern void print_current_result PARAMS ((TREE* tree, int score, int type));
+extern void print_pv(TREE* tree, int score, int whisper, int ply);
+extern void print_current_move(TREE* tree, chi_pos* pos,
+					           chi_move move, int count, 
+					           int num_moves, int alpha, int beta);
+extern void print_current_result(TREE* tree, int score, int type);
 					  
-extern void clean_current_move PARAMS ((TREE* tree));
+extern void clean_current_move(TREE* tree);
 
-extern void print_fail_high PARAMS ((TREE* tree, int score, int whisper));
-extern void print_fail_low PARAMS ((TREE* tree, int score, int whisper));
+extern void print_fail_high(TREE* tree, int score, int whisper);
+extern void print_fail_low(TREE* tree, int score, int whisper);
 
-extern void init_tt_hashs PARAMS ((unsigned long int memuse));
-extern void clear_tt_hashs PARAMS ((void));
+extern void init_tt_hashs(unsigned long int memuse);
+extern void clear_tt_hashs(void);
 
-extern void store_tt_entry PARAMS ((chi_pos* pos,
-				    bitv64 signature, chi_move move, int depth,
-				    int score, unsigned int flags));
-extern unsigned int probe_tt PARAMS ((chi_pos* pos, bitv64 signature, 
-				      int depth, int* alpha,
-				      int* beta));
-extern chi_move best_tt_move PARAMS ((chi_pos* pos, bitv64 signature));
+extern void store_tt_entry(chi_pos* pos,
+				           bitv64 signature, chi_move move, int depth,
+				           int score, unsigned int flags);
+extern unsigned int probe_tt(chi_pos* pos, bitv64 signature, 
+				             int depth, int* alpha,
+				             int* beta);
+extern chi_move best_tt_move(chi_pos* pos, bitv64 signature);
 
-extern void init_qtt_hashs PARAMS ((unsigned long int memuse));
-extern void clear_qtt_hashs PARAMS ((void));
+extern void init_qtt_hashs(unsigned long int memuse);
+extern void clear_qtt_hashs(void);
 
-extern void store_qtt_entry PARAMS ((chi_pos* pos,
-				     bitv64 signature,
-				     int score, unsigned int flags));
-extern unsigned int probe_qtt PARAMS ((chi_pos* pos, bitv64 signature, 
-				       int* alpha, int* beta));
+extern void store_qtt_entry(chi_pos* pos,
+				            bitv64 signature,
+				            int score, unsigned int flags);
+extern unsigned int probe_qtt(chi_pos* pos, bitv64 signature, int* alpha,
+                              int* beta);
 
-extern void init_ev_hashs PARAMS ((unsigned long int memuse));
-extern void clear_ev_hashs PARAMS ((void));
-extern void store_ev_entry PARAMS ((chi_pos* pos, bitv64 signature, 
-				    int score));
-extern int probe_ev PARAMS ((chi_pos* pos, bitv64 signature, int* score));
+extern void init_ev_hashs(unsigned long int memuse);
+extern void clear_ev_hashs(void);
+extern void store_ev_entry(chi_pos* pos, bitv64 signature, int score);
+extern int probe_ev(chi_pos* pos, bitv64 signature, int* score);
 
-extern void store_killer PARAMS ((TREE* tree, chi_move move, 
-				  int depth, int ply));
-extern void init_killers PARAMS ((void));
+extern void store_killer(TREE* tree, chi_move move, int depth, int ply);
+extern void init_killers(void);
 
 #endif

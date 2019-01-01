@@ -24,13 +24,11 @@
 # include <config.h>
 #endif
 
-#include <system.h>
-
 #include <libchi.h>
 
-void handle_edit_command PARAMS ((chi_pos* pos, const char* cmd));
-int check_position PARAMS ((chi_pos* pos, int is_fen));
-void init_edit_mode PARAMS ((chi_pos* pos));
-void setboard PARAMS ((chi_pos* pos, char* cmd));
+void handle_edit_command(chi_pos* pos, const char* cmd);
+int check_position(chi_pos* pos, int is_fen);
+void init_edit_mode(chi_pos* pos);
+void setboard(chi_pos* pos, char* cmd);
 
 #endif

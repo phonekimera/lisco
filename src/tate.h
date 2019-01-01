@@ -24,8 +24,6 @@
 # include <config.h>
 #endif
 
-#include <system.h>
-
 #include <libchi.h>
 
 /* Events from main loop.  */
@@ -81,11 +79,11 @@ extern int current_score;
 
 extern int isa_tty;
 
-extern int get_event PARAMS ((void));
-extern int handle_epd PARAMS ((const char* epdstr, unsigned long max_time,
-			       chi_epd_pos* epd));
-extern int handle_epdfile PARAMS ((const char* command, 
-				   unsigned long max_time));
-extern int handle_go PARAMS ((chi_epd_pos* epd));
+extern int get_event(void);
+extern int handle_epd (const char* epdstr, unsigned long max_time,
+			           chi_epd_pos* epd);
+extern int handle_epdfile (const char* command, 
+				           unsigned long max_time);
+extern int handle_go (chi_epd_pos* epd);
 
 #endif

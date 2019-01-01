@@ -55,6 +55,7 @@ done
 
 aclocal -I m4 \
     && autoconf \
+    && autoheader \
     && touch ChangeLog \
     && automake --add-missing --copy \
     && rm -rf autom4te.cache \

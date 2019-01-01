@@ -21,8 +21,6 @@
 # include <config.h>
 #endif
 
-#include <system.h>
-
 #include <error.h>
 
 #include <libchi.h>

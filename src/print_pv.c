@@ -21,15 +21,15 @@
 # include <config.h>
 #endif
 
-#include <system.h>
+#include <stdio.h>
 
 #include <libchi.h>
 
 #include "brain.h"
 #include "time_ctrl.h"
 
-static void flagged_print_pv PARAMS ((TREE* tree, int score, int whisper,
-				      int ply, int fail_flag));
+static void flagged_print_pv(TREE* tree, int score, int whisper,
+				             int ply, int fail_flag);
 
 void
 print_pv (tree, score, whisper, ply)

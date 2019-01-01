@@ -35,8 +35,6 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include <system.h>
-
 #include <error.h>
 
 #include <libchi.h>
@@ -48,21 +46,21 @@
 #include "brain.h"
 #include "time_ctrl.h"
 
-static void greeting PARAMS ((void));
-static void feature_requests PARAMS ((void));
-static void handle_accepted PARAMS ((const char* feature));
-static void handle_rejected PARAMS ((const char* feature));
-static int handle_usermove PARAMS ((const char* movestr));
-static int handle_legalmove PARAMS ((const char* movestr));
-static int handle_hashmove PARAMS ((void));
-static int handle_evaluate PARAMS ((const char* movestr));
-static int handle_setboard PARAMS ((const char* fen));
-static int handle_perft PARAMS ((unsigned int depth, int post_flag));
-static void display_offsets PARAMS ((void));
-static void display_moves PARAMS ((void));
-static RETSIGTYPE sigio_handler PARAMS ((int));
-static RETSIGTYPE sigxboard_handler PARAMS ((int));
-static void check_input PARAMS ((void));
+static void greeting(void);
+static void feature_requests(void);
+static void handle_accepted(const char* feature);
+static void handle_rejected(const char* feature);
+static int handle_usermove(const char* movestr);
+static int handle_legalmove(const char* movestr);
+static int handle_hashmove(void);
+static int handle_evaluate(const char* movestr);
+static int handle_setboard(const char* fen);
+static int handle_perft(unsigned int depth, int post_flag);
+static void display_offsets(void);
+static void display_moves(void);
+static RETSIGTYPE sigio_handler(int);
+static RETSIGTYPE sigxboard_handler(int);
+static void check_input(void);
 
 #define WHITE_SPACE " \t\r\n\v\f"
 

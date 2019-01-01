@@ -24,12 +24,10 @@
 # include <config.h>
 #endif
 
-#include <system.h>
-
 #include <libchi.h>
 
-void display_board PARAMS ((chi_pos* pos));
-void dump_board PARAMS ((chi_pos* pos));
-void print_game PARAMS ((void));
+void display_board(chi_pos* pos);
+void dump_board(chi_pos* pos);
+void print_game(void);
 
 #endif

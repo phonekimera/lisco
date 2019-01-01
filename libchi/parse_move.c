@@ -21,6 +21,8 @@
 # include <config.h>
 #endif
 
+#include <stddef.h>
+
 #include <libchi.h>
 
 static int parse_castling CHI_PARAMS ((chi_pos*, chi_move*, const char*));

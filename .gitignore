@@ -13,7 +13,14 @@ lib*.a
 *.la
 /stamp-h
 src/tate
+/config.h.in
+/configure
+/lib
+/m4
+/gnulib
 /build-aux
+*~
+/INSTALL
 
 libchi/libchi.h
 libchi/chitest

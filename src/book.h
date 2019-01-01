@@ -24,8 +24,6 @@
 # include <config.h>
 #endif
 
-#include <system.h>
-
-void create_book PARAMS ((const char* filename, unsigned int maxply,
-			  unsigned int minapp, unsigned int wpc));
+void create_book(const char* filename, unsigned int maxply,
+			     unsigned int minapp, unsigned int wpc);
 #endif

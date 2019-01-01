@@ -24,8 +24,6 @@
 # include <config.h>
 #endif
 
-#include <system.h>
-
 #ifdef HAVE_SYS_TIMEB_H
 # include <sys/timeb.h>
 #endif
@@ -61,14 +59,14 @@ extern int fixed_time;
 extern rtime_t start_time;
 
 /* Parse a level specification.  */
-extern void parse_level PARAMS ((const char* level));
+extern void parse_level(const char* level);
 
 /* Calculate the amount of time the program can use in its search, measured
    in centi-seconds (calculate everything in float for more accuracy as
    we go, and return the result as a long int).  */
-long int allocate_time PARAMS ((void));
+long int allocate_time(void);
 
-extern rtime_t rtime PARAMS ((void));
-extern long int rdifftime PARAMS ((rtime_t end, rtime_t start));
+extern rtime_t rtime(void);
+extern long int rdifftime(rtime_t end, rtime_t start);
 
 #endif

@@ -1,0 +1,20 @@
+# Outline
+
+These notes intend to help people working on the checked-out sources.
+These requirements do not apply when building from a distribution tarball.
+
+# Getting Started
+
+Just run `./bootstrap` from this directory.  You will need a couple of
+common development tools or the script will fail.
+
+Once everything is fine, you can run the well-known commands:
+
+```
+    ./configure
+    make
+    make install
+```
+
+You don't have to run "make install".  You can test the binary
+`src/delete` after running "make" only.

@@ -21,8 +21,7 @@
 # include <config.h>
 #endif
 
-#include <system.h>
-
+#include <stdio.h>
 #include <stdlib.h>
 
 #include <error.h>
@@ -45,9 +44,9 @@ typedef struct {
     bitv64 nodes;
 } ext_move;
 
-static int compare_ext_moves PARAMS ((const void* a, const void* b));
-static int root_search PARAMS ((TREE* tree, int sdepth, ext_move* root_moves,
-				int num_moves, int alpha, int beta));
+static int compare_ext_moves(const void* a, const void* b);
+static int root_search(TREE* tree, int sdepth, ext_move* root_moves,
+				       int num_moves, int alpha, int beta);
 
 #if 0
 static void

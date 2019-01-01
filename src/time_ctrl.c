@@ -21,9 +21,8 @@
 # include <config.h>
 #endif
 
-#include <system.h>
-
 // FIXME: configure.in...
+#include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
 

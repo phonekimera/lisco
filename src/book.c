@@ -21,8 +21,6 @@
 # include <config.h>
 #endif
 
-#include <system.h>
-
 #include <stdio.h>
 #include <gdbm.h>
 #include <string.h>
@@ -37,7 +35,7 @@
 
 #define BOOK_NAME "book.gdbm"
 
-static void fatal_func PARAMS ((char* error_msg));
+static void fatal_func(char* error_msg);
 
 void
 fatal_func (error_msg)
