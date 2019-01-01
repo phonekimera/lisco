@@ -26,6 +26,8 @@
 
 #include <libchi.h>
 
+#include "xalloc.h"
+
 #include "brain.h"
 
 #define MIN_QTT_SIZE (sizeof (QTT_Entry) * 500000)

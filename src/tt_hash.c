@@ -26,6 +26,8 @@
 
 #include <libchi.h>
 
+#include "xalloc.h"
+
 #include "brain.h"
 
 #define MIN_TT_SIZE (sizeof (TT_Entry) * 1000000)

@@ -26,6 +26,8 @@
 
 #include <libchi.h>
 
+#include "xalloc.h"
+
 #include "brain.h"
 
 #define MIN_EV_SIZE (sizeof (EV_Entry) * 100000)

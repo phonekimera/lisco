@@ -27,9 +27,10 @@
 #include <errno.h>
 #include <sys/types.h>
 
-#include <error.h>
-
 #include <libchi.h>
+
+#include "xalloc.h"
+#include "error.h"
 
 #include "tate.h"
 #include "brain.h"
