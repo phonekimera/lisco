@@ -1166,34 +1166,33 @@ handle_go (epd)
 }
 
 static int
-handle_setboard (fen)
-     const char* fen;
+handle_setboard (const char *fen)
 {
-    chi_pos new_pos;
-    int errnum = chi_set_position (&new_pos, fen);
+	chi_pos new_pos;
+	int errnum = chi_set_position (&new_pos, fen);
 
-    if (errnum) {
-	fprintf (stdout, "Error (%s): %s\n",
-		 chi_strerror (errnum), fen);
+	if (errnum) {
+		fprintf(stdout, "Error (%s): %s\n",
+				chi_strerror (errnum), fen);
+		return EVENT_CONTINUE;
+	}
+
+	current = new_pos;
+
+	mate_announce = 0;
+	game_over = 0;
+	force = 1;
+	go_fast = 0;
+	engine_color = !chi_on_move (&current);
+	game_hist_ply = 0;
+	game_hist[0].pos = current;
+	game_hist[0].signature = chi_zk_signature (zk_handle, &current);
+
+	current_score = engine_color == chi_white ?
+			chi_material (&current) * 100 :
+			chi_material (&current) * -100;
+
 	return EVENT_CONTINUE;
-    }
-
-    current = new_pos;
-
-    mate_announce = 0;
-    game_over = 0;
-    force = 1;
-    go_fast = 0;
-    engine_color = !chi_on_move (&current);
-    game_hist_ply = 0;
-    game_hist[0].pos = current;
-    game_hist[0].signature = chi_zk_signature (zk_handle, &current);
-
-    current_score = engine_color == chi_white ? 
-	chi_material (&current) * 100 : 
-	chi_material (&current) * -100;
-
-    return EVENT_CONTINUE;
 }
 
 static int
