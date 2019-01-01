@@ -128,7 +128,6 @@ compare_ext_moves (const void *ext_a, const void *ext_b)
 
 void
 evaluate_move (chi_move move)
-	chi_move move;
 {
 	TREE tree;
 	int errnum;
