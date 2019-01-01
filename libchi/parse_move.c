@@ -22,14 +22,16 @@
 #endif
 
 #include <stddef.h>
+#include <string.h>
+#include <strings.h>
 
 #include <libchi.h>
 
-static int parse_castling CHI_PARAMS ((chi_pos*, chi_move*, const char*));
-static int parse_fq_move CHI_PARAMS ((chi_pos*, chi_move*, const char*));
-static int parse_san_move CHI_PARAMS ((chi_pos*, chi_move*, const char*));
+static int parse_castling(chi_pos*, chi_move*, const char*);
+static int parse_fq_move(chi_pos*, chi_move*, const char*);
+static int parse_san_move(chi_pos*, chi_move*, const char*);
 
-static void fill_move CHI_PARAMS ((chi_pos*, chi_move*));
+static void fill_move(chi_pos*, chi_move*);
 
 int
 chi_parse_move (pos, move, movestr)

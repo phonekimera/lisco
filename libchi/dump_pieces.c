@@ -21,9 +21,9 @@
 # include <config.h>
 #endif
 
-#include <libchi.h>
+#include <stdlib.h>
 
-static const char piece2char[] = { ' ', 'P', 'N', 'B', 'R', 'Q', 'K' };
+#include <libchi.h>
 
 int
 chi_dump_pieces (pos, buf, bufsize)

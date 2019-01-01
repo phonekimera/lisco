@@ -24,11 +24,8 @@
 #include <libchi.h>
 
 bitv64
-chi_zk_update_signature (zk_handle, signature, move, color)
-     chi_zk_handle zk_handle;
-     bitv64 signature;
-     chi_move move;
-     chi_color_t color;
+chi_zk_update_signature (chi_zk_handle zk_handle, bitv64 signature,
+                         chi_move move, chi_color_t color)
 {
     chi_piece_t attacker = chi_move_attacker (move);
     chi_piece_t victim = chi_move_victim (move);

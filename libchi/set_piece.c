@@ -24,12 +24,8 @@
 #include <libchi.h>
 
 int
-chi_set_piece (pos, piece, color, file, rank)
-     chi_pos* pos;
-     chi_piece_t piece;
-     chi_color_t color;
-     int file;
-     int rank;
+chi_set_piece (chi_pos *pos, chi_piece_t piece, chi_color_t color,
+               int file, int rank)
 {
     int shift = chi_coords2shift (file, rank);
     int shift90 = chi_coords2shift90 (file, rank);

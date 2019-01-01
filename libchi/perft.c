@@ -25,8 +25,8 @@
 
 #include <libchi.h>
 
-static unsigned long int perft_pre_check CHI_PARAMS ((chi_pos*, unsigned int));
-static unsigned long int perft_post_check CHI_PARAMS ((chi_pos*, unsigned int));
+static unsigned long int perft_pre_check(chi_pos*, unsigned int);
+static unsigned long int perft_post_check(chi_pos*, unsigned int);
 unsigned long int
 chi_perft (pos, depth, post_flag)
      chi_pos* pos;

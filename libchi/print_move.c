@@ -21,15 +21,13 @@
 # include <config.h>
 #endif
 
+#include <stdlib.h>
+
 #include <libchi.h>
 
 int
-chi_print_move (pos, move, buf, bufsize, san)
-     chi_pos* pos;
-     chi_move move;
-     char** buf;
-     unsigned int* bufsize;
-     int san;
+chi_print_move (chi_pos *pos, chi_move move, char **buf,
+                unsigned int *bufsize, int san)
 {
     int from = chi_move_from (move);
     int to = chi_move_to (move);

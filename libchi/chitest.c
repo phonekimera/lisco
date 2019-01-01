@@ -21,6 +21,7 @@
 # include <config.h>
 #endif
 
+#include <stdio.h>
 #include <sys/time.h>
 #include <sys/times.h>
 

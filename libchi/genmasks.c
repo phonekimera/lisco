@@ -27,33 +27,32 @@
 
 #include <string.h>
 
-static void print_rank_state CHI_PARAMS ((unsigned char state));
+static void print_rank_state(unsigned char state);
 
-static void bitv64_dump CHI_PARAMS ((bitv64, bitv64, int, int));
-static const char* shift2label CHI_PARAMS ((unsigned int));
-static void generate_knight_masks CHI_PARAMS ((void));
-static void generate_king_masks CHI_PARAMS ((void));
-static void generate_rank_masks CHI_PARAMS ((void));
-static void generate_file_masks CHI_PARAMS ((void));
-static void generate_rook_hor_slide_masks CHI_PARAMS ((void));
-static void generate_rook_hor_attack_masks CHI_PARAMS ((void));
-static void generate_rook_ver_slide_masks CHI_PARAMS ((void));
-static void generate_rook_ver_attack_masks CHI_PARAMS ((void));
+static void bitv64_dump(bitv64, bitv64, int, int);
+static const char* shift2label(unsigned int);
+static void generate_knight_masks(void);
+static void generate_king_masks(void);
+static void generate_rank_masks(void);
+static void generate_file_masks(void);
+static void generate_rook_hor_slide_masks(void);
+static void generate_rook_hor_attack_masks(void);
+static void generate_rook_ver_slide_masks(void);
+static void generate_rook_ver_attack_masks(void);
 
-static void generate_rook_king_attacks CHI_PARAMS ((void));
-static void generate_rook_king_intermediates CHI_PARAMS ((void));
+static void generate_rook_king_attacks(void);
+static void generate_rook_king_intermediates(void);
 
-static void generate_bishop_king_attacks CHI_PARAMS ((void));
-static void generate_bishop_king_intermediates CHI_PARAMS ((void));
+static void generate_bishop_king_attacks(void);
+static void generate_bishop_king_intermediates(void);
 
 #ifdef PAWN_LOOKUP
-static void generate_wpawn_sg_steps CHI_PARAMS ((void));
-static void generate_bpawn_sg_steps CHI_PARAMS ((void));
-static void generate_wpawn_dbl_steps CHI_PARAMS ((void));
-static void generate_bpawn_dbl_steps CHI_PARAMS ((void));
+static void generate_wpawn_sg_steps(void);
+static void generate_bpawn_sg_steps(void);
+static void generate_wpawn_dbl_steps(void);
+static void generate_bpawn_dbl_steps(void);
 
-static void print_escaped_moves CHI_PARAMS ((unsigned int, 
-					     const chi_move*));
+static void print_escaped_moves(unsigned int, const chi_move*);
 #endif
 
 static const char* coordinates[] = {
@@ -104,8 +103,7 @@ main (argc, argv)
 }
 
 static void
-print_rank_state (state)
-     unsigned char state;
+print_rank_state(unsigned char state)
 {
     int i;
 

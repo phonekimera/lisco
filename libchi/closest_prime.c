@@ -55,7 +55,7 @@ static const unsigned long int small_primes[] = {
 
 static const unsigned long int num_small_primes = 303;
 
-static int is_prime CHI_PARAMS ((unsigned long int p));
+static int is_prime(unsigned long int p);
 
 unsigned long int
 chi_closest_prime (base)
