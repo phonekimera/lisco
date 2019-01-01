@@ -669,7 +669,7 @@ void init_killers ()
 void
 indent_output (TREE* tree, int ply)
 {
-	nt i;
+	int i;
 
 //    int ply = tree->current_depth - depth;
 
