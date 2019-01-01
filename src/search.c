@@ -27,6 +27,7 @@
 
 #include "brain.h"
 #include "time_ctrl.h"
+#include "three-fold.h"
 
 int next_time_control = 0x2000;
 
@@ -69,6 +70,7 @@ search (TREE *tree, int depth, int ply, int alpha, int beta, int allow_null)
 	int hist_hash_key = this_signature % HASH_HIST_SIZE;
 	int wtm;
 	int sdepth = DEPTH2PLIES (depth);
+	// FIXME! This variable is never used.
 	int primary_extensions = 0;
 	int num_pieces = -1;
 
@@ -137,47 +139,10 @@ search (TREE *tree, int depth, int ply, int alpha, int beta, int allow_null)
 	}
 
 	/* Maybe a draw by 3-fold repetition.  */
-	if (ply > 1 && pos->half_move_clock >= 8 && 
-	    game_hist_hash[hist_hash_key] > 1) {
-		int seen = 0;
-		int i;
-	
-#if DEBUG_BRAIN
-		fprintf (stderr, "searching for 3-fold repetition at ply %d (%016llx).\n", ply, this_signature);
-#endif
-		for (i = ply % 2; ((i <= game_hist_ply)
-		     && (pos->half_move_clock - i - ply >= 0)); i += 2) {
+	if (three_fold_repetition(tree, ply, game_hist_hash))
+		return DRAW;
 
-#if DEBUG_BRAIN
-			fprintf(stderr, "checking with i = %d (%016llx<%016llx>%016llx\n", 
-			        i, 
-			        game_hist[game_hist_ply - i - 1].signature,
-			        game_hist[game_hist_ply - i].signature,
-			        game_hist[game_hist_ply - i + 1].signature
-			        );
-#endif
-
-			if (game_hist[game_hist_ply - i].signature == this_signature) {
-				++seen;
-#if DEBUG_BRAIN
-				fprintf (stderr, "Hit #%d\n", seen);
-#endif
-				if (seen >= 2) {
-#if DEBUG_BRAIN
-					indent_output (tree, ply);
-					fprintf(stderr, "Draw: %d (3-fold), alpha: %d, beta: %d\n",
-				 	        DRAW,
-					        chi_value2centipawns (alpha),
-					        chi_value2centipawns (beta));
-#endif
-
-					return DRAW;
-				}
-				i += 2;
-			}
-		}
-	}
-
+	/* FIXME! ply + 1? */
 	if (tree->in_check[ply]) primary_extensions += CHECK_EXT;
 
 	/* Probe the transposition table.  */
@@ -329,8 +294,10 @@ search (TREE *tree, int depth, int ply, int alpha, int beta, int allow_null)
 
 		if (chi_illegal_move (pos, move,
 		                      (tree->move_states[ply] <= 
-		                      move_state_generate_non_captures)))
+		                      move_state_generate_non_captures))) {
+			chi_copy_pos(pos, &saved_pos);
 			continue;
+		}
 
 		++num_moves;
 
@@ -480,11 +447,3 @@ search (TREE *tree, int depth, int ply, int alpha, int beta, int allow_null)
 
 	return best_score;
 }
-
-/*
-Local Variables:
-mode: c
-c-style: K&R
-c-basic-shift: 8
-End:
-*/
