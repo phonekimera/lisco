@@ -28,6 +28,7 @@
 
 #include "tate.h"
 
+// Set to the maximum depth to search.
 #define DEBUG_BRAIN 0
 #if DEBUG_BRAIN
 # include <stdio.h>
@@ -237,5 +238,9 @@ extern int probe_ev(chi_pos* pos, bitv64 signature, int* score);
 
 extern void store_killer(TREE* tree, chi_move move, int depth, int ply);
 extern void init_killers(void);
+
+#if DEBUG_BRAIN
+extern void dump_pv(TREE *tree);
+#endif
 
 #endif
