@@ -21,6 +21,7 @@ src/tate
 /build-aux
 *~
 /INSTALL
+/libchi/bitmasks.h
 
 libchi/libchi.h
 libchi/chitest
