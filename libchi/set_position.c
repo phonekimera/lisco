@@ -100,73 +100,73 @@ chi_set_position(chi_pos *argpos, const char *fen)
 	while (*ptr == ' ' || *ptr == '\t')
 		++ptr;
 
-		switch (*ptr) {
-			case 'a':
-				ep_file = 0;
-				break;
-			case 'b':
-				ep_file = 1;
-				break;
-			case 'c':
-				ep_file = 2;
-				break;
-			case 'd':
-				ep_file = 3;
-				break;
-			case 'e':
-				ep_file = 4;
-				break;
-			case 'f':
-				ep_file = 5;
-				break;
-			case 'g':
-				ep_file = 6;
-				break;
-			case 'h':
-				ep_file = 7;
-				break;
-			case '-':
-				break;
-			default:
-				return CHI_ERR_ILLEGAL_FEN;
-		}
-	
+	switch (*ptr) {
+		case 'a':
+			ep_file = 0;
+			break;
+		case 'b':
+			ep_file = 1;
+			break;
+		case 'c':
+			ep_file = 2;
+			break;
+		case 'd':
+			ep_file = 3;
+			break;
+		case 'e':
+			ep_file = 4;
+			break;
+		case 'f':
+			ep_file = 5;
+			break;
+		case 'g':
+			ep_file = 6;
+			break;
+		case 'h':
+			ep_file = 7;
+			break;
+		case '-':
+			break;
+		default:
+			return CHI_ERR_ILLEGAL_FEN;
+	}
+
+	++ptr;
+
+	if (ep_file >= 0) {
+		if (*ptr != '3' && *ptr != '6')
+			return CHI_ERR_ILLEGAL_FEN;
 		++ptr;
 
-		if (ep_file >= 0) {
-			if (*ptr != '3' && *ptr != '6')
-				return CHI_ERR_ILLEGAL_FEN;
-			++ptr;
+		chi_ep (pos) = 1;
+		chi_ep_file (pos) = ep_file;
+	}
 
-			chi_ep (pos) = 1;
-			chi_ep_file (pos) = ep_file;
-		}
+	while (*ptr == ' ' || *ptr == '\t')
+		++ptr;
 
-		while (*ptr == ' ' || *ptr == '\t')
-			++ptr;
+	num = strtoul (ptr, &num_end_ptr, 10);
+	if (num_end_ptr == ptr)
+		return CHI_ERR_ILLEGAL_FEN;
+	pos->half_move_clock = num;
+	ptr = num_end_ptr;
 
-			num = strtoul (ptr, &num_end_ptr, 10);
-			if (num_end_ptr == ptr)
-				return CHI_ERR_ILLEGAL_FEN;
-			pos->half_move_clock = num;
-			ptr = num_end_ptr;
+	while (*ptr == ' ' || *ptr == '\t')
+		++ptr;
 
-		while (*ptr == ' ' || *ptr == '\t')
-			++ptr;
+	num = strtoul (ptr, &num_end_ptr, 10);
+	if (num_end_ptr == ptr)
+		return CHI_ERR_ILLEGAL_FEN;
 
-		num = strtoul (ptr, &num_end_ptr, 10);
-		if (num_end_ptr == ptr)
-			return CHI_ERR_ILLEGAL_FEN;
+	if (chi_on_move(pos) == chi_white)
+		pos->half_moves = (num - 1) << 1;
+	else
+		pos->half_moves = ((num - 1) << 1) + 1;
 
-		if (chi_on_move(pos) == chi_white)
-			pos->half_moves = (num - 1) << 1;
-		else
-			pos->half_moves = ((num - 1) << 1) + 1;
+	ptr = num_end_ptr;
 
-		ptr = num_end_ptr;
-
-		while (*ptr == ' ' || *ptr == '\t' || *ptr == '\r' || *ptr == '\n')
-			++ptr;
+	while (*ptr == ' ' || *ptr == '\t' || *ptr == '\r' || *ptr == '\n')
+		++ptr;
 
 		/* Trailing garbage? */
 	if (*ptr)
