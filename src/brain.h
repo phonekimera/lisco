@@ -29,6 +29,9 @@
 #include "tate.h"
 
 #define DEBUG_BRAIN 0
+#if DEBUG_BRAIN
+# include <stdio.h>
+#endif
 
 #define ONEPLY (64)
 #define TWOPLY (ONEPLY << 1)
