@@ -19,8 +19,6 @@
 
 AUTOMAKE_OPTIONS = 1.5 gnits
 
-CFLAGS = -Wall @CFLAGS@
-
 lib_LTLIBRARIES = libchi.la
 libchi_la_SOURCES = libchi.h dump_pieces.c strerror.c make_move.c \
 	print_move.c movegen.c bitv2shift.c clear_position.c \
@@ -33,7 +31,7 @@ libchi_la_SOURCES = libchi.h dump_pieces.c strerror.c make_move.c \
 
 libchi_la_LDFLAGS = -version-info 0:0:0
 
-INCLUDES = -I. -I$(srcdir) -I.. -I$(top_srcdir)/lib
+AM_CPPFLAGS = -I. -I$(srcdir) -I.. -I$(top_srcdir)/lib
 
 noinst_PROGRAMS = genmasks chitest
 # *Never* add -lchi here (bootstrapping problem).

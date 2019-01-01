@@ -5,8 +5,6 @@
 
 AUTOMAKE_OPTIONS = gnits
 
-CFLAGS = @CFLAGS@ -Wall
-
 bin_PROGRAMS = tate 
 
 noinst_HEADERS = board.h brain.h tate.h edit.h book.h time_ctrl.h
@@ -18,9 +16,9 @@ tate_SOURCES = tate.c board.c brain.c edit.c book.c time_ctrl.c \
 tate_LDADD = ../lib/libutil.a
 tate_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
 
-INCLUDES = -I. -I$(srcdir) -I.. -I$(top_srcdir)/lib -I../lib \
+AM_CPPFLAGS = -I. -I$(srcdir) -I.. -I$(top_srcdir)/lib -I../lib \
 	-I$(top_srcdir)/libchi -I../libchi
 LIBS = -lgdbm -lchi
 LDADD = ../lib/libutil.a ../libchi/libchi.la
-LDFLAGS = -L$(top_srcdir)/libchi -L../libchi
+AM_LDFLAGS = -L$(top_srcdir)/libchi -L../libchi
 

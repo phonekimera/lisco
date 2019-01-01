@@ -2,11 +2,10 @@ dnl -*- m4 -*-
 dnl (w) Guido Flohr
 dnl $Id: configure.in,v 1.4 2001/09/10 00:10:25 guido Exp $
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(src/tate.c)
+AC_INIT([tate], [0.5.0])
+AC_CONFIG_SRCDIR([src/tate.c])
+AM_INIT_AUTOMAKE
 
-AC_CANONICAL_SYSTEM
-
-AM_INIT_AUTOMAKE(tate, 0.3.3)
 AM_CONFIG_HEADER(config.h)
 
 AM_MAINTAINER_MODE

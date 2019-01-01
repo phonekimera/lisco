@@ -19,8 +19,6 @@
 
 AUTOMAKE_OPTIONS = 1.5 gnits no-dependencies
 
-CFLAGS = -Wall @CFLAGS@
-
 noinst_LIBRARIES = libutil.a
 
 libutil_a_SOURCES = error.c xmalloc.c xstrdup.c
