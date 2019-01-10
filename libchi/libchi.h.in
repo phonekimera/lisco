@@ -38,6 +38,10 @@ typedef @BITV64@ bitv64;
 # define CHI_END_DECLS /* empty */
 #endif
 
+/* Assume UTF-8 capabilities.  */
+#define CHI_USE_UTF_8 1
+#define CHI_USE_UTF8 CHI_USE_UTF_8
+
 /* Error codes.  */
 #define CHI_ERR_SUCCESS    0
 /* Out of memory.  */
@@ -382,6 +386,11 @@ extern const char* chi_shift2label(unsigned int chi_arg_shift);
 
 /* Return a letter for a given piece (including pawn!).  */
 extern const char chi_piece2char(chi_piece_t chi_arg_piece);
+
+#if CHI_USE_UTF_8
+/* Return utf-8 representations of English letters for pieces.  */
+extern const char *chi_char2figurine(char piece);
+#endif
 
 /* Parse the move string and place the result into the structure.
    Returns a non-zero error code in case of failure.  */

@@ -1,4 +1,4 @@
-/*
+/* parse_fen_position.c - Parse a FEN position.
  * Copyright (C) 2002 Guido Flohr (guido@imperia.net)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,27 +21,7 @@
 # include <config.h>
 #endif
 
-#include <check.h>
-#include <stdlib.h>
+#include <string.h>
 
-#include "libchi.h"
+#include <libchi.h>
 
-extern Suite *parsers_suite();
-extern Suite *presentation_suite();
-
-int
-main(int argc, char *argv[])
-{
-	int failed = 0;
-	Suite *suite;
-	SRunner *runner;
-
-	runner = srunner_create(parsers_suite());
-	srunner_add_suite(runner, presentation_suite());
-
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
-
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
-}

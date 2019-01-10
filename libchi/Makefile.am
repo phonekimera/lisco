@@ -29,7 +29,8 @@ libchi_la_SOURCES = libchi.h dump_pieces.c strerror.c make_move.c \
 	check_legality.c illegal_move.c closest_prime.c \
 	zk_init.c zk_finish.c zk_signature.c zk_update_signature.c \
 	zk_change_side.c update_material.c set_position.c \
-	parse_fen_position.c parse_epd.c perft.c
+	parse_fen_position.c parse_epd.c perft.c \
+        char2figurine.c
 
 libchi_la_LDFLAGS = -version-info 0:0:0
 

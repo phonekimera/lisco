@@ -22,26 +22,31 @@
 #endif
 
 #include <check.h>
-#include <stdlib.h>
 
 #include "libchi.h"
 
-extern Suite *parsers_suite();
-extern Suite *presentation_suite();
+#if CHI_USE_UTF_8
 
-int
-main(int argc, char *argv[])
+START_TEST(test_char2figurine)
+END_TEST
+
+#endif /* CHI_USE_UTF_8 */
+
+Suite *
+presentation_suite(void)
 {
-	int failed = 0;
 	Suite *suite;
-	SRunner *runner;
+	TCase *tc_figurine;
+	
+	suite = suite_create("Presentation");
 
-	runner = srunner_create(parsers_suite());
-	srunner_add_suite(runner, presentation_suite());
+#if CHI_USE_UTF_8
+	tc_figurine = tcase_create("Figurine");
 
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
+	tcase_add_test(tc_figurine, test_char2figurine);
 
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	suite_add_tcase(suite, tc_figurine);
+#endif
+
+	return suite;
 }

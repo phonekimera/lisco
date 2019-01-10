@@ -85,11 +85,12 @@ parsers_suite(void)
 	Suite *suite;
 	TCase *tc_bugs;
 	
-	suite = suite_create("libchi");
+	suite = suite_create("Parsers");
 
 	tc_bugs = tcase_create("Bugs");
 
 	tcase_add_test(tc_bugs, test_parse_move_san_bug);
+	// FIXME! Wrong test case!
 	tcase_add_test(tc_bugs, test_parse_move_san_pawn);
 
 	suite_add_tcase(suite, tc_bugs);

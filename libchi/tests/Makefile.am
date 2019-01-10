@@ -23,6 +23,7 @@ TESTS = ./check_libchi
 
 check_libchi_SOURCES = \
         test_parsers.c \
+        test_presentation.c \
         check_libchi.c
 
 check_libchi_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
