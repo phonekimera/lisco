@@ -27,11 +27,18 @@
 
 START_TEST(test_parse_move_san_bug)
 	chi_pos pos;
+	chi_move move;
 	const char *fen = "r5k1/1p2b1pp/p2p4/2pqpr2/8/1P1PQN2/P4PPP/1RR4K b - - 1 19";
 	int errnum = chi_set_position(&pos, fen);
 
 	ck_assert_int_eq(errnum, 0);
-	
+
+	errnum = chi_parse_move (&pos, &move, "Ra8f8");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(0, 7));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 7));
+//	errnum = chi_parse_move (&pos, &move, "Raf8");
+//	ck_assert_int_eq(errnum, 0);
 END_TEST
 
 Suite *
