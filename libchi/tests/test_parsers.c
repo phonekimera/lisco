@@ -22,24 +22,26 @@
 #endif
 
 #include <check.h>
-#include <stdlib.h>
 
 #include "libchi.h"
 
-extern Suite *parsers_suite();
+START_TEST(test_parse_move_san_bug)
+	ck_assert_str_eq("chi", "chi");
+END_TEST
 
-int
-main(int argc, char *argv[])
+Suite *
+parsers_suite(void)
 {
-	int failed = 0;
 	Suite *suite;
-	SRunner *runner;
+	TCase *tc_bugs;
+	
+	suite = suite_create("libchi");
 
-	runner = srunner_create(parsers_suite());
+	tc_bugs = tcase_create("Bugs");
 
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
+	tcase_add_test(tc_bugs, test_parse_move_san_bug);
 
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	suite_add_tcase(suite, tc_bugs);
+
+	return suite;
 }

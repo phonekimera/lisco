@@ -22,6 +22,7 @@ noinst_PROGRAMS = check_libchi
 TESTS = ./check_libchi
 
 check_libchi_SOURCES = \
+        test_parsers.c \
         check_libchi.c
 
 check_libchi_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
