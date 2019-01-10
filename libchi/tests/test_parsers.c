@@ -26,7 +26,12 @@
 #include "libchi.h"
 
 START_TEST(test_parse_move_san_bug)
-	ck_assert_str_eq("chi", "chi");
+	chi_pos pos;
+	const char *fen = "r5k1/1p2b1pp/p2p4/2pqpr2/8/1P1PQN2/P4PPP/1RR4K b - - 1 19";
+	int errnum = chi_set_position(&pos, fen);
+
+	ck_assert_int_eq(errnum, 0);
+	
 END_TEST
 
 Suite *
