@@ -56,6 +56,6 @@ chi_char2figurine(char c)
 			return "♟";
 	}
 
-	return "";
+	return " ";
 }
 #endif

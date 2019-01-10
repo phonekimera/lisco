@@ -54,7 +54,11 @@ display_board(chi_pos *pos)
 		printf (" %c ", chi_rank2char (rank));
 		for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
 			int shift = chi_coords2shift (file, rank);
+#if CHI_USE_UTF_8
+			printf("| %s ", chi_char2figurine(buf[shift]));
+#else
 			printf ("| %c ", buf[shift]);
+#endif
 		}
 		printf ("| ");
 

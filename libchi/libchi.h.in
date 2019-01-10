@@ -38,8 +38,10 @@ typedef @BITV64@ bitv64;
 # define CHI_END_DECLS /* empty */
 #endif
 
-/* Assume UTF-8 capabilities.  */
-#define CHI_USE_UTF_8 1
+/* Assume UTF-8 capabilities? Unfortunately, using figurine notation looks
+ * ugly in a terminal, so we disable it by default.
+ */
+#define CHI_USE_UTF_8 0
 #define CHI_USE_UTF8 CHI_USE_UTF_8
 
 /* Error codes.  */
