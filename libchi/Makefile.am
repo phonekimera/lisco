@@ -35,11 +35,11 @@ libchi_la_LDFLAGS = -version-info 0:0:0
 
 AM_CPPFLAGS = -I. -I$(srcdir) -I.. -I$(top_srcdir)/lib
 
-noinst_PROGRAMS = genmasks chitest
+noinst_PROGRAMS = genmasks showfen
 # *Never* add -lchi here (bootstrapping problem).
 
-chitest_LDADD = -lchi
-chitest_DEPENDENCIES = $(srcdir)/libchi.la
+showfen_LDADD = -lchi $(top_srcdir)/lib/libtate.la
+showfen_DEPENDENCIES = $(srcdir)/libchi.la $(top_srcdir)/lib/libtate.la
 
 bitmasks.h: genmasks
 	./genmasks >$@.tmp

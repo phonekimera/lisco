@@ -28,6 +28,26 @@
 START_TEST(test_parse_move_san_bug)
 	chi_pos pos;
 	chi_move move;
+/*      a   b   c   d   e   f   g   h  
+   +---+---+---+---+---+---+---+---+
+ 8 | r |   |   |   |   |   | k |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   | p |   |   | b |   | p | p | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 | p |   |   | p |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 1.
+ 5 |   |   | p | q | p | r |   |   | Half moves: 37.
+   +---+---+---+---+---+---+---+---+ Next move: black.
+ 4 |   |   |   |   |   |   |   |   | Material: -1.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   | P |   | P | Q | N |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+ 
+ 2 | P |   |   |   |   | P | P | P | 
+   +---+---+---+---+---+---+---+---+ 
+ 1 |   | R | R |   |   |   |   | K | 
+   +---+---+---+---+---+---+---+---+ 
+     a   b   c   d   e   f   g   h  
+ */
 	const char *fen = "r5k1/1p2b1pp/p2p4/2pqpr2/8/1P1PQN2/P4PPP/1RR4K b - - 1 19";
 	int errnum = chi_set_position(&pos, fen);
 
