@@ -28,6 +28,19 @@
 #if CHI_USE_UTF_8
 
 START_TEST(test_char2figurine)
+	ck_assert_str_eq(chi_char2figurine('K'), "♔");
+	ck_assert_str_eq(chi_char2figurine('Q'), "♕");
+	ck_assert_str_eq(chi_char2figurine('R'), "♖");
+	ck_assert_str_eq(chi_char2figurine('B'), "♗");
+	ck_assert_str_eq(chi_char2figurine('N'), "♘");
+	ck_assert_str_eq(chi_char2figurine('P'), "♙");
+	ck_assert_str_eq(chi_char2figurine('k'), "♚");
+	ck_assert_str_eq(chi_char2figurine('q'), "♛");
+	ck_assert_str_eq(chi_char2figurine('r'), "♜");
+	ck_assert_str_eq(chi_char2figurine('b'), "♝");
+	ck_assert_str_eq(chi_char2figurine('n'), "♞");
+	ck_assert_str_eq(chi_char2figurine('p'), "♟");
+	ck_assert_str_eq(chi_char2figurine('x'), "");
 END_TEST
 
 #endif /* CHI_USE_UTF_8 */
