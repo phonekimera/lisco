@@ -37,8 +37,26 @@ START_TEST(test_parse_move_san_bug)
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(0, 7));
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 7));
-//	errnum = chi_parse_move (&pos, &move, "Raf8");
-//	ck_assert_int_eq(errnum, 0);
+	/* Same move now in SAN.  */
+#if 0
+	errnum = chi_parse_move (&pos, &move, "Raf8");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(0, 7));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 7));
+#endif
+END_TEST
+
+START_TEST(test_parse_move_san_pawn)
+	chi_pos pos;
+	chi_move move;
+	int errnum;
+	
+	chi_init_position(&pos);
+
+	errnum = chi_parse_move (&pos, &move, "e4");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 1));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(4, 3));
 END_TEST
 
 Suite *
@@ -52,6 +70,7 @@ parsers_suite(void)
 	tc_bugs = tcase_create("Bugs");
 
 	tcase_add_test(tc_bugs, test_parse_move_san_bug);
+	tcase_add_test(tc_bugs, test_parse_move_san_pawn);
 
 	suite_add_tcase(suite, tc_bugs);
 
