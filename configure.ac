@@ -23,6 +23,8 @@ AC_LANG([C])
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 
+PKG_CHECK_MODULES([CHECK], [check])
+
 AC_DEFINE(_GNU_SOURCE, 1, [Make sure we see all GNU extensions.])
 
 AC_C_CONST
@@ -57,6 +59,7 @@ if test $am_cv_func_working_getline != yes; then
 fi
 AC_TYPE_SIGNAL
 
-AC_CONFIG_FILES([Makefile lib/Makefile libchi/libchi.h libchi/Makefile \
+AC_CONFIG_FILES([Makefile lib/Makefile
+                 libchi/libchi.h libchi/Makefile libchi/tests/Makefile \
                  src/Makefile])
 AC_OUTPUT

@@ -19,6 +19,8 @@
 
 AUTOMAKE_OPTIONS = 1.5 gnits
 
+SUBDIRS = tests
+
 lib_LTLIBRARIES = libchi.la
 libchi_la_SOURCES = libchi.h dump_pieces.c strerror.c make_move.c \
 	print_move.c movegen.c bitv2shift.c clear_position.c \
