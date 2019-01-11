@@ -129,6 +129,10 @@ START_TEST(test_parse_move_san_piece_capture)
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(5, 2));
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(4, 4));
+	errnum = chi_parse_move (&pos, &move, "Ne5:");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(5, 2));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(4, 4));
 END_TEST
 
 Suite *
