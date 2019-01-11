@@ -135,6 +135,42 @@ START_TEST(test_parse_move_san_piece_capture)
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(4, 4));
 END_TEST
 
+
+START_TEST(test_parse_move_san_ambiguous_pawn_capture)
+	chi_pos pos;
+	chi_move move;
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | r | n | b | q | k | b | n | r | En passant possible on file d.
+   +---+---+---+---+---+---+---+---+ White king castle: yes.
+ 7 | p | p | p |   |   | p | p | p | White queen castle: yes.
+   +---+---+---+---+---+---+---+---+ Black king castle: yes.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: yes.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   | p | p |   |   |   | Half moves: 4.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   | P |   | P |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 | P | P |   | P |   | P | P | P |
+   +---+---+---+---+---+---+---+---+
+ 1 | R | N | B | Q | K | B | N | R |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+ */
+	const char *fen = "rnbqkbnr/ppp2ppp/8/3pp3/2P1P3/8/PP1P1PPP/RNBQKBNR w KQkq d6 0 3";
+	int errnum = chi_set_position(&pos, fen);
+
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move (&pos, &move, "cxd");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(2, 3));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(3, 4));
+END_TEST
+
 Suite *
 parsers_suite(void)
 {
@@ -152,6 +188,7 @@ parsers_suite(void)
 	tcase_add_test(tc_san, test_parse_move_san_pawn);
 	tcase_add_test(tc_san, test_parse_move_san_piece);
 	tcase_add_test(tc_san, test_parse_move_san_piece_capture);
+	tcase_add_test(tc_san, test_parse_move_san_ambiguous_pawn_capture);
 	suite_add_tcase(suite, tc_san);
 
 	return suite;
