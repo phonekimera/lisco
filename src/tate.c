@@ -221,10 +221,16 @@ get_event ()
     } else {
 	return retval;
     }
-    
-    cmd = strtok (linebuf, WHITE_SPACE);
-    if (cmd == NULL)
-	return retval;
+
+	cmd = strtok (linebuf, WHITE_SPACE);
+	if (cmd == NULL) {
+		if (!xboard)
+			fputs (PROMPT, stdout); 
+
+		fflush (stdout);
+
+		return EVENT_CONTINUE;
+	}
 
     if (edit_mode) {
 	retval = EVENT_STOP_THINKING;
