@@ -44,7 +44,10 @@ display_board(chi_pos *pos)
 
 	printf ("    ");
 	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
-		printf (" %c  ", chi_file2char(file));
+		if (file == CHI_FILE_H)
+			printf(" %c", chi_file2char(file));
+		else
+			printf (" %c  ", chi_file2char(file));
 	}
 	printf ("\n   +---+---+---+---+---+---+---+---+\n");
 
@@ -60,58 +63,58 @@ display_board(chi_pos *pos)
 			printf ("| %c ", buf[shift]);
 #endif
 		}
-		printf ("| ");
+		printf ("|");
 
 		switch (rank) {
 			case CHI_RANK_8:
 				if (chi_ep (pos)) {
-					printf ("En passant possible on file %c.", 
+					printf (" En passant possible on file %c.", 
 					chi_ep_file (pos) + 'a');
 				} else {
-					printf ("En passant not possible.");
+					printf (" En passant not possible.");
 				}
 				break;
 			case CHI_RANK_7:
-				printf ("White queen castle: %s.", 
+				printf (" White queen castle: %s.", 
 				chi_wq_castle (pos) ? "yes" : "no");
 				break;
 			case CHI_RANK_6:
-				printf ("Black queen castle: %s.", 
+				printf (" Black queen castle: %s.", 
 				chi_bq_castle (pos) ? "yes" : "no");
 				break;
 			case CHI_RANK_5:
-				printf ("Half moves: %d.", pos->half_moves);
+				printf (" Half moves: %d.", pos->half_moves);
 				break;
 			case CHI_RANK_4:
-				printf ("Material: %+d.", chi_material (pos));
+				printf (" Material: %+d.", chi_material (pos));
 				break;
 			case CHI_RANK_3:
-				printf ("White has castled: %s.",
+				printf (" White has castled: %s.",
 				chi_w_castled (pos) ? "yes" : "no");
 				break;
 		}
 
-		fputs ("\n   +---+---+---+---+---+---+---+---+ ", stdout);
+		fputs ("\n   +---+---+---+---+---+---+---+---+", stdout);
 
 		switch (rank) {
 			case CHI_RANK_8:
-				printf ("White king castle: %s.", 
+				printf (" White king castle: %s.", 
 				chi_wk_castle (pos) ? "yes" : "no");
 				break;
 			case CHI_RANK_7:
-				printf ("Black king castle: %s.", 
+				printf (" Black king castle: %s.", 
 				chi_bk_castle (pos) ? "yes" : "no");
 				break;
 			case CHI_RANK_6:
-				printf ("Half move clock (50 moves): %d.", 
+				printf (" Half move clock (50 moves): %d.", 
 				pos->half_move_clock);
 				break;
 	    	case CHI_RANK_5:
-				printf ("Next move: %s.", 
+				printf (" Next move: %s.", 
 				chi_on_move (pos) ? "black" : "white");
 				break;
 			case CHI_RANK_4:
-				printf ("Black has castled: %s.",
+				printf (" Black has castled: %s.",
 				chi_b_castled (pos) ? "yes" : "no");
 			break;
 		}
@@ -121,7 +124,10 @@ display_board(chi_pos *pos)
 
 	printf ("    ");
 	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
-		printf (" %c  ", chi_file2char(file));
+		if (file == CHI_FILE_H)
+			printf(" %c", chi_file2char(file));
+		else
+			printf (" %c  ", chi_file2char(file));
 	}
 
 	printf ("\n");
