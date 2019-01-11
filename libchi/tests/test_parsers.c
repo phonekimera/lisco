@@ -88,8 +88,43 @@ START_TEST(test_parse_move_san_piece)
 
 	errnum = chi_parse_move (&pos, &move, "Nc3");
 	ck_assert_int_eq(errnum, 0);
-	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(2, 0));
-	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(3, 2));
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(1, 0));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(2, 2));
+END_TEST
+
+START_TEST(test_parse_move_san_piece_capture)
+	chi_pos pos;
+	chi_move move;
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | r |   | b | q | k | b | n | r | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: yes.
+ 7 | p | p | p | p |   | p | p | p | White queen castle: yes.
+   +---+---+---+---+---+---+---+---+ Black king castle: yes.
+ 6 |   |   | n |   |   |   |   |   | Black queen castle: yes.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 2.
+ 5 |   |   |   |   | p |   |   |   | Half moves: 4.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   | P |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   | N |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 | P | P | P | P |   | P | P | P |
+   +---+---+---+---+---+---+---+---+
+ 1 | R | N | B | Q | K | B |   | R |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+ */
+	const char *fen = "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3";
+	int errnum = chi_set_position(&pos, fen);
+
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move (&pos, &move, "Nxe5");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(5, 2));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(4, 4));
 END_TEST
 
 Suite *
@@ -105,10 +140,11 @@ parsers_suite(void)
 	tcase_add_test(tc_bugs, test_parse_move_san_bug);
 	suite_add_tcase(suite, tc_bugs);
 
-    tc_san = tcase_create("SAN");
-	tcase_add_test(tc_bugs, test_parse_move_san_pawn);
-	tcase_add_test(tc_bugs, test_parse_move_san_piece);
-    suite_add_tcase(suite, tc_san);
+	tc_san = tcase_create("SAN");
+	tcase_add_test(tc_san, test_parse_move_san_pawn);
+	tcase_add_test(tc_san, test_parse_move_san_piece);
+	tcase_add_test(tc_san, test_parse_move_san_piece_capture);
+	suite_add_tcase(suite, tc_san);
 
 	return suite;
 }
