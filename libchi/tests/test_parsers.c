@@ -84,16 +84,17 @@ parsers_suite(void)
 {
 	Suite *suite;
 	TCase *tc_bugs;
+    TCase *tc_san;
 	
 	suite = suite_create("Parsers");
 
 	tc_bugs = tcase_create("Bugs");
-
 	tcase_add_test(tc_bugs, test_parse_move_san_bug);
-	// FIXME! Wrong test case!
-	tcase_add_test(tc_bugs, test_parse_move_san_pawn);
-
 	suite_add_tcase(suite, tc_bugs);
+
+    tc_san = tcase_create("SAN");
+	tcase_add_test(tc_bugs, test_parse_move_san_pawn);
+    suite_add_tcase(suite, tc_san);
 
 	return suite;
 }
