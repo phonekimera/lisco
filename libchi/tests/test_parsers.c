@@ -79,6 +79,19 @@ START_TEST(test_parse_move_san_pawn)
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(4, 3));
 END_TEST
 
+START_TEST(test_parse_move_san_piece)
+	chi_pos pos;
+	chi_move move;
+	int errnum;
+	
+	chi_init_position(&pos);
+
+	errnum = chi_parse_move (&pos, &move, "Nc3");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(2, 0));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(3, 2));
+END_TEST
+
 Suite *
 parsers_suite(void)
 {
@@ -94,6 +107,7 @@ parsers_suite(void)
 
     tc_san = tcase_create("SAN");
 	tcase_add_test(tc_bugs, test_parse_move_san_pawn);
+	tcase_add_test(tc_bugs, test_parse_move_san_piece);
     suite_add_tcase(suite, tc_san);
 
 	return suite;
