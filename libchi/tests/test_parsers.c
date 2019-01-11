@@ -169,6 +169,14 @@ START_TEST(test_parse_move_san_ambiguous_pawn_capture)
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(2, 3));
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(3, 4));
+	errnum = chi_parse_move (&pos, &move, "cd:");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(2, 3));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(3, 4));
+	errnum = chi_parse_move (&pos, &move, "c:d");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(2, 3));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(3, 4));
 END_TEST
 
 Suite *
