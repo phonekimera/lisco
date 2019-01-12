@@ -52,7 +52,7 @@ typedef @BITV64@ bitv64;
 #define CHI_ERR_PARSER     2
 /* Move from an empty square.  */
 #define CHI_ERR_EMPTY_SQUARE 3
-/* Move from an empty square.  */
+/* Illegal move.  */
 #define CHI_ERR_ILLEGAL_MOVE 4
 /* Side not on move is in check.  */
 #define CHI_ERR_IN_CHECK 5
@@ -68,8 +68,10 @@ typedef @BITV64@ bitv64;
 #define CHI_ERR_ILLEGAL_EPD 10
 /* Illegal library usage (NULL pointers, etc.).  */
 #define CHI_ERR_YOUR_FAULT 11
+/* Ambiguous move.  */
+#define CHI_ERR_AMBIGUOUS_MOVE 12
 /* End marker.  */
-#define CHI_ERRMAX      CHI_ERR_YOUR_FAULT
+#define CHI_ERRMAX      CHI_ERR_AMBIGUOUS_MOVE
 
 /* Bit masks for files and ranks of the chess board.  */
 #define CHI_A_MASK ((bitv64) 0x8080808080808080)

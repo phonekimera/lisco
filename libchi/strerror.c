@@ -36,6 +36,7 @@ static const char* error_strings[] = {
     "illegal castling state",
     "cannot parse EPD string",
     "illegal library usage",
+	"ambiguous move"
 };
 
 const char*
