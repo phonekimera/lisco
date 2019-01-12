@@ -270,7 +270,8 @@ parse_san_move (chi_pos *pos, chi_move *move, const char *movestr)
 	chi_move* match = NULL;
 	int check_matched = 0;
 	int capture_matched = 0;
-	int enough = 0;
+	unsigned int enough = 0;
+	unsigned int matches = 0;
 
 	switch (ptr[0]) {
 		case 'P':
@@ -426,7 +427,7 @@ parse_san_move (chi_pos *pos, chi_move *move, const char *movestr)
 			case 'q':
 				promote = queen;
 			break;
-	}
+		}
 	}
 
 	if (ptr[0] == '+' || ptr[0] == '#') {
@@ -435,12 +436,12 @@ parse_san_move (chi_pos *pos, chi_move *move, const char *movestr)
 	}
 
 #if 0
-	fprintf (stderr, "  Piece: %d\n", piece);
-	fprintf (stderr, "  From: (%d|%d)\n", from_file, from_rank);
-	fprintf (stderr, "  To: (%d|%d)\n", to_file, to_rank);
-	fprintf (stderr, "  Capture: %s\n", is_capture ? "yes" : "no");
-	fprintf (stderr, "  Promote: %d\n", promote);
-	fprintf (stderr, "  Check: %s\n", is_check ? "yes" : "no");
+	printf ("  Piece: %d\n", piece);
+	printf ("  From: (%d|%d)\n", from_file, from_rank);
+	printf ("  To: (%d|%d)\n", to_file, to_rank);
+	printf ("  Capture: %s\n", is_capture ? "yes" : "no");
+	printf ("  Promote: %d\n", promote);
+	printf ("  Check: %s\n", is_check ? "yes" : "no");
 #endif
 
 	if (from_file >= 0)
@@ -510,10 +511,13 @@ parse_san_move (chi_pos *pos, chi_move *move, const char *movestr)
 		capture_matched = capture_matches;
 		check_matched = check_matches;
 		match = mv;
+		++matches;
 	}
 
-	if (!match)
+	if (!matches)
 		return -1;
+	else if (matches > 1)
+		return CHI_ERR_AMBIGUOUS_MOVE;
 
 	*move = *match;
 

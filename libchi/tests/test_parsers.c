@@ -232,7 +232,7 @@ START_TEST(test_parse_move_san_ambiguous_pawn_capture)
 
 	/* Test that move is completely specified.  */
 	errnum = chi_parse_move (&pos, &move, "exf");
-//	ck_assert_int_eq(errnum, CHI_ERR_AMBIGUOUS_MOVE);
+	ck_assert_int_eq(errnum, CHI_ERR_AMBIGUOUS_MOVE);
 
 END_TEST
 
