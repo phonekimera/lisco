@@ -1,4 +1,7 @@
+/.vscode
+
 Makefile
+Makefile.in
 /config.h
 /config.log
 /config.status
@@ -24,5 +27,10 @@ src/tate
 /libchi/bitmasks.h
 
 libchi/libchi.h
-libchi/chitest
+libchi/showfen
+libchi/tests/check_libchi
 libchi/genmasks
+libchi/tests/check_libchi.log
+libchi/tests/check_libchi.trs
+libchi/tests/test-suite.log
+
