@@ -177,6 +177,63 @@ START_TEST(test_parse_move_san_ambiguous_pawn_capture)
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(2, 3));
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(3, 4));
+
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   |   |   |   | k |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   | n |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   | P | b |   |   | Half moves: 0.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   | K | P |   |   |   | Material: -4.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+ */
+	fen = "4k3/8/5n2/4Pb2/3KP3/8/8/8 w - - 0 1";
+
+	errnum = chi_set_position(&pos, fen);
+
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move (&pos, &move, "exf6");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 4));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 5));
+	errnum = chi_parse_move (&pos, &move, "e:f6");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 4));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 5));
+	errnum = chi_parse_move (&pos, &move, "ef6:");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 4));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 5));
+	errnum = chi_parse_move (&pos, &move, "exf5");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 3));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 4));
+	errnum = chi_parse_move (&pos, &move, "e:f5");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 3));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 4));
+	errnum = chi_parse_move (&pos, &move, "ef5:");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 3));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 4));
+
+	/* Test that move is completely specified.  */
+	errnum = chi_parse_move (&pos, &move, "exf");
+//	ck_assert_int_eq(errnum, CHI_ERR_AMBIGUOUS_MOVE);
+
 END_TEST
 
 Suite *
