@@ -66,10 +66,7 @@ chi_parse_move (chi_pos *pos, chi_move *move, const char *movestr)
 }
 
 static int
-parse_castling (pos, move, movestr)
-	 chi_pos* pos;
-	 chi_move* move;
-	 const char* movestr;
+parse_castling (chi_pos *pos, chi_move *move, const char *movestr)
 {
 	/* Castling moves are easy to detect.  */
 	if (0 == strncasecmp ("o-o-o", movestr, 5)
