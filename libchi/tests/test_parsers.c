@@ -240,6 +240,41 @@ START_TEST(test_parse_move_san_ambiguous_pawn_capture)
 
 END_TEST
 
+START_TEST(test_parse_move_san_promotion)
+	chi_pos pos;
+	chi_move move;
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   |   |   |   |   | b |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   | K | P |   | P |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   | k |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 0.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: -1.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+ */
+	const char *fen = "5b2/3KP1P1/5k2/8/8/8/8/8 w - - 0 1";
+	int errnum = chi_set_position(&pos, fen);
+
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move (&pos, &move, "e8Q");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 6));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(4, 7));
+END_TEST
+
 Suite *
 parsers_suite(void)
 {
@@ -258,6 +293,7 @@ parsers_suite(void)
 	tcase_add_test(tc_san, test_parse_move_san_piece);
 	tcase_add_test(tc_san, test_parse_move_san_piece_capture);
 	tcase_add_test(tc_san, test_parse_move_san_ambiguous_pawn_capture);
+	tcase_add_test(tc_san, test_parse_move_san_promotion);
 	suite_add_tcase(suite, tc_san);
 
 	return suite;

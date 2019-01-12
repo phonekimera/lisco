@@ -140,7 +140,7 @@ parse_fq_move (chi_pos *pos, chi_move *move, const char *movestr)
 		/* Maybe an additional slash.  */
 		if (ptr[0] == '/')
 			++ptr;
-		}
+	}
 
 	switch (ptr[0]) {
 		case '\0':
@@ -405,29 +405,28 @@ parse_san_move (chi_pos *pos, chi_move *move, const char *movestr)
 	    && to_file >= 0 && from_file != to_file)
 		is_capture = 1;
 
-	if (ptr[0] == '=') {
+	if (ptr[0] == '=')
 		++ptr;
 	
-		switch (ptr[0]) {
-			case 'N':
-			case 'K':
-			case 'n':
-			case 'k':
-				promote = knight;
-			break;
-			case 'B':
-			case 'b':
-				promote = knight;
-			break;
-			case 'R':
-			case 'r':
-				promote = knight;
-			break;
-			case 'Q':
-			case 'q':
-				promote = queen;
-			break;
-		}
+	switch (ptr[0]) {
+		case 'N':
+		case 'K':
+		case 'n':
+		case 'k':
+			promote = knight;
+		break;
+		case 'B':
+		case 'b':
+			promote = knight;
+		break;
+		case 'R':
+		case 'r':
+			promote = knight;
+		break;
+		case 'Q':
+		case 'q':
+			promote = queen;
+		break;
 	}
 
 	if (ptr[0] == '+' || ptr[0] == '#') {
@@ -452,6 +451,7 @@ parse_san_move (chi_pos *pos, chi_move *move, const char *movestr)
 		++enough;
 	if (to_rank >= 0)
 		++enough;
+
 	if (enough < 2)
 		return -1;
 
