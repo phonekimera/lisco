@@ -273,6 +273,30 @@ START_TEST(test_parse_move_san_promotion)
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 6));
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(4, 7));
+	errnum = chi_parse_move (&pos, &move, "exfN");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 6));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 7));
+	errnum = chi_parse_move (&pos, &move, "e:fN");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 6));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 7));
+	errnum = chi_parse_move (&pos, &move, "ef:N");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 6));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 7));
+	errnum = chi_parse_move (&pos, &move, "exfQ+");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 6));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 7));
+	errnum = chi_parse_move (&pos, &move, "e:fQ+");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 6));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 7));
+	errnum = chi_parse_move (&pos, &move, "ef:Q+");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 6));
+	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 7));
 END_TEST
 
 Suite *
