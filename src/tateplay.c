@@ -21,9 +21,23 @@
 # include <config.h>
 #endif
 
+#include <getopt.h>
+
+#include "closeout.h"
+#include "error.h"
+#include "progname.h"
+
+static const struct option long_options[] = {
+	{ "help", no_argument, NULL, 'h' },
+	{ "version", no_argument, NULL, 'V' }
+};
+
 int
 main(int argc, char const *argv[])
 {
-	/* code */
+	set_program_name(argv[0]);
+
+	atexit(close_stdout);
+	
 	return 0;
 }
