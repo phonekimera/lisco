@@ -46,7 +46,10 @@ chi_parse_move (chi_pos *pos, chi_move *move, const char *movestr)
 	/* Castling moves should be okay to parse.  */
 	match = parse_castling (pos, move, movestr);
 
-	/* Fully qualified moves: (P/)?e2-e4.  */
+	/* Fully qualified moves: (P/)?e2-e4.  FIXME! This is actually not
+	 * necessary.  The SAN parser should work for long notation as
+	 * well.
+	 */
 	if (match != 0)
 		match = parse_fq_move (pos, move, movestr);
 
@@ -252,6 +255,10 @@ parse_fq_move (chi_pos *pos, chi_move *move, const char *movestr)
 	return 0;
 }
 
+/*
+ * Parse a move in standard algebraic notation SAN.  A better approach
+ * may be to start parsing from the end of the string.
+ */
 static int
 parse_san_move (chi_pos *pos, chi_move *move, const char *movestr)
 {
@@ -330,7 +337,7 @@ parse_san_move (chi_pos *pos, chi_move *move, const char *movestr)
 	if (from_file >= 0) {
 		switch (ptr[0]) {
 			case '\0':
-			return -1;
+				return -1;
 			case '1':
 			case '2':
 			case '3':
@@ -378,7 +385,6 @@ parse_san_move (chi_pos *pos, chi_move *move, const char *movestr)
 		}
 
 		switch (ptr[0]) {
-			case '0':
 			case '1':
 			case '2':
 			case '3':
@@ -386,6 +392,7 @@ parse_san_move (chi_pos *pos, chi_move *move, const char *movestr)
 			case '5':
 			case '6':
 			case '7':
+			case '8':
 				to_rank = ptr[0] - '1';
 				++ptr;
 				break;	
