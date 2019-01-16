@@ -55,3 +55,9 @@ engine_add_argv(Engine *self, const char *arg)
 	self->argv[self->_argv_size - 2] = xstrdup(arg);
 	self->argv[self->_argv_size - 1] = NULL;
 }
+
+extern void
+engine_set_protocol(Engine *self, EngineProtocol protocol)
+{
+	self->protocol = protocol;
+}

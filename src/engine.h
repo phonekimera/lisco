@@ -25,6 +25,13 @@
 
 #include <sys/types.h>
 
+typedef enum {
+	uci = 0,
+#define uci uci
+	xboard = 1,
+#define xboard xboard
+} EngineProtocol;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,6 +40,8 @@ typedef struct Engine {
 	/* The command-line options to start the engine.  */
 	char **argv;
 	size_t _argv_size;
+
+	EngineProtocol protocol;
 } Engine;
 
 extern Engine *engine_new();
@@ -40,6 +49,9 @@ extern void engine_destroy(Engine *engine);
 
 /* Add to the engine's argument vector.  */
 extern void engine_add_argv(Engine *self, const char *arg);
+
+/* Set the engine protocol.  */
+extern void engine_set_protocol(Engine *self, EngineProtocol protocol);
 
 #ifdef __cplusplus
 }

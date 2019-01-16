@@ -36,10 +36,17 @@
 
 static void usage(int status);
 static void version(void);
+static void set_protocol(const char *name);
+
+Engine *white;
+Engine *black;
+
+static int opt_protocol_seen = 0;
 
 static const struct option long_options[] = {
 	{ "white", required_argument, NULL, 'w' },
 	{ "black", required_argument, NULL, 'b' },
+	{ "protocol", required_argument, NULL, 'p' },
 	{ "help", no_argument, NULL, 'h' },
 	{ "version", no_argument, NULL, 'V' },
 	{ "verbose", no_argument, NULL, 'v' },
@@ -52,8 +59,8 @@ main(int argc, char *argv[])
 	int optchar;
 	bool do_help = false;
 	bool do_version = false;
-	Engine *white = engine_new();
-	Engine *black = engine_new();
+	white = engine_new();
+	black = engine_new();
 
 	set_program_name(argv[0]);
 
@@ -73,6 +80,10 @@ main(int argc, char *argv[])
 
 			case 'b':
 				engine_add_argv(black, optarg);
+				break;
+
+			case 'p':
+				set_protocol(optarg);
 				break;
 
 			case 'h':
@@ -123,11 +134,18 @@ Similarly for optional arguments.\n\
 ");
 		printf("\n");
 		printf("\
-Engine selection (repeat for options and arguments for the engine):\n");
+Engine selection:\n");
 		printf("\
   -w, --white=CMD_OR_ARG      white engine\n");
 		printf("\
   -b, --black=CMD_OR_ARG      black engine\n");
+		printf("\n");
+		printf("\
+Engine behavior (first time for both engines, second time only for black):\n\
+");
+		printf("\
+  -p, --protocol=PROTOCOL     one of 'uci' (default), 'xboard', or 'cecp'\n\
+                              (an alias for 'xboard'\n");
 		printf("\n");
 		printf ("\
 Informative output:\n");
@@ -159,4 +177,34 @@ There is NO WARRANTY, to the extent permitted by law.\n\
 	printf("Written by Guido Flohr.\n");
 	exit (EXIT_SUCCESS);
 
+}
+
+static void
+set_protocol(const char *proto_name)
+{
+	EngineProtocol protocol;
+
+	if (0 == strcasecmp("uci", proto_name)) {
+		protocol = uci;
+	} else if (0 == strcasecmp("xboard", proto_name)) {
+		protocol = xboard;
+	} else if (0 == strcasecmp("cecp", proto_name)) {
+		protocol = xboard;
+	} else {
+		error(EXIT_SUCCESS, 0, "unsupported protocol '%s'.", proto_name);
+		usage(EXIT_FAILURE);
+	}
+
+	switch(++opt_protocol_seen) {
+		case 1:
+			engine_set_protocol(white, protocol);
+			/* FALLTHRU */
+		case 2:
+			engine_set_protocol(black, protocol);
+			break;
+		default:
+			error(EXIT_SUCCESS, 0,
+			      "option --protocol can be given at most twice.");
+			usage(EXIT_FAILURE);
+	}
 }
