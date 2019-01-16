@@ -1,10 +1,11 @@
-/* tate.c - main program file for Tate.
- * Copyright (C) 2002 Guido Flohr (guido@imperia.net)
+/* This file is part of the chess engine tate.
  *
- * This program is free software; you can redistribute it and/or modify
+ * Copyright (C) 2002-2019 cantanea EOOD.
+ *
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,9 +13,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -37,7 +36,10 @@
 
 #include <libchi.h>
 
+#include "basename.h"
+#include "closeout.h"
 #include "error.h"
+#include "progname.h"
 #include "xalloc.h"
 
 #include "tate.h"
@@ -112,6 +114,10 @@ main (argc, argv)
 {
     int flags;
     int errnum;
+    
+    set_program_name(argv[0]);
+    
+    atexit(close_stdout);
 
     /* Standard input must be unbuffered, because we mix it with
        low-level I/O (which is of course a sin).  */
@@ -180,14 +186,16 @@ Please inform the author of libchi, Guido Flohr (guido@imperia.net)\n",
 static void
 greeting ()
 {
-    fprintf (stdout, "\
-%s %s (libchi %s)\n\
-Copyright (C) 2002, Guido Flohr <guido@imperia.net>.\n\
-This is free software; see the source for copying conditions.  There is NO\n\
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
-Written by Guido Flohr.\n\n", PACKAGE, VERSION, CHI_VERSION);
+        printf("%s %s\n", basename(program_name), VERSION);
+        printf("Copyright (C) %s cantanea EOOD (http://www.cantanea.com)\n\
+License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>\n\
+This is free software: you are free to change and redistribute it.\n\
+There is NO WARRANTY, to the extent permitted by law.\n\
+",
+              "2002-2019");
+        printf("Written by Guido Flohr.\n\n");
 
-    fprintf (stdout, "Type 'help' for help.\n\n");
+        printf("Type 'help' for help.\n\n");
 }
 
 int
