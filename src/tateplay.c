@@ -36,6 +36,8 @@ static void usage(int status);
 static void version(void);
 
 static const struct option long_options[] = {
+	{ "white", required_argument, NULL, 'w' },
+	{ "black", required_argument, NULL, 'b' },
 	{ "help", no_argument, NULL, 'h' },
 	{ "version", no_argument, NULL, 'V' }
 };
@@ -52,10 +54,17 @@ main(int argc, char *argv[])
 	atexit(close_stdout);
 	
 	while ((optchar = getopt_long(argc, argv,
-	                              "hV", long_options, NULL)) != EOF) {
+	                              "w:b:hV",
+								  long_options, NULL)) != EOF) {
 		switch (optchar) {
 			case '\0':
 				/* Long option.  */
+				break;
+
+			case 'w':
+				break;
+
+			case 'b':
 				break;
 
 			case 'h':
@@ -97,6 +106,13 @@ Let two chess engines play against each other.\n\
 Mandatory arguments to long options are mandatory for short options too.\n\
 Similarly for optional arguments.\n\
 ");
+		printf("\n");
+		printf("\
+Engine selection (repeat for options and arguments for the engine):\n");
+		printf("\
+  -w, --white=CMD_OR_ARG      white engine\n");
+		printf("\
+  -b, --black=CMD_OR_ARG      black engine\n");
 		printf("\n");
 		printf ("\
 Informative output:\n");
