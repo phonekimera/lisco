@@ -73,6 +73,16 @@ log_engine_out(const char *engine, const char *fmt, ...)
 }
 
 void
+log_engine_error(const char *engine, const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	vlog_realm(engine, "[error]", fmt, ap);
+	va_end(ap);
+}
+
+void
 vlog_realm(const char *realm, const char *direction, const char *_fmt,
            va_list ap)
 {
