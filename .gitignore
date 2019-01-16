@@ -23,6 +23,7 @@ src/tateplay
 /m4
 /gnulib
 /build-aux
+/aclocal.m4
 *~
 /INSTALL
 /libchi/bitmasks.h
