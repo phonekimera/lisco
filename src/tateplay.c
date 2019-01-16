@@ -32,6 +32,7 @@
 #include "progname.h"
 
 #include "engine.h"
+#include "log.h"
 
 static void usage(int status);
 static void version(void);
@@ -40,7 +41,9 @@ static const struct option long_options[] = {
 	{ "white", required_argument, NULL, 'w' },
 	{ "black", required_argument, NULL, 'b' },
 	{ "help", no_argument, NULL, 'h' },
-	{ "version", no_argument, NULL, 'V' }
+	{ "version", no_argument, NULL, 'V' },
+	{ "verbose", no_argument, NULL, 'v' },
+	NULL
 };
 
 int
@@ -55,9 +58,9 @@ main(int argc, char *argv[])
 	set_program_name(argv[0]);
 
 	atexit(close_stdout);
-	
+
 	while ((optchar = getopt_long(argc, argv,
-	                              "w:b:hV",
+	                              "w:b:hVv",
 								  long_options, NULL)) != EOF) {
 		switch (optchar) {
 			case '\0':
@@ -78,6 +81,10 @@ main(int argc, char *argv[])
 
 			case 'V':
 				do_version = true;
+				break;
+
+			case 'v':
+				++verbose;
 				break;
 
 			default:
@@ -129,9 +136,14 @@ Informative output:\n");
 		printf ("\
   -V, --version               output version information and exit\n");
 		printf ("\n");
+		printf("\
+  -v, --verbose               increase verbosity level\n");
+		printf ("\n");
 		fputs ("Report bugs at <https://github.com/gflohr/tate/issues>.\n",
 		       stdout);
 	}
+
+	exit(status);
 }
 
 static void
