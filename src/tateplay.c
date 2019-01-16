@@ -59,6 +59,9 @@ main(int argc, char *argv[])
 	int optchar;
 	bool do_help = false;
 	bool do_version = false;
+	bool white_seen = false;
+	bool black_seen = false;
+
 	white = engine_new();
 	black = engine_new();
 
@@ -75,10 +78,12 @@ main(int argc, char *argv[])
 				break;
 
 			case 'w':
+				white_seen = true;
 				engine_add_argv(white, optarg);
 				break;
 
 			case 'b':
+				black_seen = true;
 				engine_add_argv(black, optarg);
 				break;
 
@@ -107,6 +112,11 @@ main(int argc, char *argv[])
 	if (do_version) version();
 	if (do_help) usage(EXIT_SUCCESS);
 
+	if (!(white_seen && black_seen)) {
+		error(EXIT_SUCCESS, 0,
+		      "The options '--white' and '--black' are mandatory");
+		usage(EXIT_FAILURE);
+	}
 	engine_destroy(white);
 	engine_destroy(black);
 
