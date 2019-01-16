@@ -98,6 +98,15 @@ Mandatory arguments to long options are mandatory for short options too.\n\
 Similarly for optional arguments.\n\
 ");
 		printf("\n");
+		printf ("\
+Informative output:\n");
+		printf ("\
+  -h, --help                  display this help and exit\n");
+		printf ("\
+  -V, --version               output version information and exit\n");
+		printf ("\n");
+		fputs ("Report bugs at <https://github.com/gflohr/tate/issues>.\n",
+		       stdout);
 	}
 }
 
