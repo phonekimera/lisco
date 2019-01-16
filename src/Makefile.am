@@ -5,7 +5,7 @@
 
 bin_PROGRAMS = tate tateplay
 
-noinst_HEADERS = board.h brain.h tate.h edit.h book.h time_ctrl.h
+noinst_HEADERS = basename.h board.h brain.h tate.h edit.h book.h time_ctrl.h
 
 tate_SOURCES = tate.c board.c brain.c edit.c book.c time_ctrl.c \
 	evaluate.c next_move.c quiescence.c search.c print_pv.c \
