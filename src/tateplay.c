@@ -20,7 +20,9 @@
 # include <config.h>
 #endif
 
+#include <errno.h>
 #include <getopt.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,11 +39,14 @@
 static void usage(int status);
 static void version(void);
 static void set_protocol(const char *name);
+static void handle_sigchld(int signo);
+static void reap_children(void);
 
 Engine *white;
 Engine *black;
 
 static int opt_protocol_seen = 0;
+static int child_exited = 0;
 
 static const struct option long_options[] = {
 	{ "white", required_argument, NULL, 'w' },
@@ -61,6 +66,7 @@ main(int argc, char *argv[])
 	bool do_version = false;
 	bool white_seen = false;
 	bool black_seen = false;
+	struct sigaction sa;
 
 	white = engine_new();
 	black = engine_new();
@@ -68,6 +74,13 @@ main(int argc, char *argv[])
 	set_program_name(argv[0]);
 
 	atexit(close_stdout);
+	atexit(reap_children);
+
+	sa.sa_handler = &handle_sigchld;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+	if (sigaction(SIGCHLD, &sa, 0) == -1)
+		error(EXIT_FAILURE, errno, "cannot install SIGCHLD handler");
 
 	while ((optchar = getopt_long(argc, argv,
 	                              "w:b:hVv",
@@ -117,6 +130,15 @@ main(int argc, char *argv[])
 		      "The options '--white' and '--black' are mandatory");
 		usage(EXIT_FAILURE);
 	}
+
+	if (!engine_start(white))
+		error(EXIT_FAILURE, errno, "error starting white engine '%s'",
+		      white->nick);
+
+	if (!engine_start(black))
+		error(EXIT_FAILURE, errno, "error starting black engine '%s'",
+		      black->nick);
+
 	engine_destroy(white);
 	engine_destroy(black);
 
@@ -187,6 +209,33 @@ There is NO WARRANTY, to the extent permitted by law.\n\
 	printf("Written by Guido Flohr.\n");
 	exit (EXIT_SUCCESS);
 
+}
+
+static void
+handle_sigchld(int signo)
+{
+	int saved_errno = errno;
+	pid_t pid = 1;
+
+	while (1) {
+	pid = waitpid((pid_t) -1, 0, WNOHANG);
+		if (pid <= 0) break;
+		if (white && white->pid == pid) {
+			child_exited = 1;
+			log_realm(white->nick, "engine exited unexpectedly.");
+		} else if (black && black->pid == pid) {
+			child_exited = 1;
+			log_realm(black->nick, "engine exited unexpectedly.");
+		}
+	}
+
+	errno = saved_errno;
+}
+
+static void
+reap_children(void)
+{
+	while (waitpid((pid_t) -1, 0, WNOHANG) > 0) {}
 }
 
 static void

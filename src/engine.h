@@ -24,6 +24,9 @@
 #endif
 
 #include <sys/types.h>
+#include <unistd.h>
+
+#include "stdbool.h"
 
 typedef enum {
 	uci = 0,
@@ -31,6 +34,13 @@ typedef enum {
 	xboard = 1,
 #define xboard xboard
 } EngineProtocol;
+
+typedef enum {
+	initial,
+	started,
+	protover,
+	done
+} EngineState;
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,7 +51,14 @@ typedef struct Engine {
 	char **argv;
 	size_t _argv_size;
 
+	/* The engine's nick name.  */
+	char *nick;
+
+	/* The running engine's process id.  */
+	pid_t pid;
+
 	EngineProtocol protocol;
+	EngineState state;
 } Engine;
 
 extern Engine *engine_new();
@@ -52,6 +69,9 @@ extern void engine_add_argv(Engine *self, const char *arg);
 
 /* Set the engine protocol.  */
 extern void engine_set_protocol(Engine *self, EngineProtocol protocol);
+
+/* Start the engine.  */
+extern bool engine_start(Engine *self);
 
 #ifdef __cplusplus
 }
