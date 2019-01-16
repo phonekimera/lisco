@@ -17,12 +17,20 @@
 
 bin_PROGRAMS = tate tateplay
 
-noinst_HEADERS = basename.h board.h brain.h tate.h edit.h book.h time_ctrl.h
+noinst_HEADERS = \
+	basename.h \
+	board.h \
+	book.h \
+	brain.h \
+	edit.h \
+	engine.h \
+	tate.h \
+	time_ctrl.h
 
 tate_SOURCES = tate.c board.c brain.c edit.c book.c time_ctrl.c \
 	evaluate.c next_move.c quiescence.c search.c print_pv.c \
 	tt_hash.c epd.c ev_hash.c qtt_hash.c three-fold.c
-tateplay_SOURCES = tateplay.c
+tateplay_SOURCES = tateplay.c engine.c
 
 tate_LDADD = ../lib/libtate.la ../libchi/libchi.la
 tate_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la

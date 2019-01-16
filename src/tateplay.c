@@ -31,6 +31,8 @@
 #include "error.h"
 #include "progname.h"
 
+#include "engine.h"
+
 static void usage(int status);
 static void version(void);
 
@@ -47,6 +49,8 @@ main(int argc, char *argv[])
 	int optchar;
 	bool do_help = false;
 	bool do_version = false;
+	Engine *white = engine_new();
+	Engine *black = engine_new();
 
 	set_program_name(argv[0]);
 
@@ -61,9 +65,11 @@ main(int argc, char *argv[])
 				break;
 
 			case 'w':
+				engine_add_argv(white, optarg);
 				break;
 
 			case 'b':
+				engine_add_argv(black, optarg);
 				break;
 
 			case 'h':
@@ -82,6 +88,9 @@ main(int argc, char *argv[])
 
 	if (do_version) version();
 	if (do_help) usage(EXIT_SUCCESS);
+
+	engine_destroy(white);
+	engine_destroy(black);
 
 	return 0;
 }
