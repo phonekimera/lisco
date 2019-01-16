@@ -139,6 +139,8 @@ main(int argc, char *argv[])
 		error(EXIT_FAILURE, errno, "error starting black engine '%s'",
 		      black->nick);
 
+	sleep(3);
+
 	engine_destroy(white);
 	engine_destroy(black);
 

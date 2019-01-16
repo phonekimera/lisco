@@ -57,6 +57,11 @@ typedef struct Engine {
 	/* The running engine's process id.  */
 	pid_t pid;
 
+	/* The running engine's standard file descriptors.  */
+	int in;
+	int out;
+	int err;
+
 	EngineProtocol protocol;
 	EngineState state;
 } Engine;

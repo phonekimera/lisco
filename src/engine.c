@@ -110,18 +110,61 @@ bool
 engine_start(Engine *self)
 {
 	pid_t pid;
+	int in[2], out[2], err[2];
 
 	assure(self);
 	assure(!self->state);
+
+	if (pipe(in) < 0 || pipe(out) < 0 || pipe(err) < 0)
+		error(EXIT_FAILURE, errno, "cannot create pipe");
 
 	pid = fork();
 	if (pid < 0) return false;
 	if (pid > 0) {
 		self->pid = pid;
+		if (close(in[0]) != 0)
+			error(EXIT_FAILURE, errno, "cannot close pipe");
+		self->in = in[1];
+		if (close(out[1]) != 0)
+			error(EXIT_FAILURE, errno, "cannot close pipe");
+		self->out = out[0];
+		if (close(err[1]) != 0)
+			error(EXIT_FAILURE, errno, "cannot close pipe");
+		self->err = out[1];
+
 		return true;
 	}
 
-	/* Child process.  */
+	/* Child process.  First duplicate the pipes to our standard file
+	 * descriptors.
+	 */
+	if (close(STDIN_FILENO) != 0)
+		error(EXIT_FAILURE, errno, "cannot close child stdin");
+	if (close(STDOUT_FILENO) != 0)
+		error(EXIT_FAILURE, errno, "cannot close child stdout");
+	if (close(STDERR_FILENO) != 0)
+		error(EXIT_FAILURE, errno, "cannot close child stderr");
+	if (dup2(in[0], STDIN_FILENO) != 0)
+		error(EXIT_FAILURE, errno, "cannot dup pipe");
+	if (close(in[0]) != 0)
+		error(EXIT_FAILURE, errno, "cannot close pipe");
+	if (dup2(out[1], STDOUT_FILENO) != 0)
+		error(EXIT_FAILURE, errno, "cannot dup pipe");
+	if (close(out[1]) != 0)
+		error(EXIT_FAILURE, errno, "cannot close pipe");
+	if (dup2(err[1], STDERR_FILENO) != 0)
+		error(EXIT_FAILURE, errno, "cannot dup pipe");
+	if (close(err[1]) != 0)
+		error(EXIT_FAILURE, errno, "cannot close pipe");
+
+	/* Now close the unused pipe ends.  */
+	if (close(in[1]) != 0)
+		error(EXIT_FAILURE, errno, "cannot close pipe");
+	if (close(out[0]) != 0)
+		error(EXIT_FAILURE, errno, "cannot close pipe");
+	if (close(err[0]) != 0)
+		error(EXIT_FAILURE, errno, "cannot close pipe");
+	
 	execvp(self->argv[0], self->argv);
 	error(EXIT_FAILURE, errno, "error starting '%s", self->argv[0]);
 	exit(EXIT_SUCCESS);
