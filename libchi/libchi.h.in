@@ -409,7 +409,10 @@ extern int chi_parse_fen_position(chi_pos* chi_arg_pos,
 				  const char* chi_arg_fen,
 				  const char** chi_arg_end_ptr);
 
-/* Fill a EPD test position from a string.  */
+/* Get the FEN representation of a position.  You have to free() the result!  */
+extern char *chi_fen(const chi_pos *chi_arg_pos);
+
+/* Fill an EPD test position from a string.  */
 extern int chi_parse_epd(chi_epd_pos* chi_arg_epd_pos,
 			 const char* chi_arg_epd);
 
