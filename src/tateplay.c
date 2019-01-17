@@ -22,6 +22,7 @@
 
 #include <errno.h>
 #include <getopt.h>
+#include <limits.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -51,6 +52,11 @@ static const struct option long_options[] = {
 	{ "white", required_argument, NULL, 'w' },
 	{ "black", required_argument, NULL, 'b' },
 	{ "protocol", required_argument, NULL, 'p' },
+	{ "event", required_argument, NULL, 'e' },
+	{ "site", required_argument, NULL, 's' },
+	{ "round", required_argument, NULL, 'r' },
+	{ "player-white", required_argument, NULL, CHAR_MAX + 1 },
+	{ "player-black", required_argument, NULL, CHAR_MAX + 2 },
 	{ "help", no_argument, NULL, 'h' },
 	{ "version", no_argument, NULL, 'V' },
 	{ "verbose", no_argument, NULL, 'v' },
@@ -102,6 +108,26 @@ main(int argc, char *argv[])
 				set_protocol(optarg);
 				break;
 
+			case 'e':
+				game_set_event(game, optarg);
+				break;
+
+			case 's':
+				game_set_site(game, optarg);
+				break;
+
+			case 'r':
+				game_set_round(game, optarg);
+				break;
+
+			case CHAR_MAX + 1:
+				game_set_player_white(game, optarg);
+				break;
+
+			case CHAR_MAX + 2:
+				game_set_player_black(game, optarg);
+				break;
+
 			case 'h':
 				do_help = true;
 				break;
@@ -136,6 +162,8 @@ main(int argc, char *argv[])
 	if (!engine_start(game->black))
 		error(EXIT_FAILURE, errno, "error starting black engine '%s'",
 		      game->black->nick);
+
+	game_print_pgn(game);
 
 	sleep(3);
 
@@ -172,13 +200,24 @@ Engine selection:\n");
   -b, --black=CMD_OR_ARG      black engine\n");
 		printf("\n");
 		printf("\
-Engine behavior (first time for both engines, second time only for black):\n\
+Engine behavior and properties (first time for both engines, second time only\n\
+for black):\n\
 ");
 		printf("\
   -p, --protocol=PROTOCOL     one of 'uci' (default), 'xboard', or 'cecp'\n\
                               (an alias for 'xboard'\n");
 		printf("\n");
 		printf ("\
+Game information:\n");
+		printf ("\
+  -e, --event=EVENT           the name of the event\n\
+  -s, --site=SITE             the name of the site\n\
+  -r, --round=ROUND           the round of the match\n\
+  -f, --fen=FEN               the starting position in Forsyth-Edwards\n\
+                              Notation (FEN)\n\
+");
+		printf("\n");
+		printf("\
 Informative output:\n");
 		printf ("\
   -h, --help                  display this help and exit\n");
