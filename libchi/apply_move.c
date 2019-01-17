@@ -23,29 +23,19 @@
 #include <libchi.h>
 
 int
-chi_apply_move (pos, move)
-     chi_pos* pos;
-     chi_move move;
+chi_apply_move(chi_pos *pos, chi_move move)
 {
-    int result = chi_make_move (pos, move);
+	int result = chi_make_move(pos, move);
 
-    if (result)
-	return result;
+	if (result)
+		return result;
 
-    if (chi_on_move (pos) == chi_white)
-	chi_material (pos) += chi_move_material (move);
-    else
-	chi_material (pos) -= chi_move_material (move);
+	if (chi_on_move (pos) == chi_white)
+		chi_material (pos) += chi_move_material(move);
+	else
+		chi_material (pos) -= chi_move_material(move);
 
-    chi_on_move (pos) = !chi_on_move (pos);
+	chi_on_move(pos) = !chi_on_move(pos);
 
-    return 0;
+	return 0;
 }
-
-/*
-Local Variables:
-mode: c
-c-style: K&R
-c-basic-shift: 8
-End:
-*/
