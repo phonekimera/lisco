@@ -25,8 +25,8 @@
 
 #include <sys/time.h>
 
-#include "engine.h"
 #include "libchi.h"
+#include "tateplay-engine.h"
 
 #ifdef __cplusplus
 extern "C" {

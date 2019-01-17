@@ -22,7 +22,7 @@
 
 #include "stdbool.h"
 
-#include "engine.h"
+#include "tateplay-engine.h"
 
 int child_exited = 0;
 

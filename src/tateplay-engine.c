@@ -30,7 +30,7 @@
 #include "error.h"
 #include "xmalloca.h"
 
-#include "engine.h"
+#include "tateplay-engine.h"
 #include "log.h"
 
 Engine *

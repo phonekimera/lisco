@@ -25,7 +25,7 @@
 
 #include "stdbool.h"
 
-#include "engine.h"
+#include "tateplay-engine.h"
 
 #ifdef __cplusplus
 extern "C" {
