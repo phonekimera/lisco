@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -36,7 +37,8 @@
 Engine *
 engine_new()
 {
-	Engine *self = xmalloc(sizeof (Engine));
+	Engine *self = xmalloc(sizeof *self);
+	memset(self, 0, sizeof *self);
 
 	self->_argv_size = 1;
 	self->argv = xmalloc(sizeof self->argv[0]);
@@ -130,7 +132,7 @@ engine_start(Engine *self)
 		self->out = out[0];
 		if (close(err[1]) != 0)
 			error(EXIT_FAILURE, errno, "cannot close pipe");
-		self->err = out[1];
+		self->err = err[0];
 
 		return true;
 	}
@@ -140,32 +142,35 @@ engine_start(Engine *self)
 	 */
 	if (close(STDIN_FILENO) != 0)
 		error(EXIT_FAILURE, errno, "cannot close child stdin");
-	if (close(STDOUT_FILENO) != 0)
-		error(EXIT_FAILURE, errno, "cannot close child stdout");
-	if (close(STDERR_FILENO) != 0)
-		error(EXIT_FAILURE, errno, "cannot close child stderr");
-	if (dup2(in[0], STDIN_FILENO) != 0)
+	if (dup2(in[0], STDIN_FILENO) == -1)
 		error(EXIT_FAILURE, errno, "cannot dup pipe");
 	if (close(in[0]) != 0)
 		error(EXIT_FAILURE, errno, "cannot close pipe");
-	if (dup2(out[1], STDOUT_FILENO) != 0)
-		error(EXIT_FAILURE, errno, "cannot dup pipe");
+
+	if (close(STDOUT_FILENO) != 0)
+		error(EXIT_FAILURE, errno, "cannot close child stdout");
+	if (dup2(out[1], STDOUT_FILENO) == -1)
+		error(errno, errno, "cannot dup pipe");
 	if (close(out[1]) != 0)
 		error(EXIT_FAILURE, errno, "cannot close pipe");
-	if (dup2(err[1], STDERR_FILENO) != 0)
-		error(EXIT_FAILURE, errno, "cannot dup pipe");
+
+	if (close(STDERR_FILENO) != 0)
+		error(EXIT_FAILURE, errno, "cannot close child stderr");
+	if (dup2(err[1], STDERR_FILENO) == -1)
+		exit(1);
 	if (close(err[1]) != 0)
-		error(EXIT_FAILURE, errno, "cannot close pipe");
+		exit(1);
 
 	/* Now close the unused pipe ends.  */
 	if (close(in[1]) != 0)
-		error(EXIT_FAILURE, errno, "cannot close pipe");
+		exit(1);
 	if (close(out[0]) != 0)
-		error(EXIT_FAILURE, errno, "cannot close pipe");
+		exit(1);
 	if (close(err[0]) != 0)
-		error(EXIT_FAILURE, errno, "cannot close pipe");
+		exit(1);
 	
 	execvp(self->argv[0], self->argv);
 	error(EXIT_FAILURE, errno, "error starting '%s", self->argv[0]);
-	exit(EXIT_SUCCESS);
+
+	exit(EXIT_FAILURE); /* NOTREACHED! Shut up compiler warning.  */
 }

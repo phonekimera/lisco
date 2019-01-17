@@ -167,7 +167,7 @@ main(int argc, char *argv[])
 
 	game_print_pgn(game);
 
-	sleep(10);
+	sleep(3);
 
 	log_realm("info", "terminating engines");
 	game_destroy(game);
