@@ -21,30 +21,29 @@
 #endif
 
 #include <check.h>
-#include <stdlib.h>
 
 #include "libchi.h"
 
-extern Suite *parsers_suite();
-extern Suite *presentation_suite();
-extern Suite *game_over_suite();
-extern Suite *move_making_suite();
+START_TEST(test_pawn_moves)
+	chi_pos pos;
+	chi_init_position(&pos);
+	chi_move move;
+	int errnum = chi_parse_move(&pos, &move, "e4");
 
-int
-main(int argc, char *argv[])
+	ck_assert_int_eq(errnum, 0);
+END_TEST
+
+Suite *
+move_making_suite(void)
 {
-	int failed = 0;
 	Suite *suite;
-	SRunner *runner;
+	TCase *tc_pawn;
+	
+	suite = suite_create("Make/Unmake Moves");
 
-	runner = srunner_create(parsers_suite());
-	srunner_add_suite(runner, presentation_suite());
-	srunner_add_suite(runner, game_over_suite());
-	srunner_add_suite(runner, move_making_suite());
+	tc_pawn = tcase_create("Pawn Moves");
+	tcase_add_test(tc_pawn, test_pawn_moves);
+	suite_add_tcase(suite, tc_pawn);
 
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
-
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	return suite;
 }
