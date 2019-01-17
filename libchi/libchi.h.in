@@ -26,9 +26,19 @@
 # include <config.h>
 #endif
 
-typedef @BITV64@ bitv64;
+#include <stdlib.h>
 
 #define CHI_VERSION "@VERSION@"
+
+typedef @BITV64@ bitv64;
+
+/* Boolean values.  */
+typedef enum chi_bool {
+	chi_false = 0,
+#define chi_false chi_false
+	chi_true = 1
+#define chi_true chi_true
+} chi_bool;
 
 #ifdef __cplusplus
 # define CHI_BEGIN_DECLS extern "C" {
@@ -117,6 +127,46 @@ typedef @BITV64@ bitv64;
 #define CHI_VALUE_BISHOP   300
 #define CHI_VALUE_ROOK     500
 #define CHI_VALUE_QUEEN    900
+
+/* Possible reasons for game over */
+typedef enum chi_result {
+	chi_result_unknown = 0,
+#define chi_result_unknown chi_result_unknown
+	chi_result_draw = 1,
+#define chi_result_draw chi_result_draw
+	chi_result_stalemate = 2,
+#define chi_result_stalemate chi_result_stalemate
+	chi_result_draw_by_repetition = 3,
+#define chi_result_draw_by_repetition chi_result_draw_by_repetition
+	chi_result_draw_by_50_moves_rule = 4,
+#define chi_result_draw_by_50_moves_rule chi_result_draw_by_50_moves_rule
+	chi_result_draw_by_insufficient_material = 5,
+#define chi_result_draw_by_insufficient_material chi_result_draw_by_insufficient_material
+	chi_result_draw_by_impossible_checkate = 6,
+#define chi_result_draw_by_impossible_checkmate chi_result_draw_by_impossible_checkmate
+	chi_result_draw_by_agreement = 7,
+#define chi_result_draw_by_agreement chi_result_draw_by_agreement
+	chi_result_white_wins = 10, /* Reason unknown */
+#define chi_result_white_wins chi_result_white_wins
+	chi_result_black_wins = -10, /* Reason unknown */
+#define chi_result_black_wins chi_result_black_wins_wins
+	chi_result_white_mates = 11,
+#define chi_result_white_mates chi_result_white_mates
+	chi_result_black_mates = -11,
+#define chi_result_black_mates chi_result_black_mates
+	chi_result_white_wins_on_time = 12,
+#define chi_result_white_wins_on_time chi_result_white_wins_on_time
+	chi_result_black_wins_on_time = -12,
+#define chi_result_black_wins_on_time chi_result_black_wins_on_time
+	chi_result_white_wins_on_surrender = 13,
+#define chi_result_white_wins_on_surrender chi_result_white_wins_on_surrender
+	chi_result_black_wins_on_surrender = 13,
+#define chi_result_black_wins_on_surrender chi_result_black_wins_on_surrender
+} chi_result;
+
+#define chi_result_is_white_win(result) ((result) >= chi_result_white_wins)
+#define chi_result_is_black_win(result) ((result) <= chi_result_black_wins)
+#define chi_result_is_draw(result) (abs(result) < chi_result_white_wins)
 
 /* Artifical evaluations.  */
 #define CHI_VALUE_DOUBLE_STEP   20
@@ -425,6 +475,9 @@ extern chi_move* chi_generate_non_captures(chi_pos* chi_arg_pos,
 /* Generate all legal moves for a given position.  */
 extern chi_move* chi_legal_moves(chi_pos* chi_arg_pos, 
 				 chi_move* chi_arg_movestack);
+
+/* Return the result of a given position.  Expensive! */
+extern chi_bool chi_game_over(chi_pos *pos, chi_result *result);
 
 /* Generate and count all legal moves from a given position to a fixed
    depth.  If the third argument is non-zero, pseudo-legal moves are

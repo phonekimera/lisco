@@ -20,29 +20,36 @@
 # include <config.h>
 #endif
 
-#include <check.h>
-#include <stdlib.h>
-
 #include "libchi.h"
 
-extern Suite *parsers_suite();
-extern Suite *presentation_suite();
-extern Suite *game_over_suite();
-
-int
-main(int argc, char *argv[])
+chi_bool
+chi_game_over(chi_pos *pos, chi_result *result)
 {
-	int failed = 0;
-	Suite *suite;
-	SRunner *runner;
+	chi_move moves[CHI_MAX_MOVES];
+	chi_move *end_ptr;
 
-	runner = srunner_create(parsers_suite());
-	srunner_add_suite(runner, presentation_suite());
-	srunner_add_suite(runner, game_over_suite());
+	if (pos->half_move_clock >= 100) {
+		if (result) *result = chi_result_draw_by_50_moves_rule;
+		return chi_true;
+	}
 
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
+	end_ptr = chi_legal_moves(pos, moves);
+	if (end_ptr == moves) {
+		if (result) {
+			if (chi_check_check(pos)) {
+				if (chi_on_move(pos) == chi_white)
+					*result = chi_result_black_mates;
+				else
+					*result = chi_result_white_mates;
+			} else {
+				*result = chi_result_stalemate;
+			}
+		}
 
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+		return chi_true;
+	}
+
+	if (result) *result = chi_result_unknown;
+
+	return chi_false;
 }
