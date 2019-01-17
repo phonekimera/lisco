@@ -155,18 +155,21 @@ main(int argc, char *argv[])
 		usage(EXIT_FAILURE);
 	}
 
+	log_realm("info", "starting white engine");
 	if (!engine_start(game->white))
 		error(EXIT_FAILURE, errno, "error starting white engine '%s'",
 		      game->white->nick);
 
+	log_realm("info", "starting black engine");
 	if (!engine_start(game->black))
 		error(EXIT_FAILURE, errno, "error starting black engine '%s'",
 		      game->black->nick);
 
 	game_print_pgn(game);
 
-	sleep(3);
+	sleep(10);
 
+	log_realm("info", "terminating engines");
 	game_destroy(game);
 
 	return 0;
