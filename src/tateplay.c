@@ -33,8 +33,9 @@
 #include "error.h"
 #include "progname.h"
 
-#include "engine.h"
 #include "log.h"
+#include "tateplay-game.h"
+#include "tateplay-loop.h"
 
 static void usage(int status);
 static void version(void);
@@ -42,11 +43,9 @@ static void set_protocol(const char *name);
 static void handle_sigchld(int signo);
 static void reap_children(void);
 
-Engine *white;
-Engine *black;
+static Game *game;
 
 static int opt_protocol_seen = 0;
-static int child_exited = 0;
 
 static const struct option long_options[] = {
 	{ "white", required_argument, NULL, 'w' },
@@ -68,8 +67,7 @@ main(int argc, char *argv[])
 	bool black_seen = false;
 	struct sigaction sa;
 
-	white = engine_new();
-	black = engine_new();
+	game = game_new();
 
 	set_program_name(argv[0]);
 
@@ -92,12 +90,12 @@ main(int argc, char *argv[])
 
 			case 'w':
 				white_seen = true;
-				engine_add_argv(white, optarg);
+				engine_add_argv(game->white, optarg);
 				break;
 
 			case 'b':
 				black_seen = true;
-				engine_add_argv(black, optarg);
+				engine_add_argv(game->black, optarg);
 				break;
 
 			case 'p':
@@ -131,18 +129,17 @@ main(int argc, char *argv[])
 		usage(EXIT_FAILURE);
 	}
 
-	if (!engine_start(white))
+	if (!engine_start(game->white))
 		error(EXIT_FAILURE, errno, "error starting white engine '%s'",
-		      white->nick);
+		      game->white->nick);
 
-	if (!engine_start(black))
+	if (!engine_start(game->black))
 		error(EXIT_FAILURE, errno, "error starting black engine '%s'",
-		      black->nick);
+		      game->black->nick);
 
 	sleep(3);
 
-	engine_destroy(white);
-	engine_destroy(black);
+	game_destroy(game);
 
 	return 0;
 }
@@ -222,12 +219,12 @@ handle_sigchld(int signo)
 	while (1) {
 	pid = waitpid((pid_t) -1, 0, WNOHANG);
 		if (pid <= 0) break;
-		if (white && white->pid == pid) {
+		if (game->white && game->white->pid == pid) {
 			child_exited = 1;
-			log_realm(white->nick, "engine exited unexpectedly.");
-		} else if (black && black->pid == pid) {
+			log_realm(game->white->nick, "engine exited unexpectedly.");
+		} else if (game->black && game->black->pid == pid) {
 			child_exited = 1;
-			log_realm(black->nick, "engine exited unexpectedly.");
+			log_realm(game->black->nick, "engine exited unexpectedly.");
 		}
 	}
 
@@ -258,10 +255,10 @@ set_protocol(const char *proto_name)
 
 	switch(++opt_protocol_seen) {
 		case 1:
-			engine_set_protocol(white, protocol);
+			engine_set_protocol(game->white, protocol);
 			/* FALLTHRU */
 		case 2:
-			engine_set_protocol(black, protocol);
+			engine_set_protocol(game->black, protocol);
 			break;
 		default:
 			error(EXIT_SUCCESS, 0,
