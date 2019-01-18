@@ -47,12 +47,11 @@ END_TEST
 Suite *
 presentation_suite(void)
 {
-	Suite *suite;
-	TCase *tc_figurine;
-	
-	suite = suite_create("Presentation");
+	Suite *suite = suite_create("Presentation");
 
 #if CHI_USE_UTF_8
+	TCase *tc_figurine;
+	
 	tc_figurine = tcase_create("Figurine");
 
 	tcase_add_test(tc_figurine, test_char2figurine);
