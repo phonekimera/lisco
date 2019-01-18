@@ -47,6 +47,7 @@ chi_make_move (chi_pos *pos, chi_move move)
 {
 	++pos->half_moves;
 	++pos->half_move_clock;
+
 	chi_ep (pos) = 0;
 
 	if (chi_on_move (pos) == chi_white) {
@@ -258,6 +259,8 @@ move_white_piece(chi_pos *pos, chi_move move)
 			pos->w_kings &= ~from_mask;
 			pos->w_kings |= to_mask;
 			if (from_mask == (CHI_E_MASK & CHI_1_MASK)) {
+				chi_wk_castle(pos) = 0;
+				chi_wq_castle(pos) = 0;
 				castle_white(pos, move);
 			}
 			break;
@@ -325,7 +328,6 @@ move_black_piece(chi_pos *pos, chi_move move)
 		case king:
 			pos->b_kings &= ~from_mask;
 			pos->b_kings |= to_mask;
-			castle_black(pos, move);
 			if (from_mask == (CHI_E_MASK & CHI_8_MASK)) {
 				chi_bq_castle (pos) = 0;
 				chi_bk_castle (pos) = 0;

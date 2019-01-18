@@ -30,12 +30,15 @@ chi_apply_move(chi_pos *pos, chi_move move)
 	if (result)
 		return result;
 
-	if (chi_on_move (pos) == chi_white)
-		chi_material (pos) += chi_move_material(move);
+	if (chi_on_move(pos) == chi_white)
+		chi_material(pos) += chi_move_material(move);
 	else
-		chi_material (pos) -= chi_move_material(move);
+		chi_material(pos) -= chi_move_material(move);
 
 	chi_on_move(pos) = !chi_on_move(pos);
+
+	if (chi_move_victim(move) || chi_move_attacker(move) == pawn)
+		pos->irreversible[pos->irreversible_count++] = pos->half_moves;
 
 	return 0;
 }
