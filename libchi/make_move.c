@@ -46,7 +46,6 @@ int
 chi_make_move (chi_pos *pos, chi_move move)
 {
 	++pos->half_moves;
-	++pos->half_move_clock;
 
 	chi_ep (pos) = 0;
 
@@ -113,7 +112,6 @@ remove_black_victim(chi_pos *pos, chi_move move)
 	bitv64 to90_mask = ((bitv64) 1 << rotate90[to]);
 	chi_piece_t victim = chi_move_victim (move);
 
-	pos->half_move_clock = 0;
 	pos->b_pieces &= ~to_mask;
 	pos->b_pieces90 &= ~to90_mask;
 
@@ -159,7 +157,6 @@ remove_white_victim(chi_pos *pos, chi_move move)
 	bitv64 to90_mask = ((bitv64) 1 << rotate90[to]);
 	chi_piece_t victim = chi_move_victim (move);
 
-	pos->half_move_clock = 0;
 	pos->w_pieces &= ~to_mask;
 	pos->w_pieces90 &= ~to90_mask;
 
@@ -208,7 +205,6 @@ move_white_piece(chi_pos *pos, chi_move move)
 
 	switch (chi_move_attacker(move)) {
 		case pawn:
-			pos->half_move_clock = 0;
 			pos->w_pawns &= ~from_mask;
 			switch (promote) {
 				case knight:
@@ -278,7 +274,6 @@ move_black_piece(chi_pos *pos, chi_move move)
 
 	switch (chi_move_attacker (move)) {
 		case pawn:
-			pos->half_move_clock = 0;
 			pos->b_pawns &= ~from_mask;
 			switch (promote) {
 				case knight:
