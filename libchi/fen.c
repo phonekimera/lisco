@@ -20,10 +20,12 @@
 # include <config.h>
 #endif
 
+#include "xmalloca.h"
+
 #include "libchi.h"
 
 char *
 chi_fen(const chi_pos *pos)
 {
-	return NULL;
+	return xstrdup("todo");
 }

@@ -29,6 +29,7 @@ extern Suite *parsers_suite();
 extern Suite *presentation_suite();
 extern Suite *game_over_suite();
 extern Suite *move_making_suite();
+extern Suite *fen_suite();
 
 int
 main(int argc, char *argv[])
@@ -41,6 +42,7 @@ main(int argc, char *argv[])
 	srunner_add_suite(runner, presentation_suite());
 	srunner_add_suite(runner, game_over_suite());
 	srunner_add_suite(runner, move_making_suite());
+	srunner_add_suite(runner, fen_suite());
 
 	srunner_run_all(runner, CK_NORMAL);
 	failed = srunner_ntests_failed(runner);

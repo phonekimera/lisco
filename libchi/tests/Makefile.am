@@ -22,11 +22,12 @@ noinst_PROGRAMS = check_libchi
 TESTS = ./check_libchi
 
 check_libchi_SOURCES = \
-        test_game_over.c \
-        test_parsers.c \
-        test_presentation.c \
+		test_fen.c \
+		test_game_over.c \
 		test_move_making.c \
-        check_libchi.c
+		test_parsers.c \
+		test_presentation.c \
+		check_libchi.c
 
 check_libchi_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
 check_libchi_LDADD = ../libchi.la $(LDFLAGS) $(CHECK_LIBS)
