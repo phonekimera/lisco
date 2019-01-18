@@ -60,7 +60,7 @@ static const struct option long_options[] = {
 	{ "help", no_argument, NULL, 'h' },
 	{ "version", no_argument, NULL, 'V' },
 	{ "verbose", no_argument, NULL, 'v' },
-	NULL
+	{ NULL, 0, NULL, 0 }
 };
 
 int
