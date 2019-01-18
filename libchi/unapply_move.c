@@ -30,6 +30,17 @@ chi_unapply_move(chi_pos *pos, chi_move move)
 				- pos->irreversible[--pos->irreversible_count];
 	}
 
+	if (pos->double_pawn_moves[pos->double_pawn_move_count - 1]
+	    == pos->half_moves) {
+		--pos->double_pawn_move_count;
+		if (pos->double_pawn_move_count) {
+			chi_ep(pos) = 1;
+			chi_ep_file(pos) = pos->ep_files[pos->double_pawn_move_count];
+		} else {
+			chi_ep(pos) = 0;
+		}
+	}
+
 	--pos->half_moves;
 
 	chi_on_move(pos) = !chi_on_move(pos);
