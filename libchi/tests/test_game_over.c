@@ -36,7 +36,7 @@ START_TEST(test_50_moves_rule)
 	ck_assert_int_eq(result, chi_result_unknown);
 
 	pos.half_move_clock = 99;
-	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
+	ck_assert_int_eq(!chi_game_over(&pos, &result), chi_true);
 	ck_assert_int_eq(result, chi_result_unknown);
 
 	pos.half_move_clock = 100;
