@@ -232,7 +232,7 @@ typedef struct {
 #define chi_ep_file(p) ((p)->flags.ep_file)
 #define chi_on_move(p) ((p)->flags.on_move)
 #define chi_ep_rank(p) (chi_on_move(p) ? \
-			  CHI_RANK_6 : CHI_RANK_3)
+			  CHI_RANK_3 : CHI_RANK_6)
 #define chi_material(p) ((p)->flags.material)
 #define chi_w_castled(p) ((p)->flags.w_castled)
 #define chi_b_castled(p) ((p)->flags.b_castled)
