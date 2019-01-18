@@ -129,14 +129,6 @@ main (argc, argv)
 
     isa_tty = isatty (fileno (stdout));
 
-    /* Sanity checks.  */
-    if (chi_pos_size * sizeof (bitv64) != sizeof current) {
-	error (EXIT_FAILURE, 0, "\
-data type chi_pos has incorrect size %zu, this should not happen!\n\
-Please inform the author of libchi, Guido Flohr (guido@imperia.net)\n",
-	       sizeof current);
-    }
-
     chi_init_position (&current);
     errnum = chi_zk_init (&zk_handle);
     if (errnum)

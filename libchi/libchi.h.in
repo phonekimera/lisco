@@ -262,7 +262,6 @@ typedef struct {
 	   us with sufficient space for the sign.
 	*/
 
-#define chi_pos_size (16)
 #define chi_pos_fill char reserved[3];
         chi_pos_fill;
 } chi_pos;
