@@ -24,8 +24,46 @@
 
 #include "libchi.h"
 
+START_TEST(test_initial_e4)
+	const char *wanted =
+		"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | r | n | b | q | k | b | n | r | En passant possible on file e.
+   +---+---+---+---+---+---+---+---+ White king castle: yes.
+ 7 | p | p | p | p | p | p | p | p | White queen castle: yes.
+   +---+---+---+---+---+---+---+---+ Black king castle: yes.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: yes.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 1.
+   +---+---+---+---+---+---+---+---+ Next move: black.
+ 4 |   |   |   |   | P |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 | P | P | P | P |   | P | P | P |
+   +---+---+---+---+---+---+---+---+
+ 1 | R | N | B | Q | K | B | N | R |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+*/
+	chi_pos pos;
+	int errnum = chi_set_position(&pos, wanted);
+	char *got;
+
+	ck_assert_int_eq(errnum, 0);
+	
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+
+	free(got);
+
+END_TEST
+
 START_TEST(test_immortal_game)
-	const char *fen = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b - - 0 23";
+	const char *wanted =
+		"r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b - - 0 23";
 /*
      a   b   c   d   e   f   g   h
    +---+---+---+---+---+---+---+---+
@@ -47,6 +85,17 @@ START_TEST(test_immortal_game)
    +---+---+---+---+---+---+---+---+
      a   b   c   d   e   f   g   h
 */
+	chi_pos pos;
+	int errnum = chi_set_position(&pos, wanted);
+	char *got;
+
+	ck_assert_int_eq(errnum, 0);
+
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+
+	free(got);
+
 END_TEST
 
 Suite *
@@ -54,10 +103,11 @@ fen_suite(void)
 {
 	Suite *suite;
 	TCase *tc_basic;
-	
+
 	suite = suite_create("Forsyth-Edwards Notation (FEN)");
 
 	tc_basic = tcase_create("Basic");
+	tcase_add_test(tc_basic, test_initial_e4);
 	tcase_add_test(tc_basic, test_immortal_game);
 	suite_add_tcase(suite, tc_basic);
 
