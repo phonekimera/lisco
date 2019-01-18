@@ -86,7 +86,6 @@ void
 vlog_realm(const char *realm, const char *direction, const char *_fmt,
            va_list ap)
 {
-	char *line;
 	struct timeval now;
 	struct tm tm;
 	char *fmt;
