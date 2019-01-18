@@ -28,9 +28,19 @@ START_TEST(test_pawn_moves)
 	chi_pos pos;
 	chi_init_position(&pos);
 	chi_move move;
-	int errnum = chi_parse_move(&pos, &move, "e4");
-
+	int errnum;
+	char *wanted;
+	char *got;
+	
+	errnum = chi_parse_move(&pos, &move, "e4");
 	ck_assert_int_eq(errnum, 0);
+
+	chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+
+	wanted = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
 END_TEST
 
 Suite *
