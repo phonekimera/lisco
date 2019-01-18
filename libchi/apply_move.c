@@ -43,5 +43,6 @@ chi_apply_move(chi_pos *pos, chi_move move)
 	} else {
 		++pos->half_move_clock;
 	}
+
 	return 0;
 }

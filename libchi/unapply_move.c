@@ -25,18 +25,6 @@
 int
 chi_unapply_move(chi_pos *pos, chi_move move)
 {
-	int result = chi_unmake_move(pos, move);
-
-	if (result)
-		return result;
-
-	chi_on_move(pos) = !chi_on_move(pos);
-
-	if (chi_on_move (pos) == chi_white)
-		chi_material (pos) += chi_move_material(move);
-	else
-		chi_material (pos) -= chi_move_material(move);
-
 	if (chi_move_victim(move) || chi_move_attacker(move) == pawn) {
 		--pos->irreversible_count;
 		if (pos->irreversible_count > 0) {
@@ -47,5 +35,12 @@ chi_unapply_move(chi_pos *pos, chi_move move)
 		}
 	}
 
-	return 0;
+	chi_on_move(pos) = !chi_on_move(pos);
+
+	if (chi_on_move (pos) == chi_white)
+		chi_material (pos) -= chi_move_material(move);
+	else
+		chi_material (pos) += chi_move_material(move);
+
+	return chi_unmake_move(pos, move);
 }

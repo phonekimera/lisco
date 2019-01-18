@@ -48,7 +48,7 @@ chi_unmake_move (chi_pos *pos, chi_move move)
 	++pos->half_moves;
 	chi_ep (pos) = 0;
 
-	if (chi_on_move (pos) == chi_white) {
+	if (chi_on_move(pos) == chi_white) {
 		unmake_white_move(pos, move);
 	} else {
 		unmake_black_move(pos, move);
@@ -56,7 +56,6 @@ chi_unmake_move (chi_pos *pos, chi_move move)
 
 	return 0;
 }
-
 
 static void
 unmake_white_move(chi_pos *pos, chi_move move)
@@ -71,13 +70,13 @@ unmake_white_move(chi_pos *pos, chi_move move)
 
 	unmove_white_piece(pos, move);
 
-	pos->w_pieces |= to_mask;
-	pos->w_pieces &= ~from_mask;
-	pos->w_pieces90 |= to90_mask;
-	pos->w_pieces90 &= ~from90_mask;
+	pos->w_pieces &= ~to_mask;
+	pos->w_pieces |= from_mask;
+	pos->w_pieces90 &= ~to90_mask;
+	pos->w_pieces90 |= from90_mask;
 
 	if (victim) {
-		restore_black_victim(pos, move);
+//		restore_black_victim(pos, move);
 	}
 }
 
@@ -93,14 +92,13 @@ unmake_black_move(chi_pos *pos, chi_move move)
 	chi_piece_t victim = chi_move_victim (move);
 
 	unmove_black_piece(pos, move);
-
-	pos->w_pieces |= to_mask;
-	pos->w_pieces &= ~from_mask;
-	pos->w_pieces90 |= to90_mask;
-	pos->w_pieces90 &= ~from90_mask;
+	pos->b_pieces &= ~to_mask;
+	pos->b_pieces |= from_mask;
+	pos->b_pieces90 &= ~to90_mask;
+	pos->b_pieces90 |= from90_mask;
 
 	if (victim) {
-		restore_white_victim(pos, move);
+//		restore_white_victim(pos, move);
 	}
 }
 
@@ -117,7 +115,7 @@ restore_black_victim(chi_pos *pos, chi_move move)
 
 	switch (victim) {
 		case pawn:
-			if (chi_move_is_ep (move)) {
+			if (chi_move_is_ep(move)) {
 				int ep_target = to - 8;
 				bitv64 ep_mask = ((bitv64) 1) << ep_target;
 				bitv64 ep_mask90 = ((bitv64) 1) << rotate90[ep_target];
@@ -162,7 +160,7 @@ restore_white_victim(chi_pos *pos, chi_move move)
 
 	switch (victim) {
 		case pawn:
-			if (chi_move_is_ep (move)) {
+			if (chi_move_is_ep(move)) {
 				int ep_target = to + 8;
 				bitv64 ep_mask = ((bitv64) 1) << ep_target;
 				bitv64 ep_mask90 = ((bitv64) 1) << rotate90[ep_target];
@@ -205,27 +203,23 @@ unmove_white_piece(chi_pos *pos, chi_move move)
 
 	switch (chi_move_attacker(move)) {
 		case pawn:
-			pos->w_pawns &= ~from_mask;
+			pos->w_pawns |= from_mask;
 			switch (promote) {
 				case knight:
-					pos->w_knights |= to_mask;
+					pos->w_knights &= ~to_mask;
 					break;
 				case bishop:
-					pos->w_bishops |= to_mask;
+					pos->w_bishops &= ~to_mask;
 					break;
 				case rook:
-					pos->w_rooks |= to_mask;
+					pos->w_rooks &= ~to_mask;
 					break;
 				case queen:
-					pos->w_rooks |= to_mask;
-					pos->w_bishops |= to_mask;
+					pos->w_rooks &= ~to_mask;
+					pos->w_bishops &= ~to_mask;
 					break;
 				default:
-					pos->w_pawns |= to_mask;
-					if (to - from == 16) {
-						chi_ep (pos) = 1;
-						chi_ep_file (pos) = 7 - (from % 8);
-					}
+					pos->w_pawns &= ~to_mask;
 					break;
 			}
 			break;
@@ -270,29 +264,25 @@ unmove_black_piece(chi_pos *pos, chi_move move)
 	bitv64 to_mask = ((bitv64) 1 << to);
 	chi_piece_t promote = chi_move_promote(move);
 
-	switch (chi_move_attacker (move)) {
+	switch (chi_move_attacker(move)) {
 		case pawn:
-			pos->b_pawns &= ~from_mask;
+			pos->b_pawns |= from_mask;
 			switch (promote) {
 				case knight:
-					pos->b_knights |= to_mask;
+					pos->b_knights &= ~to_mask;
 					break;
 				case bishop:
-					pos->b_bishops |= to_mask;
+					pos->b_bishops &= ~to_mask;
 					break;
 				case rook:
-					pos->b_rooks |= to_mask;
+					pos->b_rooks &= ~to_mask;
 					break;
 				case queen:
-					pos->b_rooks |= to_mask;
-					pos->b_bishops |= to_mask;
+					pos->b_rooks &= ~to_mask;
+					pos->b_bishops &= ~to_mask;
 					break;
 				default:
-					pos->b_pawns |= to_mask;
-					if (from - to == 16) {
-						chi_ep (pos) = 1;
-						chi_ep_file (pos) = 7 - (from % 8);
-					}
+					pos->b_pawns &= ~to_mask;
 					break;
 			}
 			break;
