@@ -26,7 +26,6 @@
 
 START_TEST(test_50_moves_rule)
 	chi_pos pos;
-	const char *fen = "8/8/2k5/8/8/8/5q2/7K w - - 99 1";
 	chi_init_position(&pos);
 	chi_result result;
 
@@ -34,6 +33,10 @@ START_TEST(test_50_moves_rule)
 	(void) chi_game_over(&pos, NULL);
 
 	ck_assert_int_eq(chi_game_over(&pos, &result), chi_false);
+	ck_assert_int_eq(result, chi_result_unknown);
+
+	pos.half_move_clock = 99;
+	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
 	ck_assert_int_eq(result, chi_result_unknown);
 
 	pos.half_move_clock = 100;
