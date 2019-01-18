@@ -32,4 +32,4 @@ Once everything is fine, you can run the well-known commands:
 ```
 
 You don't have to run "make install".  You can test the binary
-`src/delete` after running "make" only.
+`src/tate` after running "make" only.
