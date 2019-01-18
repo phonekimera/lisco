@@ -42,6 +42,8 @@ chi_apply_move(chi_pos *pos, chi_move move)
 
 	++pos->half_moves;
 
+	chi_ep(pos) = 0;
+
 	if (chi_move_victim(move) || attacker == pawn) {
 		pos->irreversible[pos->irreversible_count++] = pos->half_moves;
 		pos->half_move_clock = 0;
