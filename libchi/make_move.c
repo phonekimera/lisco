@@ -45,10 +45,6 @@ static inline void castle_black(chi_pos *pos, chi_move move);
 int
 chi_make_move (chi_pos *pos, chi_move move)
 {
-	++pos->half_moves;
-
-	chi_ep (pos) = 0;
-
 	if (chi_on_move (pos) == chi_white) {
 		make_white_move(pos, move);
 	} else {
@@ -222,10 +218,6 @@ move_white_piece(chi_pos *pos, chi_move move)
 					break;
 				default:
 					pos->w_pawns |= to_mask;
-					if (to - from == 16) {
-						chi_ep (pos) = 1;
-						chi_ep_file (pos) = 7 - (from % 8);
-					}
 					break;
 			}
 			break;
@@ -291,10 +283,6 @@ move_black_piece(chi_pos *pos, chi_move move)
 					break;
 				default:
 					pos->b_pawns |= to_mask;
-					if (from - to == 16) {
-						chi_ep (pos) = 1;
-						chi_ep_file (pos) = 7 - (from % 8);
-					}
 					break;
 			}
 			break;

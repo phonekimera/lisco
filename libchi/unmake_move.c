@@ -45,9 +45,6 @@ static inline void uncastle_black(chi_pos *pos, chi_move move);
 int
 chi_unmake_move (chi_pos *pos, chi_move move)
 {
-	++pos->half_moves;
-	chi_ep (pos) = 0;
-
 	if (chi_on_move(pos) == chi_white) {
 		unmake_white_move(pos, move);
 	} else {

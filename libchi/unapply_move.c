@@ -35,6 +35,8 @@ chi_unapply_move(chi_pos *pos, chi_move move)
 		}
 	}
 
+	--pos->half_moves;
+
 	chi_on_move(pos) = !chi_on_move(pos);
 
 	if (chi_on_move (pos) == chi_white)

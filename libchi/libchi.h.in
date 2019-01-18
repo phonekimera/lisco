@@ -222,10 +222,11 @@ typedef struct {
 
 	unsigned int half_move_clock;
 	unsigned int half_moves;
-	int irreversible[142];
-	int irreversible_count;
-	int double_pawn_move[16];
-	int double_pawn_move_count;
+	unsigned int irreversible[142];
+	unsigned int irreversible_count;
+	unsigned int double_pawn_moves[16];
+	unsigned char ep_files[16];
+	unsigned int double_pawn_move_count;
 
 #define chi_flags(p) ((p)->union_flags.flags)
 #define chi_wk_castle(p) ((p)->flags.wk_castle)

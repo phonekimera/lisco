@@ -26,6 +26,9 @@ int
 chi_apply_move(chi_pos *pos, chi_move move)
 {
 	int result = chi_make_move(pos, move);
+	int from = chi_move_from(move);
+	int to = chi_move_to(move);
+	chi_piece_t attacker = chi_move_attacker(move);
 
 	if (result)
 		return result;
@@ -37,9 +40,19 @@ chi_apply_move(chi_pos *pos, chi_move move)
 
 	chi_on_move(pos) = !chi_on_move(pos);
 
-	if (chi_move_victim(move) || chi_move_attacker(move) == pawn) {
+	++pos->half_moves;
+
+	if (chi_move_victim(move) || attacker == pawn) {
 		pos->irreversible[pos->irreversible_count++] = pos->half_moves;
 		pos->half_move_clock = 0;
+		if (attacker == pawn && abs(to - from) == 16) {
+			int file = 7 - (from % 8);
+			chi_ep(pos) = 1;
+			chi_ep_file(pos) = file;
+			pos->double_pawn_moves[pos->double_pawn_move_count] =
+				pos->half_moves;
+			pos->ep_files[pos->double_pawn_move_count++] = file;
+		}
 	} else {
 		++pos->half_move_clock;
 	}
