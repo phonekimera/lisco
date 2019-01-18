@@ -26,7 +26,7 @@ void
 chi_init_position (pos)
      chi_pos* pos;
 {
-        chi_clear_position (pos);
+	chi_clear_position (pos);
 	
 	pos->w_pawns = CHI_2_MASK;
 	pos->b_pawns = CHI_7_MASK;

@@ -222,6 +222,8 @@ typedef struct {
 
 	unsigned int half_move_clock;
 	unsigned int half_moves;
+	int irreversible[142];
+	int irreversible_count;
 
 #define chi_flags(p) ((p)->union_flags.flags)
 #define chi_wk_castle(p) ((p)->flags.wk_castle)
@@ -466,6 +468,12 @@ extern int chi_make_move(chi_pos* chi_arg_pos, chi_move chi_arg_move);
 /* (Fully) apply a move to a given position.  This will also update
    the material count, based on the information in chi_arg_move.  */
 extern int chi_apply_move(chi_pos* chi_arg_pos, chi_move chi_arg_move);
+
+/* Undoes the effect of chi_apply_move().  */
+extern int chi_unmake_move(chi_pos* chi_arg_pos, chi_move chi_arg_move);
+
+/* Undoes the effect of chi_apply_move().  */
+extern int chi_unapply_move(chi_pos* chi_arg_pos, chi_move chi_arg_move);
 
 /* Generate all pseudo-legal captures for a given position.  */
 extern chi_move* chi_generate_captures(chi_pos* chi_arg_pos, 

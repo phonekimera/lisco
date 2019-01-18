@@ -161,7 +161,10 @@ chi_set_position(chi_pos *argpos, const char *fen)
 		pos->half_moves = (num - 1) << 1;
 	else
 		pos->half_moves = ((num - 1) << 1) + 1;
-
+	if (pos->half_move_clock) {
+		pos->irreversible[0] = pos->half_moves - pos->half_move_clock;
+		pos->irreversible_count = 1;
+	}
 	ptr = num_end_ptr;
 
 	while (*ptr == ' ' || *ptr == '\t' || *ptr == '\r' || *ptr == '\n')

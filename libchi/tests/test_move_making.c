@@ -27,18 +27,42 @@
 START_TEST(test_pawn_moves)
 	chi_pos pos;
 	chi_init_position(&pos);
-	chi_move move;
+	chi_move move1, move2;
 	int errnum;
 	char *wanted;
 	char *got;
 	
-	errnum = chi_parse_move(&pos, &move, "e4");
+	errnum = chi_parse_move(&pos, &move1, "e4");
 	ck_assert_int_eq(errnum, 0);
 
-	chi_apply_move(&pos, move);
+	chi_apply_move(&pos, move1);
 	ck_assert_int_eq(errnum, 0);
 
 	wanted = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	
+	errnum = chi_parse_move(&pos, &move2, "e5");
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_apply_move(&pos, move2);
+	ck_assert_int_eq(errnum, 0);
+
+	wanted = "rnbqkbnr/pppp1ppp/8/4P3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+
+	errnum = chi_unapply_move(&pos, move2);
+	ck_assert_int_eq(errnum, 0);
+
+	wanted = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+
+	errnum = chi_unapply_move(&pos, move1);
+	ck_assert_int_eq(errnum, 0);
+
+	wanted = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 END_TEST
