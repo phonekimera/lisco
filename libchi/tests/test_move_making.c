@@ -48,7 +48,7 @@ START_TEST(test_pawn_moves)
 	errnum = chi_apply_move(&pos, move2);
 	ck_assert_int_eq(errnum, 0);
 
-	wanted = "rnbqkbnr/pppp1ppp/8/4P3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2";
+	wanted = "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2";
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 
