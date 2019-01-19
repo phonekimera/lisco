@@ -31,6 +31,7 @@ check_libchi_SOURCES = \
 		check_libchi.c
 
 check_libchi_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
-check_libchi_LDADD = ../libchi.la $(LDFLAGS) $(CHECK_LIBS)
+check_libchi_LDADD = ../../lib/libtate.la ../libchi.la $(LDFLAGS) $(CHECK_LIBS)
 
-AM_CPPFLAGS = -I.. -I$(srcdir)/.. -I$(top_srcdir)/libchi $(AM_CFLAGS)
+AM_CPPFLAGS = -I.. -I$(srcdir)/.. -I$(top_srcdir)/lib \
+	-I$(top_srcdir)/libchi $(AM_CFLAGS)

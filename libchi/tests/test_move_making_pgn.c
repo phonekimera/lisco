@@ -21,8 +21,25 @@
 #endif
 
 #include <check.h>
+#include <stdarg.h>
+#include <stdio.h>
+
+#include "xalloc.h"
 
 #include "libchi.h"
+
+typedef struct test_game {
+	const char *filename;
+	const char *lineno;
+	const char *event;
+	const char *site;
+	const char *date;
+	const char *round;
+	const char *white;
+	const char *black;
+	const char *eco;
+	const char *result;
+} TestGame;
 
 /* Each game has the following structure:
  *
@@ -41,7 +58,7 @@
  * NULL as the source of filenames marks the end of games.
  */
 #define STRINGIFY(INT) #INT
-#define STRING(x) STRINGIFY(X)
+#define STRING(s) STRINGIFY(s)
 static const char *tests[] = {
 	__FILE__, STRING(__LINE__),
 	"Berlin",
@@ -94,9 +111,86 @@ static const char *tests[] = {
 	NULL
 };
 
-START_TEST(test_pgn)
-	printf("more to happen\n");
-	ck_assert_int_eq(0, 0);
+static void
+report_failure(const TestGame *game,
+               unsigned int move_number, const char *move,
+			   const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+
+	fprintf(stderr, "Failed test at %s:%s, \n", game->filename, game->lineno);
+
+	if (move) {
+		if (move_number & 1) {
+			fprintf(stderr, "Move %u. ... %s\n", 1 + move_number / 2, move);
+		} else {
+			fprintf(stderr, "Move %u. %s\n", 1 + move_number / 2, move);
+		}
+	}
+
+	vfprintf(stderr, fmt, ap);
+
+	va_end(ap);
+
+	ck_abort();
+}
+
+static const char **
+test_game(const char *strings[])
+{
+	TestGame game;
+	size_t num_moves, i;
+	const char **retval;
+	chi_pos pos;
+	int errnum;
+	chi_move *moves;
+	const char **fens;
+
+	game.filename = *strings++;
+	game.lineno = *strings++;
+	game.event = *strings++;
+	game.site = *strings++;
+	game.date = *strings++;
+	game.round = *strings++;
+	game.white = *strings++;
+	game.black = *strings++;
+	game.eco = *strings++;
+	game.result = *strings++;
+
+	for (num_moves = 0; strings[num_moves]; ++num_moves) {}
+	retval = strings + num_moves + 1;
+
+	moves = xcalloc(num_moves, sizeof moves[0]);
+	fens = xcalloc(num_moves, sizeof fens[0]);
+
+	chi_init_position(&pos);
+	
+	for (i = 0; i < num_moves; ++i) {
+		errnum = chi_parse_move(&pos, &moves[i], strings[i]);
+		if (errnum) {
+			report_failure(&game, i, strings[i], "parsing move failed: %s\n",
+			               chi_strerror(errnum));
+		}
+		errnum = chi_apply_move(&pos, moves[i]);
+		if (errnum) {
+			report_failure(&game, i, strings[i], "applying move failed: %s\n",
+			               chi_strerror(errnum));
+		}
+	}
+
+	free(fens);
+	free(moves);
+
+	return retval;
+}
+
+START_TEST(test_games)
+	const char **current = tests;
+
+	while (*current) {
+		current = test_game(current);
+	}
 END_TEST
 
 Suite *
@@ -108,7 +202,7 @@ move_making_suite_pgn(void)
 	suite = suite_create("Play and Unplay PGN Games");
 
 	tc_pgn = tcase_create("PGNs");
-	tcase_add_test(tc_pgn, test_pgn);
+	tcase_add_test(tc_pgn, test_games);
 	suite_add_tcase(suite, tc_pgn);
 
 	return suite;
