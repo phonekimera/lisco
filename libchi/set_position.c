@@ -137,8 +137,8 @@ chi_set_position(chi_pos *argpos, const char *fen)
 			return CHI_ERR_ILLEGAL_FEN;
 		++ptr;
 
-		chi_ep (pos) = 1;
-		chi_ep_file (pos) = ep_file;
+		chi_ep(pos) = 1;
+		chi_ep_file(pos) = ep_file;
 	}
 
 	while (*ptr == ' ' || *ptr == '\t')
@@ -161,10 +161,18 @@ chi_set_position(chi_pos *argpos, const char *fen)
 		pos->half_moves = (num - 1) << 1;
 	else
 		pos->half_moves = ((num - 1) << 1) + 1;
+
 	if (pos->half_move_clock) {
 		pos->irreversible[0] = pos->half_moves - pos->half_move_clock;
 		pos->irreversible_count = 1;
 	}
+
+	if (chi_ep(pos)) {
+		pos->ep_files[0] = chi_ep_file(pos);
+		pos->double_pawn_moves[0] = pos->half_moves + 1;
+		pos->double_pawn_move_count = 1;
+	}
+
 	ptr = num_end_ptr;
 
 	while (*ptr == ' ' || *ptr == '\t' || *ptr == '\r' || *ptr == '\n')

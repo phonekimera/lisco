@@ -96,7 +96,8 @@ START_TEST(test_white_capture)
  */
 	const char *fen = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2";
 	chi_move move;
-	char *wanted, *got;
+	const char *wanted;
+	char *got;
 	int errnum;
 
 	errnum = chi_set_position(&pos, fen);
@@ -107,8 +108,14 @@ START_TEST(test_white_capture)
 
 	errnum = chi_apply_move(&pos, move);
 	ck_assert_int_eq(errnum, 0);
-
 	wanted = "rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = fen;
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
