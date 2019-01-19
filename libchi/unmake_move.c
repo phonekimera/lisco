@@ -73,7 +73,7 @@ unmake_white_move(chi_pos *pos, chi_move move)
 	pos->w_pieces90 |= from90_mask;
 
 	if (victim) {
-//		restore_black_victim(pos, move);
+		restore_black_victim(pos, move);
 	}
 }
 
@@ -95,7 +95,7 @@ unmake_black_move(chi_pos *pos, chi_move move)
 	pos->b_pieces90 |= from90_mask;
 
 	if (victim) {
-//		restore_white_victim(pos, move);
+		restore_white_victim(pos, move);
 	}
 }
 
@@ -107,8 +107,8 @@ restore_black_victim(chi_pos *pos, chi_move move)
 	bitv64 to90_mask = ((bitv64) 1 << rotate90[to]);
 	chi_piece_t victim = chi_move_victim (move);
 
-	pos->b_pieces &= ~to_mask;
-	pos->b_pieces90 &= ~to90_mask;
+	pos->b_pieces |= to_mask;
+	pos->b_pieces90 |= to90_mask;
 
 	switch (victim) {
 		case pawn:
@@ -117,29 +117,29 @@ restore_black_victim(chi_pos *pos, chi_move move)
 				bitv64 ep_mask = ((bitv64) 1) << ep_target;
 				bitv64 ep_mask90 = ((bitv64) 1) << rotate90[ep_target];
 		
-				pos->b_pieces &= ~ep_mask;
-				pos->b_pawns &= ~ep_mask;
-				pos->b_pieces90 &= ~ep_mask90;
+				pos->b_pieces |= ep_mask;
+				pos->b_pawns |= ep_mask;
+				pos->b_pieces90 |= ep_mask90;
 			} else {
-				pos->b_pawns &= ~to_mask;
+				pos->b_pawns |= to_mask;
 			}
 			break;
 		case knight:
-			pos->b_knights &= ~to_mask;
+			pos->b_knights |= to_mask;
 			break;
 		case bishop:
-			pos->b_bishops &= ~to_mask;
+			pos->b_bishops |= to_mask;
 			break;
 		case rook:
-			pos->b_rooks &= ~to_mask;
+			pos->b_rooks |= to_mask;
 			if (to_mask == (CHI_A_MASK & CHI_8_MASK))
 				chi_bq_castle (pos) = 0;
 			else if (to_mask == (CHI_H_MASK & CHI_8_MASK))
 				chi_bk_castle (pos) = 0;
 			break;
 		default:  /* Queen.  */
-			pos->b_rooks &= ~to_mask;
-			pos->b_bishops &= ~to_mask;
+			pos->b_rooks |= to_mask;
+			pos->b_bishops |= to_mask;
 			break;
 	}
 }
@@ -152,8 +152,8 @@ restore_white_victim(chi_pos *pos, chi_move move)
 	bitv64 to90_mask = ((bitv64) 1 << rotate90[to]);
 	chi_piece_t victim = chi_move_victim (move);
 
-	pos->w_pieces &= ~to_mask;
-	pos->w_pieces90 &= ~to90_mask;
+	pos->w_pieces |= to_mask;
+	pos->w_pieces90 |= to90_mask;
 
 	switch (victim) {
 		case pawn:
@@ -162,29 +162,29 @@ restore_white_victim(chi_pos *pos, chi_move move)
 				bitv64 ep_mask = ((bitv64) 1) << ep_target;
 				bitv64 ep_mask90 = ((bitv64) 1) << rotate90[ep_target];
 
-				pos->w_pieces &= ~ep_mask;
-				pos->w_pawns &= ~ep_mask;
-				pos->w_pieces90 &= ~ep_mask90;
+				pos->w_pieces |= ep_mask;
+				pos->w_pawns |= ep_mask;
+				pos->w_pieces90 |= ep_mask90;
 			} else {
-				pos->w_pawns &= ~to_mask;
+				pos->w_pawns |= to_mask;
 			}
 			break;
 		case knight:
-			pos->w_knights &= ~to_mask;
+			pos->w_knights |= to_mask;
 			break;
 		case bishop:
-			pos->w_bishops &= ~to_mask;
+			pos->w_bishops |= to_mask;
 			break;
 		case rook:
-			pos->w_rooks &= ~to_mask;
+			pos->w_rooks |= to_mask;
 			if (to_mask == (CHI_A_MASK & CHI_1_MASK))
-			chi_wq_castle (pos) = 0;
+				chi_wq_castle(pos) = 0;
 			else if (to_mask == (CHI_H_MASK & CHI_1_MASK))
-			chi_wk_castle (pos) = 0;
+				chi_wk_castle (pos) = 0;
 			break;
 		default: /* Queen.  */
-			pos->w_rooks &= ~to_mask;
-			pos->w_bishops &= ~to_mask;
+			pos->w_rooks |= to_mask;
+			pos->w_bishops |= to_mask;
 			break;
 	}
 }
