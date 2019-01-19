@@ -169,7 +169,7 @@ chi_set_position(chi_pos *argpos, const char *fen)
 
 	if (chi_ep(pos)) {
 		pos->ep_files[0] = chi_ep_file(pos);
-		pos->double_pawn_moves[0] = pos->half_moves + 1;
+		pos->double_pawn_moves[0] = pos->half_moves;
 		pos->double_pawn_move_count = 1;
 	}
 
