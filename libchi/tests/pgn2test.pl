@@ -47,38 +47,41 @@ sub parse_pgn($) {
 		my $eco = $pgn->eco;
 		my $result = $pgn->result;
 		$pgn->parse_game() or die "cannot smart parse $filename";
-		my $moves = "{\n";
+		my $moves = "";
 		my $line = "";
 		my $line_length = 0;
-		foreach my $move (@{$pgn->moves}) {
-			my $move_length = 2 + length $move;
+		foreach (@{$pgn->moves}, undef) {
+			my $move;
+			if (!defined $_) {
+				$move = "NULL";
+			} else {
+				$move = qq{"$_"},
+			}
+			my $move_length = length $move;
 			if ($line_length == 0) {
-				$line = qq{\t\t\t"$move"};
-				$line_length = 24 + $move_length;
+				$line = qq{\t$move};
+				$line_length = 8 + $move_length;
 			} elsif ($line_length + $move_length + 2 > 78) {
 				$moves .= $line . ",\n";
-				$line_length = 24 + $move_length;
-				$line = qq{\t\t\t"$move"};
+				$line_length = 8 + $move_length;
+				$line = qq{\t$move};
 			} else {
 				$line_length += 2 + $move_length;
-				$line .= qq{, "$move"};
+				$line .= qq{, $move};
 			}
 		}
-		$moves .= "$line\n";
-		$moves .= "\t\t},\n";
+		$moves .= "$line,\n";
 		print <<EOF;
-	{
-		__FILE__, __LINE__,
-		"$event",
-		"$site",
-		"$date",
-		"$round",
-		"$white",
-		"$black",
-		"$eco",
-		"$result",
-		$moves
-	},
+	__FILE__, STRING(__LINE__),
+	"$event",
+	"$site",
+	"$date",
+	"$round",
+	"$white",
+	"$black",
+	"$eco",
+	"$result",
+$moves
 EOF
 	}
 }

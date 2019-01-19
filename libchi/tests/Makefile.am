@@ -25,6 +25,7 @@ check_libchi_SOURCES = \
 		test_fen.c \
 		test_game_over.c \
 		test_move_making.c \
+		test_move_making_pgn.c \
 		test_parsers.c \
 		test_presentation.c \
 		check_libchi.c
