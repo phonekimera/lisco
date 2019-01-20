@@ -118,8 +118,9 @@ _chi_stringbuf_append_unsigned(chi_stringbuf *self, bitv64 number, int base)
 {
 	const char digits[] =
 		"zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz";
-	char *forward = self->str + self->length;
+	char *forward;
 	char *backwards;
+	size_t added = 0;
 
 	if (base < 2 || base > 36)
 		return;
@@ -131,10 +132,13 @@ _chi_stringbuf_append_unsigned(chi_stringbuf *self, bitv64 number, int base)
 		number /= base;
 		c = digits[35 + (old - number * base)];
 		_chi_stringbuf_append_char(self, c);
+		++added;
 	} while (number);
 
 	/* Reverse the digits.  */
 	backwards = self->str + self->length - 1;
+	forward = backwards - added - 1;
+
 	while (forward < backwards) {
 			int c = *forward;
 			*forward = *backwards;
