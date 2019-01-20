@@ -71,7 +71,6 @@ static const char *tests[] = {
 	"*",
 	"e4", "e5", NULL,
 
-/*
 	__FILE__, STRING(__LINE__),
 	"Berlin",
 	"Berlin GER",
@@ -119,7 +118,7 @@ static const char *tests[] = {
 	"Qe3+", "Kh1", "Bc8", "Bd7", "f2", "Rf1", "d3", "Rc3", "Bxd7", "cxd7",
 	"e4", "Qc8", "Bd8", "Qc4", "Qe1", "Rc1", "d2", "Qc5", "Rg8", "Rd1",
 	"e3", "Qc3", "Qxd1", "Rxd1", "e2", NULL,
-*/
+
 	NULL
 };
 
@@ -179,8 +178,7 @@ test_game(const char *strings[])
 	game.result = strings[9];
 
 	for (num_moves = 0; strings[num_moves + 10]; ++num_moves) {}
-printf("number of moves: %lu\n", num_moves);
-	retval = strings + num_moves + 10;
+	retval = strings + num_moves + 11;
 
 	fens = xcalloc(10 + num_moves, sizeof fens[0]);
 	moves = xcalloc(num_moves, sizeof moves[0]);
