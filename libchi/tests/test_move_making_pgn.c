@@ -131,7 +131,8 @@ report_failure(const TestGame *game,
 	va_list ap;
 	va_start(ap, fmt);
 
-	fprintf(stderr, "Failed test at %s:%s, \n", game->filename, game->lineno);
+	fprintf(stderr, "Failed test at %s:%s\n", game->filename, game->lineno);
+	fprintf(stderr, "%s vs %s, %s\n", game->white, game->black, game->date);
 
 	if (move) {
 		if (move_number & 1) {
