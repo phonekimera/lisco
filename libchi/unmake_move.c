@@ -221,33 +221,26 @@ unmove_white_piece(chi_pos *pos, chi_move move)
 			}
 			break;
 		case knight:
-			pos->w_knights &= ~from_mask;
-			pos->w_knights |= to_mask;
+			pos->w_knights |= from_mask;
+			pos->w_knights &= ~to_mask;
 			break;
 		case bishop:
-			pos->w_bishops &= ~from_mask;
-			pos->w_bishops |= to_mask;
+			pos->w_bishops |= from_mask;
+			pos->w_bishops &= ~to_mask;
 			break;
 		case rook:
-			pos->w_rooks &= ~from_mask;
-			pos->w_rooks |= to_mask;
-			if (from_mask == (CHI_A_MASK & CHI_1_MASK))
-				chi_wq_castle (pos) = 0;
-			else if (from_mask == (CHI_H_MASK & CHI_1_MASK))
-				chi_wk_castle (pos) = 0;
+			pos->w_rooks |= from_mask;
+			pos->w_rooks &= ~to_mask;
 			break;
 		case queen:
-			pos->w_bishops &= ~from_mask;
-			pos->w_bishops |= to_mask;
-			pos->w_rooks &= ~from_mask;
-			pos->w_rooks |= to_mask;
+			pos->w_bishops |= from_mask;
+			pos->w_bishops &= ~to_mask;
+			pos->w_rooks |= from_mask;
+			pos->w_rooks &= ~to_mask;
 			break;
 		case king:
-			pos->w_kings &= ~from_mask;
-			pos->w_kings |= to_mask;
-			if (to_mask == (CHI_E_MASK & CHI_1_MASK)) {
-				uncastle_white(pos, move);
-			}
+			pos->w_kings |= from_mask;
+			pos->w_kings &= to_mask;
 			break;
 	}
 }
@@ -284,33 +277,26 @@ unmove_black_piece(chi_pos *pos, chi_move move)
 			}
 			break;
 		case knight:
-			pos->b_knights &= ~from_mask;
-			pos->b_knights |= to_mask;
+			pos->b_knights = from_mask;
+			pos->b_knights &= ~to_mask;
 			break;
 		case bishop:
-			pos->b_bishops &= ~from_mask;
-			pos->b_bishops |= to_mask;
+			pos->b_bishops |= from_mask;
+			pos->b_bishops &= ~to_mask;
 			break;
 		case rook:
-			pos->b_rooks &= ~from_mask;
-			pos->b_rooks |= to_mask;
-			if (from_mask == (CHI_A_MASK & CHI_8_MASK))
-				chi_bq_castle (pos) = 0;
-			else if (from_mask == (CHI_H_MASK & CHI_8_MASK))
-				chi_bk_castle (pos) = 0;
+			pos->b_rooks |= from_mask;
+			pos->b_rooks &= ~to_mask;
 			break;
 		case queen:
-			pos->b_bishops &= ~from_mask;
-			pos->b_bishops |= to_mask;
-			pos->b_rooks &= ~from_mask;
-			pos->b_rooks |= to_mask;
+			pos->b_bishops |= from_mask;
+			pos->b_bishops &= ~to_mask;
+			pos->b_rooks |= from_mask;
+			pos->b_rooks &= ~to_mask;
 			break;
 		case king:
-			pos->b_kings &= ~from_mask;
-			pos->b_kings |= to_mask;
-			if (from_mask == (CHI_E_MASK & CHI_8_MASK)) {
-				uncastle_black(pos, move);
-			}
+			pos->b_kings |= from_mask;
+			pos->b_kings &= ~to_mask;
 			break;
 	}
 }
