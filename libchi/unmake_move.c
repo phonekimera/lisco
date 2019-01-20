@@ -277,7 +277,7 @@ unmove_black_piece(chi_pos *pos, chi_move move)
 			}
 			break;
 		case knight:
-			pos->b_knights = from_mask;
+			pos->b_knights |= from_mask;
 			pos->b_knights &= ~to_mask;
 			break;
 		case bishop:
