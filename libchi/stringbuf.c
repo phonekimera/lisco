@@ -88,7 +88,10 @@ _chi_stringbuf_append(chi_stringbuf *self, const char *string)
 	size_t length = strlen(string);
 	
 	if (length + self->length + 1 > self->size) {
+		size_t missing = self->length + length + 1 - self->size;
 		size_t chunk_size = self->chunk_size || (length << 1);
+		if (chunk_size < missing)
+			chunk_size = missing;
 		self->size += chunk_size;
 		self->str = xrealloc(self->str, self->size);
 	}
@@ -100,7 +103,7 @@ _chi_stringbuf_append(chi_stringbuf *self, const char *string)
 void
 _chi_stringbuf_append_char(chi_stringbuf *self, char c)
 {
-	if (self->length + 2> self->size) {
+	if (self->length + 2 > self->size) {
 		size_t chunk_size = self->chunk_size ? self->chunk_size : 2;
 		self->size += chunk_size;
 		self->str = xrealloc(self->str, self->size);
