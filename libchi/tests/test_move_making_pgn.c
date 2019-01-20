@@ -188,8 +188,7 @@ test_game(const char *strings[])
 	fens[0] = chi_fen(&pos);
 
 	for (i = 0; i < num_moves; ++i) {
-		const char *movestr = strings[num_moves + 8 + i];
-		printf("playing move %s\n", movestr);
+		const char *movestr = strings[10 + i];
 		errnum = chi_parse_move(&pos, &moves[i], movestr);
 		if (errnum) {
 			report_failure(&game, i, movestr,
@@ -211,7 +210,7 @@ test_game(const char *strings[])
 
 	for (i = num_moves; i > 0; --i) {
 		char *got;
-		const char *movestr = strings[num_moves + 7 + i];
+		const char *movestr = strings[9 + i];
 
 		errnum = chi_unapply_move(&pos, moves[i - 1]);
 		if (errnum) {
