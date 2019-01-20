@@ -114,7 +114,8 @@ static const char *tests[] = {
 static void
 report_failure(const TestGame *game,
                unsigned int move_number, const char *move,
-			   const char *fmt, ...)
+               const char *wanted_fen, const char *got_fen,
+               const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
@@ -129,6 +130,12 @@ report_failure(const TestGame *game,
 		}
 	}
 
+	if (wanted_fen && got_fen) {
+		fprintf(stderr, "wanted: %s\n", wanted_fen);
+		fprintf(stderr, "   got: %s\n", got_fen);
+	} else if (wanted_fen) {
+		fprintf(stderr, "FEN: %s\n", wanted_fen);
+	}
 	vfprintf(stderr, fmt, ap);
 
 	va_end(ap);
@@ -161,26 +168,33 @@ test_game(const char *strings[])
 	for (num_moves = 0; strings[num_moves]; ++num_moves) {}
 	retval = strings + num_moves + 1;
 
+	fens = xcalloc(10 + num_moves, sizeof fens[0]);
 	moves = xcalloc(num_moves, sizeof moves[0]);
-	fens = xcalloc(num_moves, sizeof fens[0]);
 
 	chi_init_position(&pos);
 	
+	fens[0] = chi_fen(&pos);
+
 	for (i = 0; i < num_moves; ++i) {
 		errnum = chi_parse_move(&pos, &moves[i], strings[i]);
 		if (errnum) {
 			report_failure(&game, i, strings[i], "parsing move failed: %s\n",
-			               chi_strerror(errnum));
+                           fens[0], NULL,
+                           chi_strerror(errnum));
 		}
+
 		errnum = chi_apply_move(&pos, moves[i]);
 		if (errnum) {
 			report_failure(&game, i, strings[i], "applying move failed: %s\n",
-			               chi_strerror(errnum));
+                           fens[0], NULL,
+                           chi_strerror(errnum));
 		}
+
+		fens[i + 1] = chi_fen(&pos);
 	}
 
-	free(fens);
 	free(moves);
+	free(fens);
 
 	return retval;
 }
