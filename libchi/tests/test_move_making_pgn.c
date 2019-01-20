@@ -214,7 +214,7 @@ test_game(const char *strings[])
 
 		errnum = chi_unapply_move(&pos, moves[i - 1]);
 		if (errnum) {
-			report_failure(&game, i, movestr,
+			report_failure(&game, i - 1, movestr,
                            fens[i], fens[i - 1], NULL,
                            "applying move failed: %s\n",
                            chi_strerror(errnum));
@@ -222,7 +222,7 @@ test_game(const char *strings[])
 
 		got = chi_fen(&pos);
 		if (0 != strcmp(got, fens[i - 1])) {
-			report_failure(&game, i, movestr,
+			report_failure(&game, i - 1, movestr,
                            fens[i], fens[i - 1], got,
                            "wrong position after unapply_move!\n");
 		}
