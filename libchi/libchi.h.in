@@ -227,6 +227,10 @@ typedef struct {
 	unsigned int double_pawn_moves[16];
 	unsigned char ep_files[16];
 	unsigned int double_pawn_move_count;
+	unsigned int lost_wk_castle;
+	unsigned int lost_wq_castle;
+	unsigned int lost_bk_castle;
+	unsigned int lost_bq_castle;
 
 #define chi_flags(p) ((p)->union_flags.flags)
 #define chi_wk_castle(p) ((p)->flags.wk_castle)
@@ -243,6 +247,9 @@ typedef struct {
 #define chi_b_castled(p) ((p)->flags.b_castled)
 
 	struct {
+		/* FIXME! This four fields are redundant!  Change the corresponding
+		 * macros, and remove them.
+		 */
 		unsigned wk_castle: 1;
 		unsigned wq_castle: 1;
 		unsigned bk_castle: 1;

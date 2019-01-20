@@ -71,6 +71,7 @@ static const char *tests[] = {
 	"*",
 	"e4", "e5", NULL,
 
+	/* See http://www.chessgames.com/perl/chesscollection?cid=1001601 */
 	__FILE__, STRING(__LINE__),
 	"Berlin",
 	"Berlin GER",

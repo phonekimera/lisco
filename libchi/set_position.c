@@ -45,6 +45,12 @@ chi_set_position(chi_pos *argpos, const char *fen)
 	if (errnum)
 		return errnum;
 
+	/* Assume that castling is not possible at all.  */
+	pos->lost_wk_castle = 1;
+	pos->lost_wq_castle = 1;
+	pos->lost_bk_castle = 1;
+	pos->lost_bq_castle = 1;
+
 	ptr = end_ptr;
 
 	while (*ptr == ' ' || *ptr == '\t')
@@ -70,16 +76,20 @@ chi_set_position(chi_pos *argpos, const char *fen)
 	while (1) {
 		switch (*ptr) {
 			case 'K':
-				chi_wk_castle (pos) = 1;
+				chi_wk_castle(pos) = 1;
+				pos->lost_wk_castle = 0;
 				break;
 			case 'Q':
-				chi_wq_castle (pos) = 1;
+				chi_wq_castle(pos) = 1;
+				pos->lost_wq_castle = 0;
 				break;
 			case 'k':
-				chi_bk_castle (pos) = 1;
+				chi_bk_castle(pos) = 1;
+				pos->lost_bk_castle = 0;
 				break;
 			case 'q':
-				chi_bq_castle (pos) = 1;
+				chi_bq_castle(pos) = 1;
+				pos->lost_bq_castle = 0;
 				break;
 			case '-':
 				break;

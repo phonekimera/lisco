@@ -232,10 +232,15 @@ move_white_piece(chi_pos *pos, chi_move move)
 		case rook:
 			pos->w_rooks &= ~from_mask;
 			pos->w_rooks |= to_mask;
-			if (from_mask == (CHI_A_MASK & CHI_1_MASK))
-				chi_wq_castle (pos) = 0;
-			else if (from_mask == (CHI_H_MASK & CHI_1_MASK))
-				chi_wk_castle (pos) = 0;
+			if (from_mask == (CHI_A_MASK & CHI_1_MASK)) {
+				if (chi_wq_castle(pos))
+					pos->lost_wq_castle = pos->half_moves;
+				chi_wq_castle(pos) = 0;
+			} else if (from_mask == (CHI_H_MASK & CHI_1_MASK)) {
+				if (chi_wk_castle(pos))
+					pos->lost_wk_castle = pos->half_moves;
+				chi_wk_castle(pos) = 0;
+			}
 			break;
 		case queen:
 			pos->w_bishops &= ~from_mask;
@@ -247,6 +252,10 @@ move_white_piece(chi_pos *pos, chi_move move)
 			pos->w_kings &= ~from_mask;
 			pos->w_kings |= to_mask;
 			if (from_mask == (CHI_E_MASK & CHI_1_MASK)) {
+				if (chi_wk_castle(pos))
+					pos->lost_wk_castle = pos->half_moves;
+				if (chi_wq_castle(pos))
+					pos->lost_wq_castle = pos->half_moves;
 				chi_wk_castle(pos) = 0;
 				chi_wq_castle(pos) = 0;
 				castle_white(pos, move);
@@ -297,10 +306,15 @@ move_black_piece(chi_pos *pos, chi_move move)
 		case rook:
 			pos->b_rooks &= ~from_mask;
 			pos->b_rooks |= to_mask;
-			if (from_mask == (CHI_A_MASK & CHI_8_MASK))
-				chi_bq_castle (pos) = 0;
-			else if (from_mask == (CHI_H_MASK & CHI_8_MASK))
-				chi_bk_castle (pos) = 0;
+			if (from_mask == (CHI_A_MASK & CHI_8_MASK)) {
+				if (chi_bq_castle(pos))
+					pos->lost_bq_castle = pos->half_moves;
+				chi_bq_castle(pos) = 0;
+			} else if (from_mask == (CHI_H_MASK & CHI_8_MASK)) {
+				if (chi_bk_castle(pos))
+					pos->lost_bk_castle = pos->half_moves;
+				chi_bk_castle(pos) = 0;
+			}
 			break;
 		case queen:
 			pos->b_bishops &= ~from_mask;
@@ -312,8 +326,12 @@ move_black_piece(chi_pos *pos, chi_move move)
 			pos->b_kings &= ~from_mask;
 			pos->b_kings |= to_mask;
 			if (from_mask == (CHI_E_MASK & CHI_8_MASK)) {
-				chi_bq_castle (pos) = 0;
-				chi_bk_castle (pos) = 0;
+				if (chi_bq_castle(pos))
+					pos->lost_bq_castle = pos->half_moves;
+				if (chi_bk_castle(pos))
+					pos->lost_bk_castle = pos->half_moves;
+				chi_bq_castle(pos) = 0;
+				chi_bk_castle(pos) = 0;
 				castle_black(pos, move);
 			}
 			break;
