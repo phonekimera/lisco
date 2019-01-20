@@ -26,8 +26,15 @@ int
 chi_unapply_move(chi_pos *pos, chi_move move)
 {
 	if (chi_move_victim(move) || chi_move_attacker(move) == pawn) {
-		pos->half_move_clock = pos->half_moves
-				- pos->irreversible[--pos->irreversible_count];
+		if (pos->irreversible_count > 1) {
+			pos->half_move_clock = pos->half_moves - 1
+				- pos->irreversible[--pos->irreversible_count - 1];
+		} else {
+			pos->irreversible_count = 0;
+			pos->half_move_clock = 0;
+		}
+	} else {
+		--pos->half_move_clock;
 	}
 
 	if (pos->double_pawn_move_count
