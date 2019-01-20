@@ -61,6 +61,17 @@ typedef struct test_game {
 #define STRING(s) STRINGIFY(s)
 static const char *tests[] = {
 	__FILE__, STRING(__LINE__),
+	"Sofia",
+	"Sofia BUL",
+	"2019.01.20",
+	"?",
+	"Somebody",
+	"Somebody else",
+	"C20",
+	"0-0",
+	"e4", "e5", NULL,
+
+	__FILE__, STRING(__LINE__),
 	"Berlin",
 	"Berlin GER",
 	"1852.??.??",

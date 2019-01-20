@@ -137,7 +137,7 @@ _chi_stringbuf_append_unsigned(chi_stringbuf *self, bitv64 number, int base)
 
 	/* Reverse the digits.  */
 	backwards = self->str + self->length - 1;
-	forward = backwards - added - 1;
+	forward = backwards - added + 1;
 
 	while (forward < backwards) {
 			int c = *forward;
