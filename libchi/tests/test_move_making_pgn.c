@@ -71,6 +71,7 @@ static const char *tests[] = {
 	"0-0",
 	"e4", "e5", NULL,
 
+/*
 	__FILE__, STRING(__LINE__),
 	"Berlin",
 	"Berlin GER",
@@ -118,7 +119,7 @@ static const char *tests[] = {
 	"Qe3+", "Kh1", "Bc8", "Bd7", "f2", "Rf1", "d3", "Rc3", "Bxd7", "cxd7",
 	"e4", "Qc8", "Bd8", "Qc4", "Qe1", "Rc1", "d2", "Qc5", "Rg8", "Rd1",
 	"e3", "Qc3", "Qxd1", "Rxd1", "e2", NULL,
-
+*/
 	NULL
 };
 
@@ -164,7 +165,7 @@ test_game(const char *strings[])
 	chi_pos pos;
 	int errnum;
 	chi_move *moves;
-	const char **fens;
+	char **fens;
 
 	game.filename = *strings++;
 	game.lineno = *strings++;
@@ -208,6 +209,28 @@ test_game(const char *strings[])
 		fens[i + 1] = chi_fen(&pos);
 	}
 
+	for (i = num_moves; i > 0; --i) {
+		char *got;
+
+		errnum = chi_unapply_move(&pos, moves[i - 1]);
+		if (errnum) {
+			report_failure(&game, i, strings[i],
+                           fens[i], fens[i - 1], NULL,
+                           "applying move failed: %s\n",
+                           chi_strerror(errnum));
+		}
+
+		got = chi_fen(&pos);
+		if (0 != strcmp(got, fens[i - 1])) {
+			report_failure(&game, i, strings[i],
+                           fens[i], fens[i - 1], NULL,
+                           "wrong position after unapply_move!\n");
+		}
+		free(got);
+		free(fens[i]);
+	}
+
+	free(fens[0]);
 	free(moves);
 	free(fens);
 
