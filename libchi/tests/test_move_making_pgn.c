@@ -68,7 +68,7 @@ static const char *tests[] = {
 	"Somebody",
 	"Somebody else",
 	"C20",
-	"0-0",
+	"*",
 	"e4", "e5", NULL,
 
 /*
@@ -136,9 +136,9 @@ report_failure(const TestGame *game,
 
 	if (move) {
 		if (move_number & 1) {
-			fprintf(stderr, "Move %u. ... %s\n", 1 + move_number / 2, move);
+			fprintf(stderr, "Move: %u. ... %s\n", 1 + move_number / 2, move);
 		} else {
-			fprintf(stderr, "Move %u. %s\n", 1 + move_number / 2, move);
+			fprintf(stderr, "Move: %u. %s\n", 1 + move_number / 2, move);
 		}
 	}
 
@@ -167,19 +167,20 @@ test_game(const char *strings[])
 	chi_move *moves;
 	char **fens;
 
-	game.filename = *strings++;
-	game.lineno = *strings++;
-	game.event = *strings++;
-	game.site = *strings++;
-	game.date = *strings++;
-	game.round = *strings++;
-	game.white = *strings++;
-	game.black = *strings++;
-	game.eco = *strings++;
-	game.result = *strings++;
+	game.filename = strings[0];
+	game.lineno = strings[1];
+	game.event = strings[2];
+	game.site = strings[3];
+	game.date = strings[4];
+	game.round = strings[5];
+	game.white = strings[6];
+	game.black = strings[7];
+	game.eco = strings[8];
+	game.result = strings[9];
 
-	for (num_moves = 0; strings[num_moves]; ++num_moves) {}
-	retval = strings + num_moves + 1;
+	for (num_moves = 0; strings[num_moves + 10]; ++num_moves) {}
+printf("number of moves: %lu\n", num_moves);
+	retval = strings + num_moves + 10;
 
 	fens = xcalloc(10 + num_moves, sizeof fens[0]);
 	moves = xcalloc(num_moves, sizeof moves[0]);
@@ -189,18 +190,19 @@ test_game(const char *strings[])
 	fens[0] = chi_fen(&pos);
 
 	for (i = 0; i < num_moves; ++i) {
-		errnum = chi_parse_move(&pos, &moves[i], strings[i]);
+		const char *movestr = strings[num_moves + 8 + i];
+		printf("playing move %s\n", movestr);
+		errnum = chi_parse_move(&pos, &moves[i], movestr);
 		if (errnum) {
-			report_failure(&game, i, strings[i],
+			report_failure(&game, i, movestr,
 			               fens[i], NULL, NULL,
 			               "parsing move failed: %s\n",
-                           fens[i], NULL,
                            chi_strerror(errnum));
 		}
 
 		errnum = chi_apply_move(&pos, moves[i]);
 		if (errnum) {
-			report_failure(&game, i, strings[i],
+			report_failure(&game, i, movestr,
 			               fens[i], NULL, NULL,
 						   "applying move failed: %s\n",
                            chi_strerror(errnum));
@@ -211,10 +213,11 @@ test_game(const char *strings[])
 
 	for (i = num_moves; i > 0; --i) {
 		char *got;
+		const char *movestr = strings[num_moves + 7 + i];
 
 		errnum = chi_unapply_move(&pos, moves[i - 1]);
 		if (errnum) {
-			report_failure(&game, i, strings[i],
+			report_failure(&game, i, movestr,
                            fens[i], fens[i - 1], NULL,
                            "applying move failed: %s\n",
                            chi_strerror(errnum));
@@ -222,8 +225,8 @@ test_game(const char *strings[])
 
 		got = chi_fen(&pos);
 		if (0 != strcmp(got, fens[i - 1])) {
-			report_failure(&game, i, strings[i],
-                           fens[i], fens[i - 1], NULL,
+			report_failure(&game, i, movestr,
+                           fens[i], fens[i - 1], got,
                            "wrong position after unapply_move!\n");
 		}
 		free(got);
