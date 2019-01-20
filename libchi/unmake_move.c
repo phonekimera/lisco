@@ -300,6 +300,9 @@ unmove_black_piece(chi_pos *pos, chi_move move)
 		case king:
 			pos->b_kings |= from_mask;
 			pos->b_kings &= ~to_mask;
+			if (from_mask == (CHI_E_MASK & CHI_8_MASK)) {
+				uncastle_black(pos, move);
+			}
 			break;
 	}
 }
@@ -321,6 +324,7 @@ uncastle_white(chi_pos *pos, chi_move move)
 
 		chi_w_castled(pos) = 0;
 		chi_wk_castle(pos) = 1;
+
 		if (pos->lost_wq_castle >= pos->half_moves)
 			chi_wq_castle(pos) = 1;
 
@@ -339,6 +343,7 @@ uncastle_white(chi_pos *pos, chi_move move)
 
 		chi_w_castled(pos) = 0;
 		chi_wq_castle(pos) = 1;
+
 		if (pos->lost_wk_castle >= pos->half_moves)
 			chi_wk_castle(pos) = 1;
 
@@ -357,30 +362,44 @@ uncastle_black(chi_pos *pos, chi_move move)
 	int to = chi_move_to(move);
 	bitv64 to_mask = ((bitv64) 1 << to);
 
+	chi_wq_castle(pos) = 0;
+	chi_wk_castle(pos) = 0;
+
 	if (to_mask == (CHI_G_MASK & CHI_8_MASK)) {
 		bitv64 rook_from_mask = ((bitv64) 1) << (to - 1);
 		bitv64 rook_to_mask = ((bitv64) 1) << (to + 1);
 		bitv64 rook_from90_mask = ((bitv64) 1) << rotate90[to - 1];
 		bitv64 rook_to90_mask = ((bitv64) 1) << rotate90[to + 1];
-		chi_w_castled (pos) = 1;
-		pos->b_rooks |= rook_to_mask;
-		pos->b_rooks &= ~rook_from_mask;
-		pos->b_pieces |= rook_to_mask;
-		pos->b_pieces &= ~rook_from_mask;
-		pos->b_pieces90 |= rook_to90_mask;
-		pos->b_pieces90 &= ~rook_from90_mask;
+
+		chi_b_castled(pos) = 0;
+		chi_bk_castle(pos) = 1;
+
+		if (pos->lost_bq_castle >= pos->half_moves)
+			chi_bq_castle(pos) = 1;
+
+		pos->b_rooks &= ~rook_to_mask;
+		pos->b_rooks |= rook_from_mask;
+		pos->b_pieces &= ~rook_to_mask;
+		pos->b_pieces |= rook_from_mask;
+		pos->b_pieces90 &= ~rook_to90_mask;
+		pos->b_pieces90 |= rook_from90_mask;
 	} else if (to_mask == (CHI_C_MASK & CHI_8_MASK)) {
 		bitv64 rook_from_mask = ((bitv64) 1) << (to + 2);
 		bitv64 rook_to_mask = ((bitv64) 1) << (to - 1);
 		bitv64 rook_from90_mask = ((bitv64) 1) << rotate90[to + 2];
 		bitv64 rook_to90_mask = ((bitv64) 1) << rotate90[to - 1];
 
-		chi_b_castled (pos) = 1;
-		pos->b_rooks |= rook_to_mask;
-		pos->b_rooks &= ~rook_from_mask;
-		pos->b_pieces |= rook_to_mask;
-		pos->b_pieces &= ~rook_from_mask;
-		pos->b_pieces90 |= rook_to90_mask;
-		pos->b_pieces90 &= ~rook_from90_mask;
+		chi_b_castled(pos) = 0;
+		chi_bq_castle(pos) = 1;
+
+		if (pos->lost_bk_castle >= pos->half_moves)
+			chi_bk_castle(pos) = 1;
+
+		pos->b_rooks &= ~rook_to_mask;
+		pos->b_rooks |= rook_from_mask;
+		pos->b_pieces &= ~rook_to_mask;
+		pos->b_pieces |= rook_from_mask;
+		pos->b_pieces90 &= ~rook_to90_mask;
+		pos->b_pieces90 |= rook_from90_mask;
 	}
 }
