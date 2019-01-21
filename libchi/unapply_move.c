@@ -31,7 +31,7 @@ chi_unapply_move(chi_pos *pos, chi_move move)
 				- pos->irreversible[--pos->irreversible_count - 1];
 		} else {
 			pos->irreversible_count = 0;
-			pos->half_move_clock = 0;
+			pos->half_move_clock = pos->irreversible[0] - 1;
 		}
 	} else {
 		--pos->half_move_clock;

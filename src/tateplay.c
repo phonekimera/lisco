@@ -63,6 +63,8 @@ static const struct option long_options[] = {
 	{ NULL, 0, NULL, 0 }
 };
 
+#include <assert.h>
+
 int
 main(int argc, char *argv[])
 {
@@ -73,6 +75,19 @@ main(int argc, char *argv[])
 	bool black_seen = false;
 	struct sigaction sa;
 
+chi_pos pos;
+chi_move move;
+
+chi_set_position(&pos, "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2");
+printf("%s\n", chi_fen(&pos));
+
+chi_parse_move(&pos, &move, "exd");
+chi_apply_move(&pos, move);
+printf("%s\n", chi_fen(&pos));
+
+chi_unapply_move(&pos, move);
+printf("%s\n", chi_fen(&pos));
+return 0;
 	game = game_new();
 
 	set_program_name(argv[0]);

@@ -172,10 +172,8 @@ chi_set_position(chi_pos *argpos, const char *fen)
 	else
 		pos->half_moves = ((num - 1) << 1) + 1;
 
-	if (pos->half_move_clock) {
-		pos->irreversible[0] = pos->half_moves - pos->half_move_clock;
-		pos->irreversible_count = 1;
-	}
+	pos->irreversible[0] = pos->half_moves - pos->half_move_clock;
+	pos->irreversible_count = 1;
 
 	if (chi_ep(pos)) {
 		pos->ep_files[0] = chi_ep_file(pos);
