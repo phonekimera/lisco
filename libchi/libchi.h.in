@@ -27,6 +27,7 @@
 #endif
 
 #include <stdlib.h>
+#include <string.h>
 
 #define CHI_VERSION "@VERSION@"
 
@@ -273,24 +274,7 @@ typedef struct {
         chi_pos_fill;
 } chi_pos;
 
-// FIXME: This piece of code must be generated at compile-time!
-#define chi_copy_pos(d, s) \
-    ((bitv64*) (d))[0] = ((bitv64*) (s))[0];  \
-    ((bitv64*) (d))[1] = ((bitv64*) (s))[1];  \
-    ((bitv64*) (d))[2] = ((bitv64*) (s))[2];  \
-    ((bitv64*) (d))[3] = ((bitv64*) (s))[3];  \
-    ((bitv64*) (d))[4] = ((bitv64*) (s))[4];  \
-    ((bitv64*) (d))[5] = ((bitv64*) (s))[5];  \
-    ((bitv64*) (d))[6] = ((bitv64*) (s))[6];  \
-    ((bitv64*) (d))[7] = ((bitv64*) (s))[7];  \
-    ((bitv64*) (d))[8] = ((bitv64*) (s))[8];  \
-    ((bitv64*) (d))[9] = ((bitv64*) (s))[9];  \
-    ((bitv64*) (d))[10] = ((bitv64*) (s))[10];  \
-    ((bitv64*) (d))[11] = ((bitv64*) (s))[11];  \
-    ((bitv64*) (d))[12] = ((bitv64*) (s))[12];  \
-    ((bitv64*) (d))[13] = ((bitv64*) (s))[13];  \
-    ((bitv64*) (d))[14] = ((bitv64*) (s))[14];  \
-    ((bitv64*) (d))[15] = ((bitv64*) (s))[15];
+#define chi_copy_pos(d, s) memcpy(d, s, sizeof *d);
 
 /* A move is represented by 32 bits in host order:
 
