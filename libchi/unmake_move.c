@@ -132,10 +132,6 @@ restore_black_victim(chi_pos *pos, chi_move move)
 			break;
 		case rook:
 			pos->b_rooks |= to_mask;
-			if (to_mask == (CHI_A_MASK & CHI_8_MASK))
-				chi_bq_castle (pos) = 0;
-			else if (to_mask == (CHI_H_MASK & CHI_8_MASK))
-				chi_bk_castle (pos) = 0;
 			break;
 		default:  /* Queen.  */
 			pos->b_rooks |= to_mask;
@@ -177,10 +173,6 @@ restore_white_victim(chi_pos *pos, chi_move move)
 			break;
 		case rook:
 			pos->w_rooks |= to_mask;
-			if (to_mask == (CHI_A_MASK & CHI_1_MASK))
-				chi_wq_castle(pos) = 0;
-			else if (to_mask == (CHI_H_MASK & CHI_1_MASK))
-				chi_wk_castle (pos) = 0;
 			break;
 		default: /* Queen.  */
 			pos->w_rooks |= to_mask;
@@ -313,9 +305,6 @@ uncastle_white(chi_pos *pos, chi_move move)
 	int to = chi_move_to(move);
 	bitv64 to_mask = ((bitv64) 1 << to);
 
-	chi_wq_castle(pos) = 0;
-	chi_wk_castle(pos) = 0;
-
 	if (to_mask == (CHI_G_MASK & CHI_1_MASK)) {
 		bitv64 rook_from_mask = ((bitv64) 1) << (to - 1);
 		bitv64 rook_to_mask = ((bitv64) 1) << (to + 1);
@@ -323,10 +312,6 @@ uncastle_white(chi_pos *pos, chi_move move)
 		bitv64 rook_to90_mask = ((bitv64) 1) << rotate90[to + 1];
 
 		chi_w_castled(pos) = 0;
-		chi_wk_castle(pos) = 1;
-
-		if (pos->lost_wq_castle >= pos->half_moves)
-			chi_wq_castle(pos) = 1;
 
 		pos->w_rooks &= ~rook_to_mask;
 		pos->w_rooks |= rook_from_mask;
@@ -342,10 +327,6 @@ uncastle_white(chi_pos *pos, chi_move move)
 		rotate90[to - 1];
 
 		chi_w_castled(pos) = 0;
-		chi_wq_castle(pos) = 1;
-
-		if (pos->lost_wk_castle >= pos->half_moves)
-			chi_wk_castle(pos) = 1;
 
 		pos->w_rooks &= ~rook_to_mask;
 		pos->w_rooks |= rook_from_mask;
@@ -362,9 +343,6 @@ uncastle_black(chi_pos *pos, chi_move move)
 	int to = chi_move_to(move);
 	bitv64 to_mask = ((bitv64) 1 << to);
 
-	chi_wq_castle(pos) = 0;
-	chi_wk_castle(pos) = 0;
-
 	if (to_mask == (CHI_G_MASK & CHI_8_MASK)) {
 		bitv64 rook_from_mask = ((bitv64) 1) << (to - 1);
 		bitv64 rook_to_mask = ((bitv64) 1) << (to + 1);
@@ -372,10 +350,6 @@ uncastle_black(chi_pos *pos, chi_move move)
 		bitv64 rook_to90_mask = ((bitv64) 1) << rotate90[to + 1];
 
 		chi_b_castled(pos) = 0;
-		chi_bk_castle(pos) = 1;
-
-		if (pos->lost_bq_castle >= pos->half_moves)
-			chi_bq_castle(pos) = 1;
 
 		pos->b_rooks &= ~rook_to_mask;
 		pos->b_rooks |= rook_from_mask;
@@ -390,10 +364,6 @@ uncastle_black(chi_pos *pos, chi_move move)
 		bitv64 rook_to90_mask = ((bitv64) 1) << rotate90[to - 1];
 
 		chi_b_castled(pos) = 0;
-		chi_bq_castle(pos) = 1;
-
-		if (pos->lost_bk_castle >= pos->half_moves)
-			chi_bk_castle(pos) = 1;
 
 		pos->b_rooks &= ~rook_to_mask;
 		pos->b_rooks |= rook_from_mask;
