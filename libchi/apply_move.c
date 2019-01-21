@@ -46,6 +46,7 @@ chi_apply_move(chi_pos *pos, chi_move move)
 	chi_ep(pos) = 0;
 
 	if (chi_move_victim(move) || attacker == pawn) {
+		/* Irreversible move.  Reset half-move clock.  */
 		pos->irreversible[pos->irreversible_count++] = pos->half_moves;
 		pos->half_move_clock = 0;
 		if (attacker == pawn && abs(to - from) == 16) {
@@ -62,33 +63,52 @@ chi_apply_move(chi_pos *pos, chi_move move)
 		++pos->half_move_clock;
 	}
 
-	/* The sides are already swapped here! */
+	/* The sides are already swapped here! Check if the castling right was
+	 * lost because of moving a king or rook.
+	 */
 	if (attacker == king) {
 		if (chi_on_move(pos) == chi_black) {
-			if (chi_wq_castle(pos))
+			if (chi_wq_castle(pos)) {
 				pos->lost_wq_castle = pos->half_moves;
-			if (chi_wk_castle(pos))
+				chi_wq_castle(pos) = 0;
+			}
+			if (chi_wk_castle(pos)) {
 				pos->lost_wk_castle = pos->half_moves;
+				chi_wk_castle(pos) = 0;
+			}
 		} else {
-			if (chi_bq_castle(pos))
+			if (chi_bq_castle(pos)) {
 				pos->lost_bq_castle = pos->half_moves;
-			if (chi_bk_castle(pos))
+				chi_bq_castle(pos) = 0;
+			}
+			if (chi_bk_castle(pos)) {
 				pos->lost_bk_castle = pos->half_moves;
+				chi_bk_castle(pos) = 0;
+			}
 		}
 	} else if (attacker == rook) {
 		if (chi_on_move(pos) == chi_black) {
-			if (chi_wq_castle(pos) && from == CHI_A1)
+			if (chi_wq_castle(pos) && from == CHI_A1) {
 				pos->lost_wq_castle = pos->half_moves;
-			if (chi_wk_castle(pos) && from == CHI_H1)
+				chi_wq_castle(pos) = 0;
+			}
+			if (chi_wk_castle(pos) && from == CHI_H1) {
 				pos->lost_wk_castle = pos->half_moves;
+				chi_wk_castle(pos) = 0;
+			}
 		} else {
-			if (chi_bq_castle(pos) && from == CHI_A8)
+			if (chi_bq_castle(pos) && from == CHI_A8) {
 				pos->lost_bq_castle = pos->half_moves;
-			if (chi_bk_castle(pos) && from == CHI_H8)
+				chi_bq_castle(pos) = 0;
+			}
+			if (chi_bk_castle(pos) && from == CHI_H8) {
 				pos->lost_bk_castle = pos->half_moves;
+				chi_bk_castle(pos) = 0;
+			}
 		}
 	}
 	
+	/* If a rook was captured, the castling right is also lost.  */
 	if (chi_move_victim(move) == rook
 	         && (to_mask & INITIAL_ROOKS_MASK)) {
 		if (chi_on_move(pos) == chi_white) {
