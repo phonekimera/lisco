@@ -107,8 +107,10 @@ restore_black_victim(chi_pos *pos, chi_move move)
 	bitv64 to90_mask = ((bitv64) 1 << rotate90[to]);
 	chi_piece_t victim = chi_move_victim (move);
 
-	pos->b_pieces |= to_mask;
-	pos->b_pieces90 |= to90_mask;
+	if (!chi_move_is_ep(move)) {
+		pos->b_pieces |= to_mask;
+		pos->b_pieces90 |= to90_mask;
+	}
 
 	switch (victim) {
 		case pawn:
@@ -148,8 +150,10 @@ restore_white_victim(chi_pos *pos, chi_move move)
 	bitv64 to90_mask = ((bitv64) 1 << rotate90[to]);
 	chi_piece_t victim = chi_move_victim (move);
 
-	pos->w_pieces |= to_mask;
-	pos->w_pieces90 |= to90_mask;
+	if (!chi_move_is_ep(move)) {
+		pos->w_pieces |= to_mask;
+		pos->w_pieces90 |= to90_mask;
+	}
 
 	switch (victim) {
 		case pawn:
