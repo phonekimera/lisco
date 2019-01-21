@@ -171,6 +171,57 @@ START_TEST(test_black_capture)
 	free(got);
 END_TEST;
 
+
+START_TEST(test_white_ep_capture)
+	chi_pos pos;
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | k |   |   |   |   |   |   |   | En passant possible on file f.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   | P | p |   |   | Half moves: 2.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 | K |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+ */
+	const char *fen = "k7/8/8/4Pp2/8/8/8/K7 w - f6 0 2";
+	chi_move move;
+	const char *wanted;
+	char *got;
+	int errnum;
+
+	errnum = chi_set_position(&pos, fen);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&pos, &move, "exf6");
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = "k7/8/5P2/8/8/8/8/K7 b - - 0 2";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = fen;
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+END_TEST;
+
 Suite *
 move_making_suite(void)
 {
@@ -183,6 +234,7 @@ move_making_suite(void)
 	tcase_add_test(tc_pawn, test_pawn_moves);
 	tcase_add_test(tc_pawn, test_white_capture);
 	tcase_add_test(tc_pawn, test_black_capture);
+	tcase_add_test(tc_pawn, test_white_ep_capture);
 	suite_add_tcase(suite, tc_pawn);
 
 	return suite;
