@@ -132,12 +132,7 @@ remove_black_victim(chi_pos *pos, chi_move move)
 			pos->b_bishops &= ~to_mask;
 			break;
 		case rook:
-			pos->b_rooks &= ~to_mask;
-			if (to_mask == (CHI_A_MASK & CHI_8_MASK))
-				chi_bq_castle (pos) = 0;
-			else if (to_mask == (CHI_H_MASK & CHI_8_MASK))
-				chi_bk_castle (pos) = 0;
-			break;
+			pos->b_rooks &= ~to_mask;			break;
 		default:  /* Queen.  */
 			pos->b_rooks &= ~to_mask;
 			pos->b_bishops &= ~to_mask;
@@ -178,10 +173,6 @@ remove_white_victim(chi_pos *pos, chi_move move)
 			break;
 		case rook:
 			pos->w_rooks &= ~to_mask;
-			if (to_mask == (CHI_A_MASK & CHI_1_MASK))
-			chi_wq_castle (pos) = 0;
-			else if (to_mask == (CHI_H_MASK & CHI_1_MASK))
-			chi_wk_castle (pos) = 0;
 			break;
 		default: /* Queen.  */
 			pos->w_rooks &= ~to_mask;
@@ -232,15 +223,6 @@ move_white_piece(chi_pos *pos, chi_move move)
 		case rook:
 			pos->w_rooks &= ~from_mask;
 			pos->w_rooks |= to_mask;
-			if (from_mask == (CHI_A_MASK & CHI_1_MASK)) {
-				if (chi_wq_castle(pos))
-					pos->lost_wq_castle = pos->half_moves;
-				chi_wq_castle(pos) = 0;
-			} else if (from_mask == (CHI_H_MASK & CHI_1_MASK)) {
-				if (chi_wk_castle(pos))
-					pos->lost_wk_castle = pos->half_moves;
-				chi_wk_castle(pos) = 0;
-			}
 			break;
 		case queen:
 			pos->w_bishops &= ~from_mask;
@@ -252,10 +234,6 @@ move_white_piece(chi_pos *pos, chi_move move)
 			pos->w_kings &= ~from_mask;
 			pos->w_kings |= to_mask;
 			if (from_mask == (CHI_E_MASK & CHI_1_MASK)) {
-				if (chi_wk_castle(pos))
-					pos->lost_wk_castle = pos->half_moves;
-				if (chi_wq_castle(pos))
-					pos->lost_wq_castle = pos->half_moves;
 				castle_white(pos, move);
 			}
 			break;
@@ -304,15 +282,6 @@ move_black_piece(chi_pos *pos, chi_move move)
 		case rook:
 			pos->b_rooks &= ~from_mask;
 			pos->b_rooks |= to_mask;
-			if (from_mask == (CHI_A_MASK & CHI_8_MASK)) {
-				if (chi_bq_castle(pos))
-					pos->lost_bq_castle = pos->half_moves;
-				chi_bq_castle(pos) = 0;
-			} else if (from_mask == (CHI_H_MASK & CHI_8_MASK)) {
-				if (chi_bk_castle(pos))
-					pos->lost_bk_castle = pos->half_moves;
-				chi_bk_castle(pos) = 0;
-			}
 			break;
 		case queen:
 			pos->b_bishops &= ~from_mask;
@@ -324,10 +293,6 @@ move_black_piece(chi_pos *pos, chi_move move)
 			pos->b_kings &= ~from_mask;
 			pos->b_kings |= to_mask;
 			if (from_mask == (CHI_E_MASK & CHI_8_MASK)) {
-				if (chi_bq_castle(pos))
-					pos->lost_bq_castle = pos->half_moves;
-				if (chi_bk_castle(pos))
-					pos->lost_bk_castle = pos->half_moves;
 				castle_black(pos, move);
 			}
 			break;
@@ -339,9 +304,6 @@ castle_white(chi_pos *pos, chi_move move)
 {
 	int to = chi_move_to(move);
 	bitv64 to_mask = ((bitv64) 1 << to);
-
-	chi_wk_castle(pos) = 0;
-	chi_wq_castle(pos) = 0;
 
 	if (to_mask == (CHI_G_MASK & CHI_1_MASK)) {
 		bitv64 rook_from_mask = ((bitv64) 1) << (to - 1);
@@ -376,9 +338,6 @@ castle_black(chi_pos *pos, chi_move move)
 {
 	int to = chi_move_to(move);
 	bitv64 to_mask = ((bitv64) 1 << to);
-
-	chi_bk_castle(pos) = 0;
-	chi_bq_castle(pos) = 0;
 
 	if (to_mask == (CHI_G_MASK & CHI_8_MASK)) {
 		bitv64 rook_from_mask = ((bitv64) 1) << (to - 1);

@@ -28,6 +28,7 @@ chi_apply_move(chi_pos *pos, chi_move move)
 	int result = chi_make_move(pos, move);
 	int from = chi_move_from(move);
 	int to = chi_move_to(move);
+	bitv64 to_mask = ((bitv64) 1 << to);
 	chi_piece_t attacker = chi_move_attacker(move);
 
 	if (result)
@@ -55,8 +56,58 @@ chi_apply_move(chi_pos *pos, chi_move move)
 				pos->half_moves;
 			pos->ep_files[pos->double_pawn_move_count++] = file;
 		}
+#define INITIAL_ROOKS_MASK (CHI_A1_MASK | CHI_H1_MASK \
+                            | CHI_A8_MASK | CHI_H8_MASK)
 	} else {
 		++pos->half_move_clock;
+	}
+
+	/* The sides are already swapped here! */
+	if (attacker == king) {
+		if (chi_on_move(pos) == chi_black) {
+			if (chi_wq_castle(pos))
+				pos->lost_wq_castle = pos->half_moves;
+			if (chi_wk_castle(pos))
+				pos->lost_wk_castle = pos->half_moves;
+		} else {
+			if (chi_bq_castle(pos))
+				pos->lost_bq_castle = pos->half_moves;
+			if (chi_bk_castle(pos))
+				pos->lost_bk_castle = pos->half_moves;
+		}
+	} else if (attacker == rook) {
+		if (chi_on_move(pos) == chi_black) {
+			if (chi_wq_castle(pos) && from == CHI_A1)
+				pos->lost_wq_castle = pos->half_moves;
+			if (chi_wk_castle(pos) && from == CHI_H1)
+				pos->lost_wk_castle = pos->half_moves;
+		} else {
+			if (chi_bq_castle(pos) && from == CHI_A8)
+				pos->lost_bq_castle = pos->half_moves;
+			if (chi_bk_castle(pos) && from == CHI_H8)
+				pos->lost_bk_castle = pos->half_moves;
+		}
+	}
+	
+	if (chi_move_victim(move) == rook
+	         && (to_mask & INITIAL_ROOKS_MASK)) {
+		if (chi_on_move(pos) == chi_white) {
+			if (chi_wq_castle(pos) && to_mask == CHI_A1_MASK) {
+				pos->lost_wq_castle = pos->half_moves;
+				chi_wq_castle(pos) = 0;
+			} else if (chi_wk_castle(pos) && to_mask == CHI_H1_MASK) {
+				pos->lost_wk_castle = pos->half_moves;
+				chi_wk_castle(pos) = 0;
+			}
+		} else {
+			if (chi_bq_castle(pos) && to_mask == CHI_A8_MASK) {
+				pos->lost_bq_castle = pos->half_moves;
+				chi_bq_castle(pos) = 0;
+			} else if (chi_bk_castle(pos) && to_mask == CHI_H8_MASK) {
+				pos->lost_bk_castle = pos->half_moves;
+				chi_bk_castle(pos) = 0;
+			}
+		}
 	}
 
 	return 0;
