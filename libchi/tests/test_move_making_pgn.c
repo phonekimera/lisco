@@ -7226,6 +7226,8 @@ test_game(const char *strings[])
 	for (i = 0; i < num_moves; ++i) {
 		const char *movestr = strings[10 + i];
 		errnum = chi_parse_move(&pos, &moves[i], movestr);
+		chi_pos parsed;
+
 		if (errnum) {
 			report_failure(&game, i, movestr,
 			               fens[i], NULL, NULL,
@@ -7242,6 +7244,14 @@ test_game(const char *strings[])
 		}
 
 		fens[i + 1] = chi_fen(&pos);
+
+		errnum = chi_set_position(&pos, fens[i + 1]);
+		if (errnum) {
+			report_failure(&game, i, movestr,
+						   fens[i], NULL, fens[i + 1],
+						   "resulting FEN is invalid: %s\n",
+						   chi_strerror(errnum));
+		}
 	}
 
 	for (i = num_moves; i > 0; --i) {
