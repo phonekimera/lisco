@@ -7245,7 +7245,7 @@ test_game(const char *strings[])
 
 		fens[i + 1] = chi_fen(&pos);
 
-		errnum = chi_set_position(&pos, fens[i + 1]);
+		errnum = chi_set_position(&parsed, fens[i + 1]);
 		if (errnum) {
 			report_failure(&game, i, movestr,
 						   fens[i], NULL, fens[i + 1],

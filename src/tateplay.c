@@ -77,11 +77,14 @@ main(int argc, char *argv[])
 
 chi_pos pos;
 chi_move move;
+int errnum;
 
-chi_set_position(&pos, "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2");
+errnum = chi_set_position(&pos, "r1b1k2r/1p2bppp/p3pn2/2P1N1B1/8/2P5/PP3PPP/R2qKB1R w KQkq - 0 11");
+if (errnum) printf("invalid fen: %s\n", chi_strerror(errnum));
+
 printf("%s\n", chi_fen(&pos));
 
-chi_parse_move(&pos, &move, "exd");
+chi_parse_move(&pos, &move, "Rxd1");
 chi_apply_move(&pos, move);
 printf("%s\n", chi_fen(&pos));
 

@@ -57,16 +57,16 @@ chi_unapply_move(chi_pos *pos, chi_move move)
 
 	if (chi_on_move(pos) == chi_white) {
 		chi_material(pos) -= chi_move_material(move);
-		if (pos->lost_bk_castle == pos->half_moves)
-			chi_bk_castle(pos) = 1;
-		if (pos->lost_bq_castle == pos->half_moves)
-			chi_bq_castle(pos) = 1;
-	} else {
-		chi_material(pos) += chi_move_material(move);
 		if (pos->lost_wk_castle == pos->half_moves)
 			chi_wk_castle(pos) = 1;
 		if (pos->lost_wq_castle == pos->half_moves)
 			chi_wq_castle(pos) = 1;
+	} else {
+		chi_material(pos) += chi_move_material(move);
+		if (pos->lost_bk_castle == pos->half_moves)
+			chi_bk_castle(pos) = 1;
+		if (pos->lost_bq_castle == pos->half_moves)
+			chi_bq_castle(pos) = 1;
 	}
 
 	--pos->half_moves;
