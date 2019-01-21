@@ -256,8 +256,6 @@ move_white_piece(chi_pos *pos, chi_move move)
 					pos->lost_wk_castle = pos->half_moves;
 				if (chi_wq_castle(pos))
 					pos->lost_wq_castle = pos->half_moves;
-				chi_wk_castle(pos) = 0;
-				chi_wq_castle(pos) = 0;
 				castle_white(pos, move);
 			}
 			break;
@@ -330,8 +328,6 @@ move_black_piece(chi_pos *pos, chi_move move)
 					pos->lost_bq_castle = pos->half_moves;
 				if (chi_bk_castle(pos))
 					pos->lost_bk_castle = pos->half_moves;
-				chi_bq_castle(pos) = 0;
-				chi_bk_castle(pos) = 0;
 				castle_black(pos, move);
 			}
 			break;
@@ -344,8 +340,8 @@ castle_white(chi_pos *pos, chi_move move)
 	int to = chi_move_to(move);
 	bitv64 to_mask = ((bitv64) 1 << to);
 
-	chi_wq_castle (pos) = 0;
-	chi_wk_castle (pos) = 0;
+	chi_wk_castle(pos) = 0;
+	chi_wq_castle(pos) = 0;
 
 	if (to_mask == (CHI_G_MASK & CHI_1_MASK)) {
 		bitv64 rook_from_mask = ((bitv64) 1) << (to - 1);
@@ -365,7 +361,6 @@ castle_white(chi_pos *pos, chi_move move)
 		bitv64 rook_from90_mask = ((bitv64) 1) << rotate90[to + 2];
 		bitv64 rook_to90_mask = ((bitv64) 1) <<
 		rotate90[to - 1];
-
 		chi_w_castled (pos) = 1;
 		pos->w_rooks |= rook_to_mask;
 		pos->w_rooks &= ~rook_from_mask;
@@ -381,6 +376,9 @@ castle_black(chi_pos *pos, chi_move move)
 {
 	int to = chi_move_to(move);
 	bitv64 to_mask = ((bitv64) 1 << to);
+
+	chi_bk_castle(pos) = 0;
+	chi_bq_castle(pos) = 0;
 
 	if (to_mask == (CHI_G_MASK & CHI_8_MASK)) {
 		bitv64 rook_from_mask = ((bitv64) 1) << (to - 1);
@@ -399,7 +397,6 @@ castle_black(chi_pos *pos, chi_move move)
 		bitv64 rook_to_mask = ((bitv64) 1) << (to - 1);
 		bitv64 rook_from90_mask = ((bitv64) 1) << rotate90[to + 2];
 		bitv64 rook_to90_mask = ((bitv64) 1) << rotate90[to - 1];
-
 		chi_b_castled (pos) = 1;
 		pos->b_rooks |= rook_to_mask;
 		pos->b_rooks &= ~rook_from_mask;
