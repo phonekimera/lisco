@@ -132,7 +132,6 @@ START_TEST(test_black_mates)
 	ck_assert_int_eq(result, chi_result_black_mates);
 END_TEST
 
-
 START_TEST(test_king_king)
 	chi_pos pos;
 /*
@@ -169,6 +168,222 @@ START_TEST(test_king_king)
 	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
 END_TEST
 
+START_TEST(test_white_king_bishop)
+	chi_pos pos;
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | k |   |   |   |   |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 10.
+ 5 |   |   |   |   |   |   |   | B | Half moves: 38.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: +3.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   | K |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+ */
+	const char *fen = "k7/8/8/7B/8/8/8/7K w - - 10 20";
+	int errnum = chi_set_position(&pos, fen);
+	chi_result result;
+
+	ck_assert_int_eq(errnum, 0);
+
+	/* Check that it is okay to pass a null pointer.  */
+	(void) chi_game_over(&pos, NULL);
+
+	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
+	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
+END_TEST
+
+START_TEST(test_black_king_bishop)
+	chi_pos pos;
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | k |   |   |   |   |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 10.
+ 5 |   |   |   |   |   |   |   | b | Half moves: 38.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: -3.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   | K |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+ */
+	const char *fen = "k7/8/8/7b/8/8/8/7K w - - 10 20";
+	int errnum = chi_set_position(&pos, fen);
+	chi_result result;
+
+	ck_assert_int_eq(errnum, 0);
+
+	/* Check that it is okay to pass a null pointer.  */
+	(void) chi_game_over(&pos, NULL);
+
+	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
+	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
+END_TEST
+
+START_TEST(test_white_king_knight)
+	chi_pos pos;
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | k |   |   |   |   |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 10.
+ 5 |   |   |   |   |   |   |   | N | Half moves: 38.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: +3.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   | K |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+ */
+	const char *fen = "k7/8/8/7N/8/8/8/7K w - - 10 20";
+	int errnum = chi_set_position(&pos, fen);
+	chi_result result;
+
+	ck_assert_int_eq(errnum, 0);
+
+	/* Check that it is okay to pass a null pointer.  */
+	(void) chi_game_over(&pos, NULL);
+
+	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
+	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
+END_TEST
+
+START_TEST(test_black_king_knight)
+	chi_pos pos;
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | k |   |   |   |   |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 10.
+ 5 |   |   |   |   |   |   |   | n | Half moves: 38.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: -3.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   | K |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+ */
+	const char *fen = "k7/8/8/7n/8/8/8/7K w - - 10 20";
+	int errnum = chi_set_position(&pos, fen);
+	chi_result result;
+
+	ck_assert_int_eq(errnum, 0);
+
+	/* Check that it is okay to pass a null pointer.  */
+	(void) chi_game_over(&pos, NULL);
+
+	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
+	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
+END_TEST
+
+START_TEST(test_2bishops_equal_color)
+	chi_pos pos;
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | k |   |   |   |   |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 10.
+ 5 |   |   |   |   |   | B |   | b | Half moves: 38.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   | K |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+ */
+	const char *fen = "k7/8/8/5B1b/8/8/8/7K w - - 10 20";
+	int errnum = chi_set_position(&pos, fen);
+	chi_result result;
+
+	ck_assert_int_eq(errnum, 0);
+
+	/* Check that it is okay to pass a null pointer.  */
+	(void) chi_game_over(&pos, NULL);
+
+	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
+	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
+END_TEST
+
+START_TEST(test_2bishops_unequal_color)
+	chi_pos pos;
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | k |   |   |   |   |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 10.
+ 5 |   |   |   |   |   |   | B | b | Half moves: 38.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   | K |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+ */
+	const char *fen = "k7/8/8/6Bb/8/8/8/7K w - - 10 20";
+	int errnum = chi_set_position(&pos, fen);
+	chi_result result;
+
+	ck_assert_int_eq(errnum, 0);
+
+	/* Check that it is okay to pass a null pointer.  */
+	(void) chi_game_over(&pos, NULL);
+
+	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
+	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
+END_TEST
+
 Suite *
 game_over_suite(void)
 {
@@ -182,6 +397,12 @@ game_over_suite(void)
 	tcase_add_test(tc_draw, test_white_mates);
 	tcase_add_test(tc_draw, test_black_mates);
 	tcase_add_test(tc_draw, test_king_king);
+	tcase_add_test(tc_draw, test_white_king_bishop);
+	tcase_add_test(tc_draw, test_black_king_bishop);
+	tcase_add_test(tc_draw, test_white_king_knight);
+	tcase_add_test(tc_draw, test_black_king_knight);
+	tcase_add_test(tc_draw, test_2bishops_equal_color);
+	tcase_add_test(tc_draw, test_2bishops_unequal_color);
 	suite_add_tcase(suite, tc_draw);
 
 	return suite;

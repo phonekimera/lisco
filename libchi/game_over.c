@@ -22,6 +22,8 @@
 
 #include "libchi.h"
 
+static inline chi_bool min2bits_set(bitv64 value);
+
 chi_bool
 chi_game_over(chi_pos *pos, chi_result *result)
 {
@@ -48,17 +50,37 @@ chi_game_over(chi_pos *pos, chi_result *result)
 	 * sufficient material.  Checking for rooks will automatically check
 	 * for queens as well.
 	 */
-	if (pos->w_rooks | pos->b_rooks)
+	if (pos->w_rooks | pos->b_rooks | pos->w_pawns | pos->b_pawns)
 		goto no_draw;
 
 	/* We now know that neither queens nor rooks are on the board.  That
 	 * means that the bishop bitboards are only for bishops.
 	 */
 
-	/* King vs. king?  */
-	if (0 == (pos->w_bishops | pos->w_knights | pos->b_bishops | pos->b_knights))
+	/* Two pieces on one side can always mate.  */
+	if (pos->w_bishops && pos->w_knights)
+		goto no_draw;
+	if (pos->b_bishops && pos->b_knights)
+		goto no_draw;
+	if (min2bits_set(pos->w_bishops))
+		goto no_draw;
+	if (min2bits_set(pos->b_bishops))
+		goto no_draw;
+	if (min2bits_set(pos->w_knights))
+		goto no_draw;
+	if (min2bits_set(pos->b_knights))
+		goto no_draw;
+
+	/* Neither side has queens, rooks, or pawns. And neither side has more
+	 * than one bishop or knight.
+	 */
+	if (!(pos->w_bishops || pos->b_bishops))
 		goto draw;
-	
+
+	/* Both sides have exactly one bishop.  */
+	if ((pos->w_bishops & CHI_BLACK_MASK) == (pos->w_bishops & CHI_BLACK_MASK))
+		goto draw;
+	/* FALLTHROUGH */
 no_draw:
 	if (result) *result = chi_result_unknown;
 
@@ -68,4 +90,17 @@ draw:
 	if (result) *result = chi_result_draw_by_insufficient_material;
 
 	return chi_true;
+}
+
+static inline chi_bool
+min2bits_set(bitv64 value)
+{
+	unsigned count = 0;
+
+	while (value) {
+		value &= (value - 1);
+		if (count++) return chi_true;
+	}
+
+	return chi_false;
 }

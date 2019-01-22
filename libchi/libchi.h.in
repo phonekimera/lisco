@@ -253,6 +253,10 @@ typedef enum chi_bool {
 #define CHI_RANK_7 (6)
 #define CHI_RANK_8 (7)
 
+/* Masks for all black and white fields.  A8 is a white field.  */
+#define CHI_WHITE_MASK ((bitv64) 0xaa55aa55aa55aa55)
+#define CHI_BLACK_MASK ((bitv64) 0x55aa55aa55aa55aa)
+
 /* Commonly used piece values in centipawns bytes.  */
 #define CHI_VALUE_EMPTY      0
 #define CHI_VALUE_PAWN     100
