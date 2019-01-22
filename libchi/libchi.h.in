@@ -612,8 +612,10 @@ extern chi_move* chi_generate_non_captures(chi_pos* chi_arg_pos,
 extern chi_move* chi_legal_moves(chi_pos* chi_arg_pos, 
 				 chi_move* chi_arg_movestack);
 
-/* Return the result of a given position.  Expensive! And the function
- * does not detect a draw by three-fold repetition.
+/* Return the result of a given position.  The function *only* reports
+ * mandatory draws, i. e. stalemate and draw because of innsufficient
+ * material.  The 50-moves rule is not checked, and draws by repetition
+ * are also ignored as they must be claimed.
  */
 extern chi_bool chi_game_over(chi_pos *pos, chi_result *result);
 

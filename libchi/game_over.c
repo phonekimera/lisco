@@ -28,11 +28,6 @@ chi_game_over(chi_pos *pos, chi_result *result)
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move *end_ptr;
 
-	if (pos->half_move_clock >= 100) {
-		if (result) *result = chi_result_draw_by_50_moves_rule;
-		return chi_true;
-	}
-
 	end_ptr = chi_legal_moves(pos, moves);
 	if (end_ptr == moves) {
 		if (result) {
@@ -49,7 +44,28 @@ chi_game_over(chi_pos *pos, chi_result *result)
 		return chi_true;
 	}
 
+	/* Draws by insufficient material.  First check whether there *is*
+	 * sufficient material.  Checking for rooks will automatically check
+	 * for queens as well.
+	 */
+	if (pos->w_rooks | pos->b_rooks)
+		goto no_draw;
+
+	/* We now know that neither queens nor rooks are on the board.  That
+	 * means that the bishop bitboards are only for bishops.
+	 */
+
+	/* King vs. king?  */
+	if (0 == (pos->w_bishops | pos->w_knights | pos->b_bishops | pos->b_knights))
+		goto draw;
+	
+no_draw:
 	if (result) *result = chi_result_unknown;
 
 	return chi_false;
+
+draw:
+	if (result) *result = chi_result_draw_by_insufficient_material;
+
+	return chi_true;
 }

@@ -24,26 +24,6 @@
 
 #include "libchi.h"
 
-START_TEST(test_50_moves_rule)
-	chi_pos pos;
-	chi_init_position(&pos);
-	chi_result result;
-
-	/* Check that it is okay to pass a null pointer.  */
-	(void) chi_game_over(&pos, NULL);
-
-	ck_assert_int_eq(chi_game_over(&pos, &result), chi_false);
-	ck_assert_int_eq(result, chi_result_unknown);
-
-	pos.half_move_clock = 99;
-	ck_assert_int_eq(!chi_game_over(&pos, &result), chi_true);
-	ck_assert_int_eq(result, chi_result_unknown);
-
-	pos.half_move_clock = 100;
-	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
-	ck_assert_int_eq(result, chi_result_draw_by_50_moves_rule);
-END_TEST
-
 START_TEST(test_stalemate)
 	chi_pos pos;
 /*
@@ -152,6 +132,43 @@ START_TEST(test_black_mates)
 	ck_assert_int_eq(result, chi_result_black_mates);
 END_TEST
 
+
+START_TEST(test_king_king)
+	chi_pos pos;
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   |   |   |   |   |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 0.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: -9.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   | k |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   | q |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   | K |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+ */
+	const char *fen = "k7/8/8/8/8/8/8/7K w - - 10 20";
+	int errnum = chi_set_position(&pos, fen);
+	chi_result result;
+
+	ck_assert_int_eq(errnum, 0);
+
+	/* Check that it is okay to pass a null pointer.  */
+	(void) chi_game_over(&pos, NULL);
+
+	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
+	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
+END_TEST
+
 Suite *
 game_over_suite(void)
 {
@@ -161,10 +178,10 @@ game_over_suite(void)
 	suite = suite_create("Game Over Detection");
 
 	tc_draw = tcase_create("Draw");
-	tcase_add_test(tc_draw, test_50_moves_rule);
 	tcase_add_test(tc_draw, test_stalemate);
 	tcase_add_test(tc_draw, test_white_mates);
 	tcase_add_test(tc_draw, test_black_mates);
+	tcase_add_test(tc_draw, test_king_king);
 	suite_add_tcase(suite, tc_draw);
 
 	return suite;
