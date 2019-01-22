@@ -612,7 +612,9 @@ extern chi_move* chi_generate_non_captures(chi_pos* chi_arg_pos,
 extern chi_move* chi_legal_moves(chi_pos* chi_arg_pos, 
 				 chi_move* chi_arg_movestack);
 
-/* Return the result of a given position.  Expensive! */
+/* Return the result of a given position.  Expensive! And the function
+ * does not detect a draw by three-fold repetition.
+ */
 extern chi_bool chi_game_over(chi_pos *pos, chi_result *result);
 
 /* Generate and count all legal moves from a given position to a fixed
