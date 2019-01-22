@@ -75,22 +75,6 @@ main(int argc, char *argv[])
 	bool black_seen = false;
 	struct sigaction sa;
 
-chi_pos pos;
-chi_move move;
-int errnum;
-
-errnum = chi_set_position(&pos, "r1b1k2r/1p2bppp/p3pn2/2P1N1B1/8/2P5/PP3PPP/R2qKB1R w KQkq - 0 11");
-if (errnum) printf("invalid fen: %s\n", chi_strerror(errnum));
-
-printf("%s\n", chi_fen(&pos));
-
-chi_parse_move(&pos, &move, "Rxd1");
-chi_apply_move(&pos, move);
-printf("%s\n", chi_fen(&pos));
-
-chi_unapply_move(&pos, move);
-printf("%s\n", chi_fen(&pos));
-return 0;
 	game = game_new();
 
 	set_program_name(argv[0]);
