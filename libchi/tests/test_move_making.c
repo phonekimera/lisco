@@ -327,6 +327,56 @@ START_TEST(test_ks_black_rook_capture)
 	free(got);
 END_TEST;
 
+START_TEST(test_ks_white_rook_capture)
+	chi_pos pos;
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   |   |   |   | k |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: yes.
+ 7 |   |   |   |   |   |   |   | r | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 1.
+   +---+---+---+---+---+---+---+---+ Next move: black.
+ 4 |   |   |   |   |   |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   | K |   |   | R |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+*/
+    const char *fen = "4k3/7r/8/8/8/8/8/4K2R b K - 0 1";
+	chi_move move;
+	const char *wanted;
+	char *got;
+	int errnum;
+
+    errnum = chi_set_position(&pos, fen);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&pos, &move, "Rxh1");
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = "4k3/8/8/8/8/8/8/4K2r w - - 0 2";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = fen;
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+END_TEST;
+
 
 Suite *
 move_making_suite(void)
@@ -347,6 +397,7 @@ move_making_suite(void)
 
     tc_rook = tcase_create("Castling States");
     tcase_add_test(tc_rook, test_ks_black_rook_capture);
+    tcase_add_test(tc_rook, test_ks_white_rook_capture);
     suite_add_tcase(suite, tc_rook);
 
 	return suite;
