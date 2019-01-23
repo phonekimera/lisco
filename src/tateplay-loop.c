@@ -81,17 +81,21 @@ tateplay_loop(Game *game)
 
 		/* Multiplex input and output.  */
 		FD_ZERO(&write_fd_set);
-		if (white->outbuf_length)
+		if (white->outbuf_length) {
+			log_realm(white->nick, "waiting for write ready");
 			FD_SET(white->in, &write_fd_set);
-		if (black->outbuf_length)
+		}
+		if (black->outbuf_length) {
+			log_realm(black->nick, "waiting for write ready");
 			FD_SET(black->in, &write_fd_set);
+		}
 		
 		read_fd_set = active_read_fd_set;
-		timeout.tv_sec = 1;
+		timeout.tv_sec = 0;
 		timeout.tv_usec = 250000;
 		if (select(FD_SETSIZE, &read_fd_set, &write_fd_set, NULL, &timeout) < 0)
 			error(EXIT_FAILURE, errno, "select failed");
-		
+
 		for (i = 0; i < FD_SETSIZE; ++i) {
 			/* Input available.  */
 			if (FD_ISSET(i, &read_fd_set)) {
@@ -106,6 +110,19 @@ tateplay_loop(Game *game)
 						return false;
 				} else if(black->err == i) {
 					if (!engine_read_stderr(black))
+						return false;
+				}
+			}
+		}
+
+		for (i = 0; i < FD_SETSIZE; ++i) {
+			/* Output possible.  */
+			if (FD_ISSET(i, &write_fd_set)) {
+				if (white->in == i) {
+					if (!engine_write_stdin(white))
+						return false;
+				} else if(black->in == i) {
+					if (!engine_write_stdin(black))
 						return false;
 				}
 			}

@@ -289,9 +289,60 @@ engine_read_stderr(Engine *self)
 	return true;
 }
 
+bool
+engine_write_stdin(Engine *self)
+{
+	char *start;
+	char *end;
+
+	ssize_t nbytes = write(self->in, self->outbuf, self->outbuf_length);
+	if (nbytes < 0) {
+		error(EXIT_SUCCESS, errno,
+		      "error writing to stdin of engine '%s'",
+		      self->nick);
+		return false;
+	} else if (nbytes == 0) {
+		error(EXIT_SUCCESS, 0,
+		      "unexpected end of file writing to stdin of engine '%s'",
+			  self->nick);
+		return false;
+	}
+
+	/* Now handle lines, one by one.  */
+	start = end = self->outbuf;
+
+	while (*end) {
+		char *line = NULL;
+		if (*end == '\n') {
+			*end = '\0';
+			line = start;
+			start = end + 1;
+		}
+
+		++end;
+
+		if (line) {
+			log_engine_in(self->nick, "%s", line);
+		}
+	}
+
+	if (*start) {
+		log_engine_error(self->nick, "%s [...]", start);
+	}
+
+	self->outbuf_length = strlen(start);
+	memmove(self->outbuf, start, self->outbuf_length);
+
+	return true;
+}
+
 static void
 engine_spool_output(Engine *self, const char *cmd)
 {
+	/* FIXME! Maybe it's a better strategy to only allow one command (or
+	 * sequence of commands like "xboard/protover 2/") so that we can
+	 * register a callback, when the output buffer is emptied.
+	 */
 	size_t len = strlen(cmd);
 	size_t required = 1 + self->outbuf_length + len;
 	if (required > self->outbuf_size) {
@@ -300,7 +351,7 @@ engine_spool_output(Engine *self, const char *cmd)
 	}
 	
 	strcpy(self->outbuf + self->outbuf_length, cmd);
-	self->outbuf_size += len;
+	self->outbuf_length += len;
 	gettimeofday(&self->waiting_since, NULL);
 	self->max_waiting_time = 2000000;
 }
