@@ -46,10 +46,10 @@ chi_set_position(chi_pos *argpos, const char *fen)
 		return errnum;
 
 	/* Assume that castling is not possible at all.  */
-	pos->lost_wk_castle = 1;
-	pos->lost_wq_castle = 1;
-	pos->lost_bk_castle = 1;
-	pos->lost_bq_castle = 1;
+	pos->lost_wk_castle = 0;
+	pos->lost_wq_castle = 0;
+	pos->lost_bk_castle = 0;
+	pos->lost_bq_castle = 0;
 
 	ptr = end_ptr;
 
