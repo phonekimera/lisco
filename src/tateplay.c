@@ -74,6 +74,7 @@ main(int argc, char *argv[])
 	bool white_seen = false;
 	bool black_seen = false;
 	struct sigaction sa;
+	bool status;
 
 	game = game_new();
 
@@ -167,14 +168,14 @@ main(int argc, char *argv[])
 		error(EXIT_FAILURE, errno, "error starting black engine '%s'",
 		      game->black->nick);
 
-	game_print_pgn(game);
+	status = tateplay_loop(game);
 
-	sleep(3);
+	game_print_pgn(game);
 
 	log_realm("info", "terminating engines");
 	game_destroy(game);
 
-	return 0;
+	return status ? 0 : 1;
 }
 
 static void

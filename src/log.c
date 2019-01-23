@@ -47,6 +47,8 @@ log_realm(const char *realm, const char *fmt, ...)
 {
 	va_list ap;
 
+	if (verbose < 2) return;
+
 	va_start(ap, fmt);
 	vlog_realm(realm, NULL, fmt, ap);
 	va_end(ap);
@@ -57,6 +59,8 @@ log_engine_in(const char *engine, const char *fmt, ...)
 {
 	va_list ap;
 
+	if (verbose < 2) return;
+
 	va_start(ap, fmt);
 	vlog_realm(engine, " <<<", fmt, ap);
 	va_end(ap);
@@ -66,6 +70,8 @@ void
 log_engine_out(const char *engine, const char *fmt, ...)
 {
 	va_list ap;
+
+	if (verbose < 2) return;
 
 	va_start(ap, fmt);
 	vlog_realm(engine, " >>>", fmt, ap);
@@ -94,8 +100,6 @@ vlog_realm(const char *realm, const char *direction, const char *_fmt,
 	const char *src;
 	char *dest;
 	char *escaped_realm;
-
-	if (!verbose) return;
 
 	gettimeofday(&now, NULL);
 	localtime_r(&now.tv_sec, &tm);
@@ -126,7 +130,7 @@ vlog_realm(const char *realm, const char *direction, const char *_fmt,
 	if (direction) fmt_size += strlen(direction);
 	fmt = xmalloc(fmt_size);
 	snprintf(fmt, fmt_size,
-	         "[%s %s %02u %02u:%02u:%02u.%05u %04u][%s]%s %s\n",
+	         "[%s %s %02u %02u:%02u:%02u.%06u %04u][%s]%s %s\n",
 	         wdays[tm.tm_wday],
 	         months[tm.tm_mon],
 	         tm.tm_mday,

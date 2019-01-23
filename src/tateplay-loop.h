@@ -25,7 +25,7 @@
 
 #include "stdbool.h"
 
-#include "tateplay-engine.h"
+#include "tateplay-game.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,7 +33,7 @@ extern "C" {
 
 extern int child_exited;
 
-bool tateplay_loop(Engine *white, Engine *black);
+bool tateplay_loop(Game *game);
 
 #ifdef __cplusplus
 }

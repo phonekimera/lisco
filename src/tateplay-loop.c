@@ -20,14 +20,97 @@
 # include <config.h>
 #endif
 
+#include <errno.h>
+#include <stdio.h>
+
+#include "error.h"
 #include "stdbool.h"
 
-#include "tateplay-engine.h"
+#include "tateplay-loop.h"
 
 int child_exited = 0;
 
+#define ever (;;)
+
 bool
-tateplay_loop(Engine *white, Engine *black)
+tateplay_loop(Game *game)
 {
+	fd_set active_read_fd_set, read_fd_set;
+	fd_set write_fd_set;
+	Engine *white = game->white;
+	Engine *black = game->black;
+	int i;
+	struct timeval timeout;
+
+	FD_ZERO(&active_read_fd_set);
+	FD_SET(white->out, &active_read_fd_set);
+	FD_SET(white->err, &active_read_fd_set);
+	FD_SET(black->out, &active_read_fd_set);
+	FD_SET(black->err, &active_read_fd_set);
+
+	for ever {
+		switch (game->white->state) {
+			case initial:
+				error(EXIT_SUCCESS, 0,
+				      "fatal: white engine in initial state\n");
+				return false;
+			case started:
+				engine_init_protocol(game->white);
+				break;
+			case initialize_protocol:
+				break;
+			default:
+				error(EXIT_SUCCESS, 0, "white ready, don't know where to go\n");
+				return false;
+		}
+
+		switch (game->black->state) {
+			case initial:
+				error(EXIT_SUCCESS, 0,
+				      "fatal: black engine in initial state\n");
+				return false;
+			case started:
+				engine_init_protocol(game->black);
+				break;
+			case initialize_protocol:
+				break;
+			default:
+				error(EXIT_SUCCESS, 0, "black ready, don't know where to go\n");
+				return false;
+		}
+
+		/* Multiplex input and output.  */
+		FD_ZERO(&write_fd_set);
+		if (white->outbuf_length)
+			FD_SET(white->in, &write_fd_set);
+		if (black->outbuf_length)
+			FD_SET(black->in, &write_fd_set);
+		
+		read_fd_set = active_read_fd_set;
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 250000;
+		if (select(FD_SETSIZE, &read_fd_set, &write_fd_set, NULL, &timeout) < 0)
+			error(EXIT_FAILURE, errno, "select failed");
+		
+		for (i = 0; i < FD_SETSIZE; ++i) {
+			/* Input available.  */
+			if (FD_ISSET(i, &read_fd_set)) {
+				if (white->out == i) {
+					if (!engine_read_stdout(white))
+						return false;
+				} else if(white->err == i) {
+					if (!engine_read_stderr(white))
+						return false;
+				} else if(black->out == i) {
+					if (!engine_read_stdout(black))
+						return false;
+				} else if(black->err == i) {
+					if (!engine_read_stderr(black))
+						return false;
+				}
+			}
+		}
+	}
+
 	return true;
 }

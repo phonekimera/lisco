@@ -24,22 +24,23 @@
 #endif
 
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "stdbool.h"
 
-typedef enum {
+typedef enum EngineProtocol {
 	uci = 0,
 #define uci uci
 	xboard = 1,
 #define xboard xboard
 } EngineProtocol;
 
-typedef enum {
+typedef enum EngineState {
 	initial,
 	started,
-	protover,
-	done
+	initialize_protocol,
+	acknowledged_protocol
 } EngineState;
 
 #ifdef __cplusplus
@@ -64,6 +65,16 @@ typedef struct Engine {
 
 	EngineProtocol protocol;
 	EngineState state;
+
+	char *outbuf;
+	size_t outbuf_size;
+	size_t outbuf_length;
+	char *inbuf;
+	size_t inbuf_size;
+	size_t inbuf_length;
+
+	struct timeval waiting_since;
+	suseconds_t max_waiting_time;
 } Engine;
 
 extern Engine *engine_new();
@@ -77,6 +88,18 @@ extern void engine_set_protocol(Engine *self, EngineProtocol protocol);
 
 /* Start the engine.  */
 extern bool engine_start(Engine *self);
+
+/* Initialize the protocol.  */
+extern void engine_init_protocol(Engine *self);
+
+/* Read from the engine's standard output and parse it.  */
+extern bool engine_read_stdout(Engine *self);
+
+/* Read from the engine's standard error and log it.  */
+extern bool engine_read_stderr(Engine *self);
+
+/* Write commands to the engine's standard input.  */
+extern bool engine_write_stdin(Engine *self);
 
 #ifdef __cplusplus
 }

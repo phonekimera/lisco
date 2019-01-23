@@ -21,10 +21,13 @@
 #endif
 
 #include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <time.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #include "assure.h"
@@ -33,6 +36,9 @@
 
 #include "tateplay-engine.h"
 #include "log.h"
+
+static void engine_spool_output(Engine *self, const char *buf);
+static bool engine_handle_input(Engine *self, char *buf, ssize_t nbytes);
 
 Engine *
 engine_new()
@@ -87,6 +93,8 @@ engine_destroy(Engine *self)
 
 	if (self->argv) free(self->argv);
 	if (self->nick) free(self->nick);
+	if (self->outbuf) free(self->outbuf);
+	if (self->inbuf) free(self->inbuf);
 
 	free(self);
 }
@@ -113,6 +121,7 @@ engine_start(Engine *self)
 {
 	pid_t pid;
 	int in[2], out[2], err[2];
+	int flags;
 
 	assure(self);
 	assure(!self->state);
@@ -133,6 +142,16 @@ engine_start(Engine *self)
 		if (close(err[1]) != 0)
 			error(EXIT_FAILURE, errno, "cannot close pipe");
 		self->err = err[0];
+
+		/* Make I/O non-blocking.  */
+		flags = fcntl(self->in, F_GETFL, 0);
+		fcntl(self->in, F_SETFL, flags | O_NONBLOCK);
+		flags = fcntl(self->out, F_GETFL, 0);
+		fcntl(self->out, F_SETFL, flags | O_NONBLOCK);
+		flags = fcntl(self->err, F_GETFL, 0);
+		fcntl(self->err, F_SETFL, flags | O_NONBLOCK);
+
+		self->state = started;
 
 		return true;
 	}
@@ -173,4 +192,166 @@ engine_start(Engine *self)
 	error(EXIT_FAILURE, errno, "error starting '%s", self->argv[0]);
 
 	exit(EXIT_FAILURE); /* NOTREACHED! Shut up compiler warning.  */
+}
+
+void
+engine_init_protocol(Engine *self)
+{
+	switch (self->protocol) {
+		case xboard:
+			engine_spool_output(self, "xboard\nprotover 2\n");
+			break;
+		case uci:
+			engine_spool_output(self, "uci\n");
+			break;
+	}
+
+	self->state = initialize_protocol;
+}
+
+bool
+engine_read_stdout(Engine *self)
+{
+#define BUFSIZE 4096
+	char buf[BUFSIZE + 1];
+	ssize_t nbytes;
+
+	nbytes = read(self->out, buf, BUFSIZE);
+	if (nbytes < 0) {
+		error(EXIT_SUCCESS, errno,
+		      "error reading from standard input of engine '%s'",
+		      self->nick);
+		return false;
+	} else if (nbytes == 0) {
+		error(EXIT_SUCCESS, 0,
+		      "unexpected end of file while reading from engine '%s'",
+			  self->nick);
+		return false;
+	}
+
+	return engine_handle_input(self, buf, nbytes);
+}
+
+bool
+engine_read_stderr(Engine *self)
+{
+#define BUFSIZE 4096
+	char buf[BUFSIZE + 1];
+	ssize_t nbytes;
+	char *start;
+	char *end;
+
+	nbytes = read(self->err, buf, BUFSIZE);
+	if (nbytes < 0) {
+		error(EXIT_SUCCESS, errno,
+		      "error reading stderr from engine '%s'",
+		      self->nick);
+		return false;
+	} else if (nbytes == 0) {
+		error(EXIT_SUCCESS, 0,
+		      "unexpected end of file reading stderr from engine '%s'",
+			  self->nick);
+		return false;
+	}
+
+	/* Make sure that buf is null-terminated!  */
+	buf[nbytes] = '\0';
+
+	/* Now handle lines, one by one.  */
+	start = end = buf;
+
+	/* We accept LF, CRLF, LFCR, and CR as line endings.  */
+	while (*end) {
+		char *line = NULL;
+		if (*end == '\012') {
+			*end = '\0';
+			if (end[1] == '\015') ++end;
+			line = start;
+			start = end + 1;
+		} else if (*end == '\015') {
+			*end = '\0';
+			if (end[1] == '\012') ++end;
+			line = start;
+			start = end + 1;
+		}
+
+		++end;
+
+		if (line) {
+			log_engine_error(self->nick, "%s", line);
+		}
+	}
+
+	if (*start) {
+		log_engine_error(self->nick, "%s", start);
+	}
+
+	return true;
+}
+
+static void
+engine_spool_output(Engine *self, const char *cmd)
+{
+	size_t len = strlen(cmd);
+	size_t required = 1 + self->outbuf_length + len;
+	if (required > self->outbuf_size) {
+		self->outbuf_size = required;
+		self->outbuf = xrealloc(self->outbuf, self->outbuf_size);
+	}
+	
+	strcpy(self->outbuf + self->outbuf_length, cmd);
+	self->outbuf_size += len;
+	gettimeofday(&self->waiting_since, NULL);
+	self->max_waiting_time = 2000000;
+}
+
+static bool
+engine_handle_input(Engine *self, char *buf, ssize_t nbytes)
+{
+	size_t len;
+	size_t required;
+	char *start;
+	char *end;
+	/* Null-terminate the string.  */
+	buf[nbytes] = '\0';
+	len = strlen(buf);
+
+	/* Copy it into the input buffer.  */
+	required = self->inbuf_length + len + 1;
+	if (required > self->inbuf_size) {
+		self->inbuf_size = required;
+		self->inbuf = xrealloc(self->inbuf, self->inbuf_size);
+	}
+	
+	strcpy(self->inbuf + self->inbuf_length, buf);
+
+	/* Now handle lines, one by one.  */
+	start = end = self->inbuf;
+
+	/* We accept LF, CRLF, LFCR, and CR as line endings.  */
+	while (*end) {
+		char *line = NULL;
+		if (*end == '\012') {
+			*end = '\0';
+			if (end[1] == '\015') ++end;
+			line = start;
+			start = end + 1;
+		} else if (*end == '\015') {
+			*end = '\0';
+			if (end[1] == '\012') ++end;
+			line = start;
+			start = end + 1;
+		}
+
+		++end;
+
+		if (line) {
+			log_engine_out(self->nick, "%s", line);
+		}
+	}
+
+	memmove(self->inbuf, start, strlen(start));
+	self->inbuf_length = strlen(self->inbuf);
+
+	return true;
 }
