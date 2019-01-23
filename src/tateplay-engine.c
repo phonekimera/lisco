@@ -330,8 +330,12 @@ engine_write_stdin(Engine *self)
 		log_engine_error(self->nick, "%s [...]", start);
 	}
 
-	self->outbuf_length = strlen(start);
-	memmove(self->outbuf, start, self->outbuf_length);
+	if (*start) {
+		self->outbuf_length = strlen(start);
+		memmove(self->outbuf, start, self->outbuf_length);
+	} else {
+		self->outbuf_length = 0;
+	}
 
 	return true;
 }
@@ -398,11 +402,16 @@ engine_handle_input(Engine *self, char *buf, ssize_t nbytes)
 
 		if (line) {
 			log_engine_out(self->nick, "%s", line);
+			line = NULL;
 		}
 	}
 
-	memmove(self->inbuf, start, strlen(start));
-	self->inbuf_length = strlen(self->inbuf);
+	if (*start) {
+		memmove(self->inbuf, start, strlen(start));
+		self->inbuf_length = strlen(self->inbuf);
+	} else {
+		self->inbuf_length = 0;
+	}
 
 	return true;
 }
