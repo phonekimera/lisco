@@ -62,7 +62,7 @@ log_engine_in(const char *engine, const char *fmt, ...)
 	if (verbose < 2) return;
 
 	va_start(ap, fmt);
-	vlog_realm(engine, " <<<", fmt, ap);
+	vlog_realm(engine, " >>>", fmt, ap);
 	va_end(ap);
 }
 
@@ -74,7 +74,7 @@ log_engine_out(const char *engine, const char *fmt, ...)
 	if (verbose < 2) return;
 
 	va_start(ap, fmt);
-	vlog_realm(engine, " >>>", fmt, ap);
+	vlog_realm(engine, " <<<", fmt, ap);
 	va_end(ap);
 }
 
