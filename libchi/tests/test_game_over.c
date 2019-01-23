@@ -380,8 +380,8 @@ START_TEST(test_2bishops_unequal_color)
 	/* Check that it is okay to pass a null pointer.  */
 	(void) chi_game_over(&pos, NULL);
 
-	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
-	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
+	ck_assert_int_eq(chi_game_over(&pos, &result), chi_false);
+	ck_assert_int_eq(result, chi_result_unknown);
 END_TEST
 
 Suite *
