@@ -29,7 +29,7 @@ git history by committing release files.
 
 ## Copyright
 
-Copyright (C) 2002-2018, Guido Flohr <guido.flohr@cantanea.com>.
+Copyright (C) 2002-2019, Guido Flohr <guido.flohr@cantanea.com>.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 Written by Guido Flohr.
