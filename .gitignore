@@ -32,7 +32,5 @@ libchi/libchi.h
 libchi/showfen
 libchi/tests/check_libchi
 libchi/genmasks
-libchi/tests/check_libchi.log
-libchi/tests/check_libchi.trs
-libchi/tests/test-suite.log
-
+*.log
+*.trs

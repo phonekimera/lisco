@@ -26,6 +26,7 @@
 #include "error.h"
 #include "stdbool.h"
 
+#include "log.h"
 #include "tateplay-loop.h"
 
 int child_exited = 0;

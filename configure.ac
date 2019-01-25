@@ -74,5 +74,5 @@ AC_TYPE_SIGNAL
 
 AC_CONFIG_FILES([Makefile lib/Makefile
                  libchi/libchi.h libchi/Makefile libchi/tests/Makefile \
-                 src/Makefile])
+                 src/Makefile src/tests/Makefile])
 AC_OUTPUT
