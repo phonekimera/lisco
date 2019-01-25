@@ -43,6 +43,18 @@ tateplay_loop(Game *game)
 	int i;
 	struct timeval timeout;
 
+	log_realm("info", "starting white engine");
+	if (!engine_start(game->white))
+		error(EXIT_FAILURE, errno, "error starting white engine '%s'",
+		      game->white->nick);
+	engine_negotiate(game->white);
+
+	log_realm("info", "starting black engine");
+	if (!engine_start(game->black))
+		error(EXIT_FAILURE, errno, "error starting black engine '%s'",
+		      game->black->nick);
+	engine_negotiate(game->black);
+
 	FD_ZERO(&active_read_fd_set);
 	FD_SET(white->out, &active_read_fd_set);
 	FD_SET(white->err, &active_read_fd_set);
@@ -50,43 +62,13 @@ tateplay_loop(Game *game)
 	FD_SET(black->err, &active_read_fd_set);
 
 	for ever {
-		switch (game->white->state) {
-			case initial:
-				error(EXIT_SUCCESS, 0,
-				      "fatal: white engine in initial state\n");
-				return false;
-			case started:
-				engine_init_protocol(game->white);
-				break;
-			case initialize_protocol:
-				break;
-			default:
-				error(EXIT_SUCCESS, 0, "white ready, don't know where to go\n");
-				return false;
-		}
-
-		switch (game->black->state) {
-			case initial:
-				error(EXIT_SUCCESS, 0,
-				      "fatal: black engine in initial state\n");
-				return false;
-			case started:
-				engine_init_protocol(game->black);
-				break;
-			case initialize_protocol:
-				break;
-			default:
-				error(EXIT_SUCCESS, 0, "black ready, don't know where to go\n");
-				return false;
-		}
-
 		/* Multiplex input and output.  */
 		FD_ZERO(&write_fd_set);
-		if (white->outbuf_length) {
+		if (white->outbuf && white->outbuf[0] != '\0') {
 			log_realm(white->nick, "waiting for write ready");
 			FD_SET(white->in, &write_fd_set);
 		}
-		if (black->outbuf_length) {
+		if (black->outbuf && black->outbuf[0] != '\0') {
 			log_realm(black->nick, "waiting for write ready");
 			FD_SET(black->in, &write_fd_set);
 		}

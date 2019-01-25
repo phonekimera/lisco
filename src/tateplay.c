@@ -158,16 +158,6 @@ main(int argc, char *argv[])
 		usage(EXIT_FAILURE);
 	}
 
-	log_realm("info", "starting white engine");
-	if (!engine_start(game->white))
-		error(EXIT_FAILURE, errno, "error starting white engine '%s'",
-		      game->white->nick);
-
-	log_realm("info", "starting black engine");
-	if (!engine_start(game->black))
-		error(EXIT_FAILURE, errno, "error starting black engine '%s'",
-		      game->black->nick);
-
 	status = tateplay_loop(game);
 
 	game_print_pgn(game);

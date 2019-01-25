@@ -39,8 +39,9 @@ typedef enum EngineProtocol {
 typedef enum EngineState {
 	initial,
 	started,
-	initialize_protocol,
-	acknowledged_protocol
+	negotiating,
+	acknowledged,
+	ready
 } EngineState;
 
 #ifdef __cplusplus
@@ -68,13 +69,16 @@ typedef struct Engine {
 
 	char *outbuf;
 	size_t outbuf_size;
-	size_t outbuf_length;
 	char *inbuf;
 	size_t inbuf_size;
 	size_t inbuf_length;
 
 	struct timeval waiting_since;
-	suseconds_t max_waiting_time;
+	unsigned long max_waiting_time;
+
+	/* Negotiatable xboard features.  */
+	chi_bool xboard_name;
+	chi_bool xboard_san;
 } Engine;
 
 extern Engine *engine_new();
@@ -90,7 +94,7 @@ extern void engine_set_protocol(Engine *self, EngineProtocol protocol);
 extern bool engine_start(Engine *self);
 
 /* Initialize the protocol.  */
-extern void engine_init_protocol(Engine *self);
+extern void engine_negotiate(Engine *self);
 
 /* Read from the engine's standard output and parse it.  */
 extern bool engine_read_stdout(Engine *self);

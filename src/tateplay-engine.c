@@ -20,6 +20,7 @@
 # include <config.h>
 #endif
 
+#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -34,11 +35,19 @@
 #include "error.h"
 #include "xmalloca.h"
 
+#include "libchi.h"
 #include "tateplay-engine.h"
 #include "log.h"
+#include "util.h"
+#include "xboard-feature.h"
 
 static void engine_spool_output(Engine *self, const char *buf);
 static bool engine_handle_input(Engine *self, char *buf, ssize_t nbytes);
+static bool engine_process_input(Engine *self, const char *line);
+static bool engine_process_input_negotiating(Engine *self, const char *line);
+static bool engine_process_input_acknowledged(Engine *self, const char *line);
+
+static bool engine_process_xboard_features(Engine *self, const char *line);
 
 Engine *
 engine_new()
@@ -195,18 +204,24 @@ engine_start(Engine *self)
 }
 
 void
-engine_init_protocol(Engine *self)
+engine_negotiate(Engine *self)
 {
 	switch (self->protocol) {
 		case xboard:
 			engine_spool_output(self, "xboard\nprotover 2\n");
+			self->max_waiting_time = 2UL * 1000000UL;
 			break;
 		case uci:
 			engine_spool_output(self, "uci\n");
+
+			/* Xboard waits for one hour for the done=0 feature.  Do the same
+			 * for UCI.
+			 */
+			self->max_waiting_time = 60UL * 60UL * 1000000UL;
 			break;
 	}
 
-	self->state = initialize_protocol;
+	self->state = negotiating;
 }
 
 bool
@@ -295,7 +310,7 @@ engine_write_stdin(Engine *self)
 	char *start;
 	char *end;
 
-	ssize_t nbytes = write(self->in, self->outbuf, self->outbuf_length);
+	ssize_t nbytes = write(self->in, self->outbuf, strlen(self->outbuf));
 	if (nbytes < 0) {
 		error(EXIT_SUCCESS, errno,
 		      "error writing to stdin of engine '%s'",
@@ -331,10 +346,9 @@ engine_write_stdin(Engine *self)
 	}
 
 	if (*start) {
-		self->outbuf_length = strlen(start);
-		memmove(self->outbuf, start, self->outbuf_length);
+		memmove(self->outbuf, start, strlen(start));
 	} else {
-		self->outbuf_length = 0;
+		self->outbuf[0] = '\0';
 	}
 
 	return true;
@@ -343,21 +357,18 @@ engine_write_stdin(Engine *self)
 static void
 engine_spool_output(Engine *self, const char *cmd)
 {
-	/* FIXME! Maybe it's a better strategy to only allow one command (or
-	 * sequence of commands like "xboard/protover 2/") so that we can
-	 * register a callback, when the output buffer is emptied.
-	 */
 	size_t len = strlen(cmd);
-	size_t required = 1 + self->outbuf_length + len;
+	size_t required = 1 + len;
+
+	assure(self->outbuf == NULL || !(*self->outbuf));
+
 	if (required > self->outbuf_size) {
 		self->outbuf_size = required;
 		self->outbuf = xrealloc(self->outbuf, self->outbuf_size);
 	}
 	
-	strcpy(self->outbuf + self->outbuf_length, cmd);
-	self->outbuf_length += len;
+	strcpy(self->outbuf, cmd);
 	gettimeofday(&self->waiting_since, NULL);
-	self->max_waiting_time = 2000000;
 }
 
 static bool
@@ -367,6 +378,8 @@ engine_handle_input(Engine *self, char *buf, ssize_t nbytes)
 	size_t required;
 	char *start;
 	char *end;
+	chi_bool status = true;
+
 	/* Null-terminate the string.  */
 	buf[nbytes] = '\0';
 	len = strlen(buf);
@@ -402,6 +415,10 @@ engine_handle_input(Engine *self, char *buf, ssize_t nbytes)
 
 		if (line) {
 			log_engine_out(self->nick, "%s", line);
+			if (!engine_process_input(self, line)) {
+				status = false;
+				break;
+			}
 			line = NULL;
 		}
 	}
@@ -411,6 +428,83 @@ engine_handle_input(Engine *self, char *buf, ssize_t nbytes)
 		self->inbuf_length = strlen(self->inbuf);
 	} else {
 		self->inbuf_length = 0;
+	}
+
+	return status;
+}
+
+static bool
+engine_process_input(Engine *self, const char *cmd)
+{
+	chi_bool status;
+
+	assure(self->state > started);
+
+	cmd = ltrim(cmd);
+
+	switch (self->state) {
+		case negotiating:
+			status = engine_process_input_negotiating(self, cmd);
+			break;
+		case acknowledged:
+			status = engine_process_input_acknowledged(self, cmd);
+			break;
+		default:
+			error(EXIT_SUCCESS, 0, "engine '%s' in unhandled state %d.\n",
+			      self->nick, self->state);
+			status = false;
+			break;
+	}
+
+	return status;
+}
+
+static bool
+engine_process_input_negotiating(Engine *self, const char *cmd)
+{
+	if (self->protocol == xboard) {
+		if (strncmp("feature", cmd, 7) == 0 && isspace(cmd[7])) {
+				self->state = acknowledged;
+			/* We consider ourselves a server and set the default to true.  */
+			self->xboard_name = chi_true;
+
+			return engine_process_input_acknowledged(self, cmd);
+		}
+	}
+
+	return true;
+}
+
+static bool
+engine_process_input_acknowledged(Engine *self, const char *cmd)
+{
+	if (self->protocol == xboard) {
+		if (!(strncmp("feature", cmd, 7) == 0 && isspace(cmd[7]))) {
+			return true;
+		}
+
+		return engine_process_xboard_features(self, cmd + 7);
+	}
+
+	return true;
+}
+
+static bool
+engine_process_xboard_features(Engine *self, const char *cmd)
+{
+	const char *endptr = cmd;
+	XboardFeature *feature;
+
+	while (*endptr) {
+		feature = xboard_feature_new(endptr, &endptr);
+		if (!feature)
+			continue;
+		if (strcmp("myname", feature->name) == 0) {
+			log_realm(self->nick, "engine now known as '%s'", feature->value);
+			free(self->nick);
+			self->nick = xstrdup(feature->value);
+		}
+		xboard_feature_destroy(feature);
 	}
 
 	return true;

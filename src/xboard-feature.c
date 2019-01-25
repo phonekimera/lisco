@@ -45,11 +45,49 @@ xboard_feature_new(const char *input, const char **endptr)
 
 	self->name = xstrndup(start, end - start);
 
+	while (isspace(*end))
+		++end;
+	if (*end != '=')
+		goto bail_out;
+	++end;
+	while (isspace(*end))
+		++end;
+	if (*end == '\0')
+		goto bail_out;
+
+	start = end;
+	if (*end == '"') {
+		/* There is no documented escape mechanism, so read everything up to
+		 * a closing quote.
+		 */
+		++end;
+		start = end;
+		while (*end && *end != '"')
+			++end;
+		if (!*end)
+			goto bail_out;
+		self->value = xstrndup(start, end - start);
+		++end;
+	} else {
+		while (*end && !isspace(*end))
+			++end;
+		if (start == end) {
+			self->value = xstrdup("");
+		} else {
+			self->value = xstrndup(start, end - start);
+		}
+	}
+
+	if (endptr)
+		*endptr = end;
+
 	return self;
 
 bail_out:
 	if (endptr)
 		*endptr = end;
+
+	xboard_feature_destroy(self);
 
 	return NULL;
 }
