@@ -34,9 +34,16 @@ START_TEST(test_trim)
 	string = xstrdup("foo  bar\tbaz");
 	wanted = string;
 	got = trim(string);
-
-	ck_assert_ptr_eq(got, string);
 	ck_assert_str_eq(got, string);
+	ck_assert_ptr_eq(got, string);
+	free(string);
+	
+	string = xstrdup("\t  foo  bar\tbaz   \t\t   ");
+	wanted = "foo  bar\tbaz";
+	got = trim(string);
+	ck_assert_str_eq(got, wanted);
+	ck_assert_ptr_eq(got, string + 3);
+	free(string);
 END_TEST
 
 Suite *
