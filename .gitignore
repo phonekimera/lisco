@@ -28,6 +28,9 @@ src/tateplay
 /INSTALL
 /libchi/bitmasks.h
 
+src/tests/check_common
+src/tests/check_tateplay
+
 libchi/libchi.h
 libchi/showfen
 libchi/tests/check_libchi

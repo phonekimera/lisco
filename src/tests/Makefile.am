@@ -17,17 +17,25 @@
 
 ## Process this file with automake to produce Makefile.in.
 
-noinst_PROGRAMS = check_common
+noinst_PROGRAMS = check_common check_tateplay
 
-TESTS = ./check_common
+TESTS = ./check_common ./check_tateplay
 
 check_common_SOURCES = \
 		../util.c \
 		test_util.c \
 		check_common.c
 
+check_tateplay_SOURCES = \
+		../xboard-feature.c \
+		test_xboard.c \
+		check_tateplay.c
+
 check_common_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
 check_common_LDADD = ../../lib/libtate.la ../../libchi/libchi.la \
+	$(LDFLAGS) $(CHECK_LIBS)
+check_tateplay_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
+check_tateplay_LDADD = ../../lib/libtate.la ../../libchi/libchi.la \
 	$(LDFLAGS) $(CHECK_LIBS)
 
 AM_CPPFLAGS = -I.. -I$(srcdir)/.. -I$(top_srcdir)/lib \

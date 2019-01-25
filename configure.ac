@@ -20,7 +20,7 @@ AC_INIT([tate], [0.5.0])
 AC_CONFIG_SRCDIR([src/tate.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
-AM_INIT_AUTOMAKE([1.16.1 silent-rules parallel-tests])
+AM_INIT_AUTOMAKE([1.16.1 silent-rules parallel-tests subdir-objects])
 AM_SILENT_RULES([yes])
  
 AC_CONFIG_HEADERS([config.h])
