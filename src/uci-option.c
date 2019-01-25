@@ -20,25 +20,39 @@
 # include <config.h>
 #endif
 
-#include <check.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "libchi.h"
+#include "xmalloca.h"
+#include "xstrndup.h"
 
-extern Suite *xboard_suite();
-extern Suite *uci_suite();
+#include "util.h"
+#include "uci-option.h"
 
-int
-main(int argc, char *argv[])
+UCIOption *
+uci_optoin_new(const char *input)
 {
-	int failed = 0;
-	SRunner *runner;
+	UCIOption *self = xmalloc(sizeof *self);
+	const char *start = ltrim(input);
+	const char *end = start;
 
-	runner = srunner_create(xboard_suite());
-        srunner_add_suite(runner, uci_suite());
+	memset(self, 0, sizeof *self);
 
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
+	return self;
 
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+bail_out:
+	uci_option_destroy(self);
+
+	return NULL;
+}
+
+void
+uci_option_destroy(UCIOption *self)
+{
+	if (!self) return;
+
+	if (self->name) free(self->name);
+
+	free(self);
 }

@@ -22,23 +22,27 @@
 
 #include <check.h>
 
-#include "libchi.h"
+#include "uci-option.h"
 
-extern Suite *xboard_suite();
-extern Suite *uci_suite();
+START_TEST(test_uci_option)
+	const char *input;
+	
+	input = "   option name Hash type spin default 1 min 1 max 128    ";
 
-int
-main(int argc, char *argv[])
+	ck_assert_int_eq(0, 0);
+END_TEST
+
+Suite *
+uci_suite(void)
 {
-	int failed = 0;
-	SRunner *runner;
+	Suite *suite;
+	TCase *tc_option;
 
-	runner = srunner_create(xboard_suite());
-        srunner_add_suite(runner, uci_suite());
+	suite = suite_create("UCI Functions");
 
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
+	tc_option = tcase_create("Options");
+	tcase_add_test(tc_option, test_uci_option);
+	suite_add_tcase(suite, tc_option);
 
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	return suite;
 }

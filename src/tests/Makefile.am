@@ -27,9 +27,11 @@ check_common_SOURCES = \
 		check_common.c
 
 check_tateplay_SOURCES = \
+		../uci-option.c \
 		../util.c \
 		../xboard-feature.c \
 		test_xboard.c \
+		test_uci.c \
 		check_tateplay.c
 
 check_common_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)

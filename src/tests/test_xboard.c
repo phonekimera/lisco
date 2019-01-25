@@ -25,16 +25,47 @@
 #include "xboard-feature.h"
 
 START_TEST(test_xboard_feature)
-	char *input;
+	const char *input;
 	XboardFeature *feature;
-	
+	const char *endptr;
+
 	input = "done=0 other=42";
 	feature = xboard_feature_new(input, NULL);
-
 	ck_assert_ptr_ne(feature, NULL);
 	ck_assert_ptr_ne(feature->name, NULL);
 	ck_assert_str_eq("done", feature->name);
+	ck_assert_ptr_ne(feature->value, NULL);
+	ck_assert_str_eq("0", feature->value);
+	xboard_feature_destroy(feature);
 
+	input = "done=0 other=42";
+	feature = xboard_feature_new(input, &endptr);
+	ck_assert_ptr_ne(feature, NULL);
+	ck_assert_ptr_ne(feature->name, NULL);
+	ck_assert_str_eq("done", feature->name);
+	ck_assert_ptr_ne(feature->value, NULL);
+	ck_assert_str_eq("0", feature->value);
+	ck_assert_ptr_eq(input + 6, endptr);
+	xboard_feature_destroy(feature);
+
+	input = " \t done  =\t0 other=42";
+	feature = xboard_feature_new(input, &endptr);
+	ck_assert_ptr_ne(feature, NULL);
+	ck_assert_ptr_ne(feature->name, NULL);
+	ck_assert_str_eq("done", feature->name);
+	ck_assert_ptr_ne(feature->value, NULL);
+	ck_assert_str_eq("0", feature->value);
+	ck_assert_ptr_eq(input + 12, endptr);
+	xboard_feature_destroy(feature);
+
+	input = "name=\"Tate 1.2.3\"   ";
+	feature = xboard_feature_new(input, &endptr);
+	ck_assert_ptr_ne(feature, NULL);
+	ck_assert_ptr_ne(feature->name, NULL);
+	ck_assert_str_eq("name", feature->name);
+	ck_assert_ptr_ne(feature->value, NULL);
+	ck_assert_str_eq("Tate 1.2.3", feature->value);
+	ck_assert_ptr_eq(input + 17, endptr);
 	xboard_feature_destroy(feature);
 END_TEST
 

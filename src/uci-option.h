@@ -16,29 +16,48 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _UCI_OPTION_H
+# define _UCI_OPTION_H        /* Allow multiple inclusion.  */
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include <check.h>
-
 #include "libchi.h"
 
-extern Suite *xboard_suite();
-extern Suite *uci_suite();
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-int
-main(int argc, char *argv[])
-{
-	int failed = 0;
-	SRunner *runner;
+typedef enum UCIOptionType {
+	uci_option_type_string,
+	uci_option_type_check,
+	uci_option_type_spin,
+	uci_option_type_button,
+	uci_option_type_combo,
+} UCIOptionType;
 
-	runner = srunner_create(xboard_suite());
-        srunner_add_suite(runner, uci_suite());
+typedef struct UCIOption {
+	char *name;
+	long long min;
+	chi_bool min_set;
+	long long max;
+	chi_bool max_set;
+	const char *vars;
+	size_t num_vars;
+	union {
+		chi_bool boolean_default;
+		const char *string_default;
+		long long integer_default;
+	} defaults;
+	chi_bool default_set;
+} UCIOption;
 
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
+extern UCIOption *uci_option_new(const char *input);
+extern void uci_option_destroy(UCIOption *option);
 
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+#ifdef __cplusplus
 }
+#endif
+
+#endif
