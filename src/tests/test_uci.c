@@ -35,6 +35,8 @@ START_TEST(test_uci_spin_option)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Hash", option->name);
+	
+	ck_assert_int_eq(uci_option_type_spin, option->type);
 
 	uci_option_destroy(option);
 END_TEST

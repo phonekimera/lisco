@@ -62,7 +62,28 @@ uci_option_new(const char *input)
 	self->name = trim(xstrndup(start, end - start - 1));
 
 	/* Skip "type".  */
-	start = end + 4;
+	start = ltrim(end + 4);
+	if (start == end+4)
+		goto bail_out;
+	
+	end = start;
+	while (*end && !isspace(*end))
+		++end;
+	if (end == start)
+		goto bail_out;
+	
+	if (strncmp(start, "check", 5) == 0)
+		self->type = uci_option_type_check;
+	else if (strncmp(start, "spin", 4) == 0)
+		self->type = uci_option_type_spin;
+	else if (strncmp(start, "combo", 5) == 0)
+		self->type = uci_option_type_spin;
+	else if (strncmp(start, "button", 6) == 0)
+		self->type = uci_option_type_spin;
+	else if (strncmp(start, "string", 6) == 0)
+		self->type = uci_option_type_spin;
+	else
+		goto bail_out;
 
 	return self;
 

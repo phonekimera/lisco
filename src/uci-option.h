@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 typedef enum UCIOptionType {
-	uci_option_type_string,
+	uci_option_type_string = 1,
 	uci_option_type_check,
 	uci_option_type_spin,
 	uci_option_type_button,
@@ -39,6 +39,7 @@ typedef enum UCIOptionType {
 
 typedef struct UCIOption {
 	char *name;
+	UCIOptionType type;
 	long long min;
 	chi_bool min_set;
 	long long max;
