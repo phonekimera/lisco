@@ -31,13 +31,38 @@
 #include "uci-option.h"
 
 UCIOption *
-uci_optoin_new(const char *input)
+uci_option_new(const char *input)
 {
 	UCIOption *self = xmalloc(sizeof *self);
 	const char *start = ltrim(input);
 	const char *end = start;
 
 	memset(self, 0, sizeof *self);
+
+	/* We optimistically assume that the possible order of the keywords
+	 * is fixed, although that this is one of the many questions that the
+	 * UCI description does not answer.
+	 */
+
+	if (strncmp("name", start, 4) != 0)
+		goto bail_out;
+	
+	start = ltrim(start + 4);
+	if (start == start + 4)
+		goto bail_out;
+	
+	end = strstr(start, "type");
+	if (end == NULL)
+		goto bail_out;
+	if (!isspace(end[-1]))
+		goto bail_out;
+	/* We know that the string is already left-trimmed.  So the call
+	 * to trim cannot change the pointer.
+	 */
+	self->name = trim(xstrndup(start, end - start - 1));
+
+	/* Skip "type".  */
+	start = end + 4;
 
 	return self;
 
