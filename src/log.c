@@ -117,6 +117,7 @@ vlog_realm(const char *realm, const char *direction, const char *_fmt,
 		*dest++ = c;
 		if (c == '%') *dest++ = '%';
 	}
+	*dest++ = '\0';
 
 	/* The dimensions of the format are as follows:
 	 *
