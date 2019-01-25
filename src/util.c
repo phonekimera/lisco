@@ -39,3 +39,11 @@ trim(char *str)
 
 	return str;
 }
+
+char *
+ltrim(char *str)
+{
+	while (isspace((unsigned char) *str)) ++str;
+
+	return str;
+}

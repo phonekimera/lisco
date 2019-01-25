@@ -28,6 +28,7 @@ extern "C" {
 #endif
 
 extern char *trim(char *str);
+extern char *ltrim(char *str);
 
 #ifdef __cplusplus
 }

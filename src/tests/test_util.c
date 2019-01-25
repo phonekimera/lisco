@@ -46,6 +46,26 @@ START_TEST(test_trim)
 	free(string);
 END_TEST
 
+START_TEST(test_ltrim)
+	char *string;
+	char *wanted;
+	char *got;
+	
+	string = xstrdup("foo  bar\tbaz");
+	wanted = string;
+	got = ltrim(string);
+	ck_assert_str_eq(got, string);
+	ck_assert_ptr_eq(got, string);
+	free(string);
+	
+	string = xstrdup("\t  foo  bar\tbaz   \t\t   ");
+	wanted = "foo  bar\tbaz   \t\t   ";
+	got = ltrim(string);
+	ck_assert_str_eq(got, wanted);
+	ck_assert_ptr_eq(got, string + 3);
+	free(string);
+END_TEST
+
 Suite *
 util_suite(void)
 {
@@ -56,6 +76,7 @@ util_suite(void)
 
 	tc_trim = tcase_create("Trimming");
 	tcase_add_test(tc_trim, test_trim);
+	tcase_add_test(tc_trim, test_ltrim);
 	suite_add_tcase(suite, tc_trim);
 
 	return suite;
