@@ -28,15 +28,18 @@ START_TEST(test_uci_spin_option)
 	const char *input;
 	UCIOption *option;
 
-	input = "  name Hash type spin default 1 min 1 max 128    ";
+	input = "  name Has \t Space type spin default 1 min 1 max 128    ";
 
 	option = uci_option_new(input);
 	ck_assert_ptr_ne(NULL, option);
 
 	ck_assert_ptr_ne(NULL, option->name);
-	ck_assert_str_eq("Hash", option->name);
+	ck_assert_str_eq("Has \t Space", option->name);
 	
 	ck_assert_int_eq(uci_option_type_spin, option->type);
+
+	ck_assert_ptr_ne(NULL, option->default_value);
+	ck_assert_str_eq("1", option->default_value);
 
 	uci_option_destroy(option);
 END_TEST

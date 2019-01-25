@@ -24,70 +24,66 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "assure.h"
 #include "xmalloca.h"
 #include "xstrndup.h"
 
 #include "util.h"
 #include "uci-option.h"
 
+static size_t uci_option_consume_tokens(UCIOption *self, char **tokens,
+                                        const char *original);
+
 UCIOption *
 uci_option_new(const char *input)
 {
 	UCIOption *self = xmalloc(sizeof *self);
-	const char *start = ltrim(input);
-	const char *end = start;
+	const char *original = ltrim(input);
+	char *copy = xstrdup(original);
+	char *string = copy;
+	char *token;
+	char **tokens = NULL;
+	size_t num_tokens = 0;
+	size_t i;
 
 	memset(self, 0, sizeof *self);
 
-	/* We optimistically assume that the possible order of the keywords
-	 * is fixed, although that this is one of the many questions that the
-	 * UCI description does not answer.
-	 */
+	string = trim(string);
+	while ((token = strsep(&string, " \t\v\f"))) {
+		tokens = xrealloc(tokens, ++num_tokens * sizeof *tokens);
+		tokens[num_tokens - 1] = token;
+	}
+	tokens = xrealloc(tokens, (num_tokens + 1) * sizeof *tokens);
+	tokens[num_tokens] = NULL;
 
-	if (strncmp("name", start, 4) != 0)
-		goto bail_out;
-	
-	start = ltrim(start + 4);
-	if (start == start + 4)
-		goto bail_out;
-	
-	end = strstr(start, "type");
-	if (end == NULL)
-		goto bail_out;
-	if (!isspace(end[-1]))
-		goto bail_out;
-	/* We know that the string is already left-trimmed.  So the call
-	 * to trim cannot change the pointer.
-	 */
-	self->name = trim(xstrndup(start, end - start - 1));
+	i = 0;
+	while (i < num_tokens) {
+		char *keyword = tokens[i++];
+		char *value;
 
-	/* Skip "type".  */
-	start = ltrim(end + 4);
-	if (start == end+4)
+		size_t skip = uci_option_consume_tokens(self, tokens + i,
+		                                        original
+		                                        + (&tokens[i][0]
+		                                           - &tokens[0][0]));
+		value = tokens[i];
+
+		i += skip;
+	}
+
+	if (!self->name)
 		goto bail_out;
-	
-	end = start;
-	while (*end && !isspace(*end))
-		++end;
-	if (end == start)
-		goto bail_out;
-	
-	if (strncmp(start, "check", 5) == 0)
-		self->type = uci_option_type_check;
-	else if (strncmp(start, "spin", 4) == 0)
-		self->type = uci_option_type_spin;
-	else if (strncmp(start, "combo", 5) == 0)
-		self->type = uci_option_type_spin;
-	else if (strncmp(start, "button", 6) == 0)
-		self->type = uci_option_type_spin;
-	else if (strncmp(start, "string", 6) == 0)
-		self->type = uci_option_type_spin;
-	else
-		goto bail_out;
+
+	free(copy);
+	if (tokens)
+		free(tokens);
 
 	return self;
 
 bail_out:
+	free(copy);
+	if (tokens)
+		free(tokens);
+
 	uci_option_destroy(self);
 
 	return NULL;
@@ -101,4 +97,34 @@ uci_option_destroy(UCIOption *self)
 	if (self->name) free(self->name);
 
 	free(self);
+}
+
+static size_t
+uci_option_consume_tokens(UCIOption *self, char **tokens, const char *original)
+{
+	size_t i;
+
+	for (i = 0; tokens[i]; ++i) {
+		if (tokens[i][0] == '\0') {
+			/* Restore the original character overwriting the
+			 * terminating NIL.  This will extend the value.
+			 */
+			assure(&tokens[i][-1] >= original);
+			tokens[i][-1] = original[&tokens[i][-1] - &tokens[0][0]];
+			tokens[i][0]  = original[&tokens[i][0] - &tokens[0][0]];
+			continue;
+		}
+		if (strcmp("name", tokens[i]) == 0 && !self->name)
+			break;
+		if (strcmp("type", tokens[i]) == 0 && !self->type)
+			break;
+		if (strcmp("var", tokens[i]) == 0 && !self->vars)
+			break;
+		if (strcmp("min", tokens[i]) == 0 && !self->min_set)
+			break;
+		if (strcmp("max", tokens[i]) == 0 && !self->max_set)
+			break;
+	}
+
+	return i;
 }

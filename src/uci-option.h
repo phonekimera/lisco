@@ -46,11 +46,7 @@ typedef struct UCIOption {
 	chi_bool max_set;
 	const char *vars;
 	size_t num_vars;
-	union {
-		chi_bool boolean_default;
-		const char *string_default;
-		long long integer_default;
-	} defaults;
+	const char *default_value;
 	chi_bool default_set;
 } UCIOption;
 
