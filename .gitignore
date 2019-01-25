@@ -27,6 +27,7 @@ src/tateplay
 *~
 /INSTALL
 /libchi/bitmasks.h
+.dirstamp
 
 src/tests/check_common
 src/tests/check_tateplay

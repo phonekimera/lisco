@@ -47,9 +47,9 @@ START_TEST(test_trim)
 END_TEST
 
 START_TEST(test_ltrim)
-	char *string;
-	char *wanted;
-	char *got;
+	const char *string;
+	const char *wanted;
+	const char *got;
 	
 	string = "foo  bar\tbaz";
 	wanted = string;

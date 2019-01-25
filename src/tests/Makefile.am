@@ -27,6 +27,7 @@ check_common_SOURCES = \
 		check_common.c
 
 check_tateplay_SOURCES = \
+		../util.c \
 		../xboard-feature.c \
 		test_xboard.c \
 		check_tateplay.c

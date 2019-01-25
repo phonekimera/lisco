@@ -20,9 +20,12 @@
 # include <config.h>
 #endif
 
+#include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "xmalloca.h"
+#include "xstrndup.h"
 
 #include "util.h"
 #include "xboard-feature.h"
@@ -31,14 +34,33 @@ XboardFeature *
 xboard_feature_new(const char *input, const char **endptr)
 {
 	XboardFeature *self = xmalloc(sizeof *self);
+	const char *start = ltrim(input);
+	const char *end = start;
+
+	memset(self, 0, sizeof *self);
+
+	while (*end && !isspace(*end) && *end != '=')
+		++end;
+	if (start == end) goto bail_out;
+
+	self->name = xstrndup(start, end - start);
 
 	return self;
+
+bail_out:
+	if (endptr)
+		*endptr = end;
+
+	return NULL;
 }
 
 void
 xboard_feature_destroy(XboardFeature *self)
 {
 	if (!self) return;
+
+	if (self->name) free(self->name);
+	if (self->value) free(self->value);
 
 	free(self);
 }

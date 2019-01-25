@@ -28,8 +28,8 @@ extern "C" {
 #endif
 
 typedef struct XboardFeature {
-	const char *name;
-	const char *value;
+	char *name;
+	char *value;
 } XboardFeature;
 
 extern XboardFeature *xboard_feature_new(const char *input,

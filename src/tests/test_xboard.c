@@ -31,6 +31,10 @@ START_TEST(test_xboard_feature)
 	input = "done=0 other=42";
 	feature = xboard_feature_new(input, NULL);
 
+	ck_assert_ptr_ne(feature, NULL);
+	ck_assert_ptr_ne(feature->name, NULL);
+	ck_assert_str_eq("done", feature->name);
+
 	xboard_feature_destroy(feature);
 END_TEST
 
