@@ -40,10 +40,10 @@ trim(char *str)
 	return str;
 }
 
-char *
-ltrim(char *str)
+const char *
+ltrim(const char *str)
 {
-	while (isspace((unsigned char) *str)) ++str;
+	while (isspace((unsigned const char) *str)) ++str;
 
 	return str;
 }

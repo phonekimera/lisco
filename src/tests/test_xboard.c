@@ -22,11 +22,16 @@
 
 #include <check.h>
 
-#include "xmalloca.h"
-
-#include "util.h"
+#include "xboard-feature.h"
 
 START_TEST(test_xboard_feature)
+	char *input;
+	XboardFeature *feature;
+	
+	input = "done=0 other=42";
+	feature = xboard_feature_new(input, NULL);
+
+	xboard_feature_destroy(feature);
 END_TEST
 
 Suite *

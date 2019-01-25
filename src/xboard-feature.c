@@ -20,3 +20,25 @@
 # include <config.h>
 #endif
 
+#include <stdlib.h>
+
+#include "xmalloca.h"
+
+#include "util.h"
+#include "xboard-feature.h"
+
+XboardFeature *
+xboard_feature_new(const char *input, const char **endptr)
+{
+	XboardFeature *self = xmalloc(sizeof *self);
+
+	return self;
+}
+
+void
+xboard_feature_destroy(XboardFeature *self)
+{
+	if (!self) return;
+
+	free(self);
+}

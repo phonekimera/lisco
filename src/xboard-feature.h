@@ -27,6 +27,15 @@
 extern "C" {
 #endif
 
+typedef struct XboardFeature {
+	const char *name;
+	const char *value;
+} XboardFeature;
+
+extern XboardFeature *xboard_feature_new(const char *input,
+                                         const char **endptr);
+extern void xboard_feature_destroy(XboardFeature *feature);
+
 #ifdef __cplusplus
 }
 #endif
