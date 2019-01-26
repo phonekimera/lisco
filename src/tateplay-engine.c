@@ -389,15 +389,17 @@ engine_handle_input(Engine *self, char *buf, ssize_t nbytes)
 	char *end;
 	chi_bool status = true;
 	size_t consumed = 0;
+	size_t required;
 
 	/* Copy it into the input buffer.  */
-	self->inbuf_length += nbytes;
-	if (self->inbuf_length > self->inbuf_size) {
-		self->inbuf_size = self->inbuf_length;
+	required = self->inbuf_length + nbytes;
+	if (required > self->inbuf_size) {
+		self->inbuf_size = required;
 		self->inbuf = xrealloc(self->inbuf, self->inbuf_size);
 	}
 	
 	memcpy(self->inbuf + self->inbuf_length, buf, nbytes);
+	self->inbuf_length += nbytes;
 
 	/* Now handle lines, one by one.  */
 	start = end = self->inbuf;
