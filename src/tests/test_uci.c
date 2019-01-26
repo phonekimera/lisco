@@ -41,6 +41,32 @@ START_TEST(test_uci_spin_option)
 	ck_assert_ptr_ne(NULL, option->default_value);
 	ck_assert_str_eq("1", option->default_value);
 
+	ck_assert_ptr_ne(NULL, option->min);
+	ck_assert_str_eq("1", option->min);
+
+	ck_assert_ptr_ne(NULL, option->max);
+	ck_assert_str_eq("128", option->max);
+
+	uci_option_destroy(option);
+END_TEST
+
+START_TEST(test_uci_check_option)
+	const char *input;
+	UCIOption *option;
+
+	input = " name Nullmove type check default true";
+
+	option = uci_option_new(input);
+	ck_assert_ptr_ne(NULL, option);
+
+	ck_assert_ptr_ne(NULL, option->name);
+	ck_assert_str_eq("Nullmove", option->name);
+	
+	ck_assert_int_eq(uci_option_type_check, option->type);
+
+	ck_assert_ptr_ne(NULL, option->default_value);
+	ck_assert_str_eq("true", option->default_value);
+
 	uci_option_destroy(option);
 END_TEST
 
@@ -54,6 +80,7 @@ uci_suite(void)
 
 	tc_option = tcase_create("Options");
 	tcase_add_test(tc_option, test_uci_spin_option);
+	tcase_add_test(tc_option, test_uci_check_option);
 	suite_add_tcase(suite, tc_option);
 
 	return suite;
