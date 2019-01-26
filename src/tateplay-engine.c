@@ -48,6 +48,7 @@ static bool engine_process_input_negotiating(Engine *self, const char *line);
 static bool engine_process_input_acknowledged(Engine *self, const char *line);
 
 static bool engine_process_xboard_features(Engine *self, const char *line);
+static bool engine_process_uci_option(Engine *self, const char *line);
 
 Engine *
 engine_new()
@@ -104,6 +105,14 @@ engine_destroy(Engine *self)
 	if (self->nick) free(self->nick);
 	if (self->outbuf) free(self->outbuf);
 	if (self->inbuf) free(self->inbuf);
+
+	if (self->options) {
+		size_t i;
+		for (i = 0; i < self->num_options; ++i) {
+			uci_option_destroy(self->options[i]);
+		}
+		free(self->options);
+	}
 
 	free(self);
 }
@@ -210,6 +219,7 @@ engine_negotiate(Engine *self)
 		case xboard:
 			engine_spool_output(self, "xboard\nprotover 2\n");
 			self->max_waiting_time = 2UL * 1000000UL;
+			self->state = negotiating;
 			break;
 		case uci:
 			engine_spool_output(self, "uci\n");
@@ -218,10 +228,9 @@ engine_negotiate(Engine *self)
 			 * for UCI.
 			 */
 			self->max_waiting_time = 60UL * 60UL * 1000000UL;
+			self->state = acknowledged;
 			break;
 	}
-
-	self->state = negotiating;
 }
 
 bool
@@ -484,6 +493,12 @@ engine_process_input_acknowledged(Engine *self, const char *cmd)
 		}
 
 		return engine_process_xboard_features(self, cmd + 7);
+	} else if (self->protocol == uci) {
+		if (!(strncmp("option", cmd, 6) == 0 && isspace(cmd[6]))) {
+			return true;
+		}
+
+		return engine_process_uci_option(self, cmd + 6);
 	}
 
 	return true;
@@ -506,6 +521,23 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 		}
 		xboard_feature_destroy(feature);
 	}
+
+	return true;
+}
+
+static bool
+engine_process_uci_option(Engine *self, const char *line)
+{
+	UCIOption *option = uci_option_new(line);
+
+	if (!option) {
+		log_engine_error(self->nick, "unable to parse UCI option: %s",
+		                 line);
+		return true;
+	}
+
+	self->options = xrealloc(self->options, ++self->num_options);
+	self->options[self->num_options - 1] = option;
 
 	return true;
 }

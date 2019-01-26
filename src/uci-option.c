@@ -66,8 +66,13 @@ uci_option_new(const char *input)
 		                                        original
 		                                        + (&tokens[i][0]
 		                                           - &tokens[0][0]));
-		value = tokens[i];
-		i += skip;
+		if (skip) {
+			value = tokens[i];
+			i += skip;
+		} else {
+			++i;
+			value = "";
+		}
 
 		if (strcmp("name", keyword) == 0) {
 			if (self->name)
@@ -150,30 +155,42 @@ uci_option_destroy(UCIOption *self)
 static size_t
 uci_option_consume_tokens(UCIOption *self, char **tokens, const char *original)
 {
-	size_t i;
+	size_t i, j;
 
-	for (i = 0; tokens[i]; ++i) {
-		if (tokens[i][0] == '\0') {
-			/* Restore the original character overwriting the
-			 * terminating NIL.  This will extend the value.
-			 */
-			assure(&tokens[i][-1] >= original);
-			tokens[i][-1] = original[&tokens[i][-1] - &tokens[0][0]];
-			tokens[i][0]  = original[&tokens[i][0] - &tokens[0][0]];
-			continue;
+	for (i = 0; tokens[i] != NULL; ++i) {
+		// if (tokens[i][0] == '\0') {
+		// 	/* Restore the original character overwriting the
+		// 	 * terminating NIL.  This will extend the value.
+		// 	 */
+		// 	assure(&tokens[i][-1] >= original);
+		// 	tokens[i][-1] = original[&tokens[i][-1] - &tokens[0][0]];
+		// 	tokens[i][0]  = original[&tokens[i][0] - &tokens[0][0]];
+		// 	continue;
+		// } else
+
+		if (strcmp("name", tokens[i]) == 0) {
+			break;
+		} else if (strcmp("type", tokens[i]) == 0) {
+			break;
+		} else if (strcmp("default", tokens[i]) == 0) {
+			break;
+		} else if (strcmp("var", tokens[i]) == 0) {
+			break;
+		} else if (strcmp("min", tokens[i]) == 0) {
+			break;
+		} else if (strcmp("max", tokens[i]) == 0) {
+			break;
 		}
-		if (strcmp("name", tokens[i]) == 0)
-			break;
-		if (strcmp("type", tokens[i]) == 0)
-			break;
-		if (strcmp("default", tokens[i]) == 0)
-			break;
-		if (strcmp("var", tokens[i]) == 0)
-			break;
-		if (strcmp("min", tokens[i]) == 0)
-			break;
-		if (strcmp("max", tokens[i]) == 0)
-			break;
+	}
+
+	if (i > 1) {
+		for (j = 0; j < i - 1; ++j) {
+			/* Remove the terminating NIL.  */
+			size_t l = strlen(tokens[j]);
+			off_t offset = &tokens[j][l] - &tokens[0][0];
+
+			tokens[j][l] = original[offset];
+		}
 	}
 
 	return i;

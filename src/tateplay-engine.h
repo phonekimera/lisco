@@ -29,6 +29,8 @@
 
 #include "stdbool.h"
 
+#include "uci-option.h"
+
 typedef enum EngineProtocol {
 	uci = 0,
 #define uci uci
@@ -79,6 +81,10 @@ typedef struct Engine {
 	/* Negotiatable xboard features.  */
 	chi_bool xboard_name;
 	chi_bool xboard_san;
+
+	/* UCI options.  */
+	UCIOption **options;
+	size_t num_options;
 } Engine;
 
 extern Engine *engine_new();

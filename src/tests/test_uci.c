@@ -121,6 +121,26 @@ START_TEST(test_uci_combo_option)
 	uci_option_destroy(option);
 END_TEST
 
+START_TEST(test_stockfish_logfile_option)
+	const char *input;
+	UCIOption *option;
+
+	input = " name Debug Log File type string default";
+
+	option = uci_option_new(input);
+	ck_assert_ptr_ne(NULL, option);
+
+	ck_assert_ptr_ne(NULL, option->name);
+	ck_assert_str_eq("Debug Log File", option->name);
+
+	ck_assert_int_eq(uci_option_type_string, option->type);
+
+	ck_assert_ptr_ne(NULL, option->default_value);
+	ck_assert_str_eq("", option->default_value);
+
+	uci_option_destroy(option);
+END_TEST
+
 Suite *
 uci_suite(void)
 {
@@ -133,6 +153,7 @@ uci_suite(void)
 	tcase_add_test(tc_option, test_uci_spin_option);
 	tcase_add_test(tc_option, test_uci_check_option);
 	tcase_add_test(tc_option, test_uci_combo_option);
+	tcase_add_test(tc_option, test_stockfish_logfile_option);
 	suite_add_tcase(suite, tc_option);
 
 	return suite;
