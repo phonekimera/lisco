@@ -49,6 +49,7 @@ static bool engine_process_input_acknowledged(Engine *self, const char *line);
 
 static bool engine_process_xboard_features(Engine *self, const char *line);
 static bool engine_process_uci_option(Engine *self, const char *line);
+static bool engine_process_uci_id(Engine *self, const char *line);
 
 Engine *
 engine_new()
@@ -494,11 +495,11 @@ engine_process_input_acknowledged(Engine *self, const char *cmd)
 
 		return engine_process_xboard_features(self, cmd + 7);
 	} else if (self->protocol == uci) {
-		if (!(strncmp("option", cmd, 6) == 0 && isspace(cmd[6]))) {
-			return true;
+		if (strncmp("option", cmd, 6) == 0 && isspace(cmd[6])) {
+			return engine_process_uci_option(self, cmd + 6);
+		} else if (strncmp("id", cmd, 2) == 0 && isspace(cmd[2])) {
+			return engine_process_uci_id(self, cmd + 2);
 		}
-
-		return engine_process_uci_option(self, cmd + 6);
 	}
 
 	return true;
@@ -538,6 +539,13 @@ engine_process_uci_option(Engine *self, const char *line)
 
 	self->options = xrealloc(self->options, ++self->num_options);
 	self->options[self->num_options - 1] = option;
+
+	return true;
+}
+
+static bool
+engine_process_uci_id(Engine *self, const char *line)
+{
 
 	return true;
 }
