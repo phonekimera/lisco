@@ -69,7 +69,6 @@ START_TEST(test_uci_spin_option)
 	ck_assert_str_eq("4", option->max);
 
 	uci_option_destroy(option);
-
 END_TEST
 
 START_TEST(test_uci_check_option)
@@ -92,6 +91,36 @@ START_TEST(test_uci_check_option)
 	uci_option_destroy(option);
 END_TEST
 
+START_TEST(test_uci_combo_option)
+	const char *input;
+	UCIOption *option;
+
+	input = "name Style type combo default Normal var Solid var Normal var Risky";
+
+	option = uci_option_new(input);
+	ck_assert_ptr_ne(NULL, option);
+
+	ck_assert_ptr_ne(NULL, option->name);
+	ck_assert_str_eq("Style", option->name);
+	
+	ck_assert_int_eq(uci_option_type_combo, option->type);
+
+	ck_assert_ptr_ne(NULL, option->default_value);
+	ck_assert_str_eq("Normal", option->default_value);
+
+	ck_assert_int_eq(3, option->num_vars);
+	ck_assert_ptr_ne(NULL, option->vars);
+
+	ck_assert_ptr_ne(NULL, option->vars[0]);
+	ck_assert_str_eq("Solid", option->vars[0]);
+	ck_assert_ptr_ne(NULL, option->vars[1]);
+	ck_assert_str_eq("Normal", option->vars[1]);
+	ck_assert_ptr_ne(NULL, option->vars[2]);
+	ck_assert_str_eq("Risky", option->vars[2]);
+	
+	uci_option_destroy(option);
+END_TEST
+
 Suite *
 uci_suite(void)
 {
@@ -103,6 +132,7 @@ uci_suite(void)
 	tc_option = tcase_create("Options");
 	tcase_add_test(tc_option, test_uci_spin_option);
 	tcase_add_test(tc_option, test_uci_check_option);
+	tcase_add_test(tc_option, test_uci_combo_option);
 	suite_add_tcase(suite, tc_option);
 
 	return suite;

@@ -42,7 +42,7 @@ typedef struct UCIOption {
 	UCIOptionType type;
 	char *min;
 	char *max;
-	char *vars;
+	char **vars;
 	size_t num_vars;
 	char *default_value;
 	chi_bool default_set;

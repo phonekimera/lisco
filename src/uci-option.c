@@ -33,6 +33,7 @@
 
 static size_t uci_option_consume_tokens(UCIOption *self, char **tokens,
                                         const char *original);
+static void uci_option_add_var(UCIOption *self, char *var);
 
 UCIOption *
 uci_option_new(const char *input)
@@ -100,6 +101,8 @@ uci_option_new(const char *input)
 			if (self->max)
 				goto bail_out;
 			self->max = xstrdup(value);
+		} else if (strcmp("var", keyword) == 0) {
+			uci_option_add_var(self, value);
 		} else {
 			goto bail_out;
 		}
@@ -127,11 +130,20 @@ bail_out:
 void
 uci_option_destroy(UCIOption *self)
 {
+	size_t i;
+
 	if (!self) return;
 
 	if (self->name) free(self->name);
 	if (self->default_value) free(self->default_value);
+	if (self->min) free(self->min);
+	if (self->max) free(self->max);
 
+	if (self->vars) {
+		for (i = 0; i < self->num_vars; ++i)
+			free(self->vars[i]);
+		free(self->max);
+	}
 	free(self);
 }
 
@@ -165,4 +177,13 @@ uci_option_consume_tokens(UCIOption *self, char **tokens, const char *original)
 	}
 
 	return i;
+}
+
+static void
+uci_option_add_var(UCIOption *self, char *var)
+{
+	++self->num_vars;
+	self->vars = xrealloc(self->vars,
+	                      self->num_vars * sizeof self->vars[0]);
+	self->vars[self->num_vars - 1] = xstrdup(var);
 }
