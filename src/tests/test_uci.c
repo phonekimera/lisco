@@ -48,6 +48,28 @@ START_TEST(test_uci_spin_option)
 	ck_assert_str_eq("128", option->max);
 
 	uci_option_destroy(option);
+
+	input = " name Selectivity type spin default 2 min 0 max 4";
+
+	option = uci_option_new(input);
+	ck_assert_ptr_ne(NULL, option);
+
+	ck_assert_ptr_ne(NULL, option->name);
+	ck_assert_str_eq("Selectivity", option->name);
+	
+	ck_assert_int_eq(uci_option_type_spin, option->type);
+
+	ck_assert_ptr_ne(NULL, option->default_value);
+	ck_assert_str_eq("2", option->default_value);
+
+	ck_assert_ptr_ne(NULL, option->min);
+	ck_assert_str_eq("0", option->min);
+
+	ck_assert_ptr_ne(NULL, option->max);
+	ck_assert_str_eq("4", option->max);
+
+	uci_option_destroy(option);
+
 END_TEST
 
 START_TEST(test_uci_check_option)
