@@ -385,15 +385,15 @@ engine_spool_output(Engine *self, const char *cmd)
 static bool
 engine_handle_input(Engine *self, char *buf, ssize_t nbytes)
 {
-	size_t required;
 	char *start;
 	char *end;
 	chi_bool status = true;
+	size_t consumed = 0;
 
 	/* Copy it into the input buffer.  */
-	required = self->inbuf_length + nbytes;
-	if (required > self->inbuf_size) {
-		self->inbuf_size = required;
+	self->inbuf_length += nbytes;
+	if (self->inbuf_length > self->inbuf_size) {
+		self->inbuf_size = self->inbuf_length;
 		self->inbuf = xrealloc(self->inbuf, self->inbuf_size);
 	}
 	
@@ -403,7 +403,7 @@ engine_handle_input(Engine *self, char *buf, ssize_t nbytes)
 	start = end = self->inbuf;
 
 	/* We accept LF, CRLF, LFCR, and CR as line endings.  */
-	while (*end) {
+	while (end < self->inbuf + nbytes) {
 		char *line = NULL;
 		if (*end == '\012') {
 			*end = '\0';
@@ -420,6 +420,7 @@ engine_handle_input(Engine *self, char *buf, ssize_t nbytes)
 		++end;
 
 		if (line) {
+			consumed += strlen(line) + 1;
 			log_engine_out(self->nick, "%s", line);
 			if (!engine_process_input(self, line)) {
 				status = false;
@@ -429,9 +430,9 @@ engine_handle_input(Engine *self, char *buf, ssize_t nbytes)
 		}
 	}
 
-	if (*start) {
-		memmove(self->inbuf, start, strlen(start));
-		self->inbuf_length = strlen(self->inbuf);
+	if (consumed < nbytes) {
+		self->inbuf_length = nbytes - consumed;
+		memmove(self->inbuf, start, self->inbuf_length);
 	} else {
 		self->inbuf_length = 0;
 	}
