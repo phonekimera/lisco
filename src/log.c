@@ -140,4 +140,5 @@ vlog_realm(const char *realm, const char *direction, const char *_fmt,
 	         escaped_realm, direction ? direction : "", _fmt);
 	vfprintf(stderr, fmt, ap);
 	free(fmt);
+	free(escaped_realm);
 }

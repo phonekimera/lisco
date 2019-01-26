@@ -102,18 +102,19 @@ engine_destroy(Engine *self)
 		(void) waitpid(self->pid, NULL, WNOHANG);
 	}
 
+	if (self->options) {
+		size_t i;
+		for (i = 0; i < self->num_options; ++i) {
+			UCIOption *option = self->options[i];
+			uci_option_destroy(option);
+		}
+		free(self->options);
+	}
+
 	if (self->argv) free(self->argv);
 	if (self->nick) free(self->nick);
 	if (self->outbuf) free(self->outbuf);
 	if (self->inbuf) free(self->inbuf);
-
-	if (self->options) {
-		size_t i;
-		for (i = 0; i < self->num_options; ++i) {
-			uci_option_destroy(self->options[i]);
-		}
-		free(self->options);
-	}
 
 	free(self);
 }
@@ -228,7 +229,7 @@ engine_negotiate(Engine *self)
 			/* Xboard waits for one hour for the done=0 feature.  Do the same
 			 * for UCI.
 			 */
-			self->max_waiting_time = 60UL * 60UL * 1000000UL;
+			self->max_waiting_time = 3600UL * 1000000UL;
 			self->state = acknowledged;
 			break;
 	}
@@ -238,13 +239,13 @@ bool
 engine_read_stdout(Engine *self)
 {
 #define BUFSIZE 4096
-	char buf[BUFSIZE + 1];
+	char buf[BUFSIZE];
 	ssize_t nbytes;
 
 	nbytes = read(self->out, buf, BUFSIZE);
 	if (nbytes < 0) {
 		error(EXIT_SUCCESS, errno,
-		      "error reading from standard input of engine '%s'",
+		      "error reading from standard output of engine '%s'",
 		      self->nick);
 		return false;
 	} else if (nbytes == 0) {
@@ -384,24 +385,19 @@ engine_spool_output(Engine *self, const char *cmd)
 static bool
 engine_handle_input(Engine *self, char *buf, ssize_t nbytes)
 {
-	size_t len;
 	size_t required;
 	char *start;
 	char *end;
 	chi_bool status = true;
 
-	/* Null-terminate the string.  */
-	buf[nbytes] = '\0';
-	len = strlen(buf);
-
 	/* Copy it into the input buffer.  */
-	required = self->inbuf_length + len + 1;
+	required = self->inbuf_length + nbytes;
 	if (required > self->inbuf_size) {
 		self->inbuf_size = required;
 		self->inbuf = xrealloc(self->inbuf, self->inbuf_size);
 	}
 	
-	strcpy(self->inbuf + self->inbuf_length, buf);
+	memcpy(self->inbuf + self->inbuf_length, buf, nbytes);
 
 	/* Now handle lines, one by one.  */
 	start = end = self->inbuf;
@@ -460,7 +456,8 @@ engine_process_input(Engine *self, const char *cmd)
 			status = engine_process_input_acknowledged(self, cmd);
 			break;
 		default:
-			error(EXIT_SUCCESS, 0, "engine '%s' in unhandled state %d.\n",
+			error(EXIT_SUCCESS, 0,
+			      "engine '%s' in unhandled state %d.\n",
 			      self->nick, self->state);
 			status = false;
 			break;
@@ -475,7 +472,9 @@ engine_process_input_negotiating(Engine *self, const char *cmd)
 	if (self->protocol == xboard) {
 		if (strncmp("feature", cmd, 7) == 0 && isspace(cmd[7])) {
 				self->state = acknowledged;
-			/* We consider ourselves a server and set the default to true.  */
+			/* We consider ourselves a server and set the default
+			 * to true.
+			 */
 			self->xboard_name = chi_true;
 
 			return engine_process_input_acknowledged(self, cmd);
@@ -499,6 +498,12 @@ engine_process_input_acknowledged(Engine *self, const char *cmd)
 			return engine_process_uci_option(self, cmd + 6);
 		} else if (strncmp("id", cmd, 2) == 0 && isspace(cmd[2])) {
 			return engine_process_uci_id(self, cmd + 2);
+		} else if (strncmp("uciok", cmd, 5) == 0
+		           && ('\0' == cmd[5] || isspace(cmd[5]))) {
+			log_realm(self->nick, "engine is ready");
+			self->state = ready;
+			self->max_waiting_time = 0UL;
+			return false;
 		}
 	}
 
@@ -520,7 +525,17 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 			          feature->value);
 			free(self->nick);
 			self->nick = xstrdup(feature->value);
+		} else if (strcmp("done", feature->name) == 0) {
+			if (strcmp("0", feature->value) == 0) {
+				self->max_waiting_time = 3600UL * 1000000UL;
+			} else {
+				log_realm(self->nick, "engine is ready");
+				self->state = ready;
+				self->max_waiting_time = 0UL;
+				return false;
+			}
 		}
+
 		xboard_feature_destroy(feature);
 	}
 
@@ -538,8 +553,8 @@ engine_process_uci_option(Engine *self, const char *line)
 		return true;
 	}
 
-	self->options = xrealloc(self->options, ++self->num_options);
-	self->options[self->num_options - 1] = option;
+	self->options = xrealloc(self->options, self->num_options + 1);
+	self->options[self->num_options++] = option;
 
 	return true;
 }

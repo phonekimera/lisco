@@ -43,7 +43,9 @@ typedef enum EngineState {
 	started,
 	negotiating,
 	acknowledged,
-	ready
+	configuring,
+	ready,
+	thinking
 } EngineState;
 
 #ifdef __cplusplus
