@@ -516,7 +516,8 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 		if (!feature)
 			continue;
 		if (strcmp("myname", feature->name) == 0) {
-			log_realm(self->nick, "engine now known as '%s'", feature->value);
+			log_realm(self->nick, "engine now known as '%s'",
+			          feature->value);
 			free(self->nick);
 			self->nick = xstrdup(feature->value);
 		}
@@ -546,6 +547,19 @@ engine_process_uci_option(Engine *self, const char *line)
 static bool
 engine_process_uci_id(Engine *self, const char *line)
 {
+	const char *start = ltrim(line);
+	char *name;
+
+	/* We are only interested in the engine name, not the author.  */
+	if (!(strncmp("name", start, 4) == 0 && isspace(start[4])))
+		return true;
+
+	name = xstrdup(ltrim(start + 5));
+	name = trim(name);
+
+	log_realm(self->nick, "engine now known as '%s'", name);
+	free(self->nick);
+	self->nick = name;
 
 	return true;
 }
