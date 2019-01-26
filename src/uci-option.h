@@ -40,13 +40,11 @@ typedef enum UCIOptionType {
 typedef struct UCIOption {
 	char *name;
 	UCIOptionType type;
-	long long min;
-	chi_bool min_set;
-	long long max;
-	chi_bool max_set;
-	const char *vars;
+	char *min;
+	char *max;
+	char *vars;
 	size_t num_vars;
-	const char *default_value;
+	char *default_value;
 	chi_bool default_set;
 } UCIOption;
 

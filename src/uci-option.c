@@ -66,8 +66,43 @@ uci_option_new(const char *input)
 		                                        + (&tokens[i][0]
 		                                           - &tokens[0][0]));
 		value = tokens[i];
-
 		i += skip;
+
+		if (strcmp("name", keyword) == 0) {
+			if (self->name)
+				goto bail_out;
+			self->name = xstrdup(value);
+		} else if (strcmp("type", keyword) == 0) {
+			if (self->type)
+				goto bail_out;
+			if (strcmp("check", value) == 0) {
+				self->type = uci_option_type_check;
+			} else if (strcmp("spin", value) == 0) {
+				self->type = uci_option_type_spin;
+			} else if (strcmp("combo", value) == 0) {
+				self->type = uci_option_type_combo;
+			} else if (strcmp("button", value) == 0) {
+				self->type = uci_option_type_button;
+			} else if (strcmp("string", value) == 0) {
+				self->type = uci_option_type_string;
+			} else {
+				goto bail_out;
+			}
+		} else if (strcmp("default", keyword) == 0) {
+			if (self->default_value)
+				goto bail_out;
+			self->default_value = xstrdup(value);
+		} else if (strcmp("min", keyword) == 0) {
+			if (self->min)
+				goto bail_out;
+			self->min = xstrdup(value);
+		} else if (strcmp("max", keyword) == 0) {
+			if (self->max)
+				goto bail_out;
+			self->max = xstrdup(value);
+		} else {
+			goto bail_out;
+		}
 	}
 
 	if (!self->name)
@@ -95,6 +130,7 @@ uci_option_destroy(UCIOption *self)
 	if (!self) return;
 
 	if (self->name) free(self->name);
+	if (self->default_value) free(self->default_value);
 
 	free(self);
 }
@@ -114,15 +150,17 @@ uci_option_consume_tokens(UCIOption *self, char **tokens, const char *original)
 			tokens[i][0]  = original[&tokens[i][0] - &tokens[0][0]];
 			continue;
 		}
-		if (strcmp("name", tokens[i]) == 0 && !self->name)
+		if (strcmp("name", tokens[i]) == 0)
 			break;
-		if (strcmp("type", tokens[i]) == 0 && !self->type)
+		if (strcmp("type", tokens[i]) == 0)
 			break;
-		if (strcmp("var", tokens[i]) == 0 && !self->vars)
+		if (strcmp("default", tokens[i]) == 0)
 			break;
-		if (strcmp("min", tokens[i]) == 0 && !self->min_set)
+		if (strcmp("var", tokens[i]) == 0)
 			break;
-		if (strcmp("max", tokens[i]) == 0 && !self->max_set)
+		if (strcmp("min", tokens[i]) == 0)
+			break;
+		if (strcmp("max", tokens[i]) == 0)
 			break;
 	}
 
