@@ -32,7 +32,7 @@ START_TEST(test_pawn_move)
 	unsigned int bufsize;
 	int errnum;
 
-	errnum = chi_coordinate_notation(move, &buf, &bufsize);
+	errnum = chi_coordinate_notation(move, chi_white, &buf, &bufsize);
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_ptr_ne(buf, NULL);
 	ck_assert_str_eq(buf, "e2e4");
@@ -48,11 +48,57 @@ START_TEST(test_knight_move)
 	unsigned int bufsize;
 	int errnum;
 
-	errnum = chi_coordinate_notation(move, &buf, &bufsize);
+	errnum = chi_coordinate_notation(move, chi_white, &buf, &bufsize);
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_ptr_ne(buf, NULL);
 	ck_assert_str_eq(buf, "g1f3");
 	ck_assert_int_ge(bufsize, 5);
+	free(buf);
+END_TEST
+
+START_TEST(test_castling)
+	chi_move move;
+
+	char *buf = NULL;
+	unsigned int bufsize;
+	int errnum;
+
+	move = chi_coords2shift(4, 0)
+	       | (chi_coords2shift(6, 0) << 6)
+	       | ((~king & 0x7) << 13);
+	errnum = chi_coordinate_notation(move, chi_white, &buf, &bufsize);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_ptr_ne(buf, NULL);
+	ck_assert_str_eq(buf, "O-O");
+	ck_assert_int_ge(bufsize, 5);
+
+	move = chi_coords2shift(4, 0)
+	       | chi_coords2shift(2, 0) << 6
+               | ((~king & 0x7) << 13);
+	errnum = chi_coordinate_notation(move, chi_white, &buf, &bufsize);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_ptr_ne(buf, NULL);
+	ck_assert_str_eq(buf, "O-O-O");
+	ck_assert_int_ge(bufsize, 5);
+
+	move = chi_coords2shift(4, 7)
+	       | chi_coords2shift(6, 7) << 6
+               | ((~king & 0x7) << 13);
+	errnum = chi_coordinate_notation(move, chi_black, &buf, &bufsize);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_ptr_ne(buf, NULL);
+	ck_assert_str_eq(buf, "O-O");
+	ck_assert_int_ge(bufsize, 5);
+
+	move = chi_coords2shift(4, 7)
+	       | chi_coords2shift(2, 7) << 6
+               | ((~king & 0x7) << 13);
+	errnum = chi_coordinate_notation(move, chi_black, &buf, &bufsize);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_ptr_ne(buf, NULL);
+	ck_assert_str_eq(buf, "O-O-O");
+	ck_assert_int_ge(bufsize, 5);
+
 	free(buf);
 END_TEST
 
@@ -61,13 +107,18 @@ coordinate_notation_suite(void)
 {
 	Suite *suite;
 	TCase *tc_simple;
+	TCase *tc_special;
 
 	suite = suite_create("Moves in coordinate notation");
 
-	tc_simple = tcase_create("Simple");
+	tc_simple = tcase_create("Simple moves");
 	tcase_add_test(tc_simple, test_pawn_move);
 	tcase_add_test(tc_simple, test_knight_move);
 	suite_add_tcase(suite, tc_simple);
+
+	tc_special = tcase_create("Special moves");
+	tcase_add_test(tc_special, test_castling);
+	suite_add_tcase(suite, tc_special);
 
 	return suite;
 }

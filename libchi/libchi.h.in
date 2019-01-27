@@ -592,8 +592,9 @@ extern int chi_print_move(chi_pos* chi_arg_pos, chi_move chi_arg_move,
    		          int chi_arg_san);
 
 /* Place a string with the move in coordinate notation in the output
-   buffer.  */
-extern int chi_coordinate_notation(chi_move chi_arg_move, 
+   buffer.  You have to pass the color on move so that the castling
+   direction can be detected.  */
+extern int chi_coordinate_notation(chi_move chi_arg_move, chi_color_t on_move,
 			           char** chi_arg_buf,
                                    unsigned int* chi_arg_bufsize);
 
