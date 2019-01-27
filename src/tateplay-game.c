@@ -42,8 +42,8 @@ game_new(const char *fen)
 	self->black = engine_new(self);
 	chi_init_position(&self->pos);
 
-	// FIXME! This should start, when the time control starts.
-	gettimeofday(&self->start, NULL);
+	self->fen = xmalloc(sizeof self->fen[0]);
+	self->fen[0] = chi_fen(&self->pos);
 
 	return self;
 }
@@ -51,11 +51,18 @@ game_new(const char *fen)
 void
 game_destroy(Game *self)
 {
+	size_t i;
+
 	if (self == NULL) return;
 
 	if (self->white) engine_destroy(self->white);
 	if (self->black) engine_destroy(self->black);
 	if (self->moves) free(self->moves);
+
+	for (i = 0; i <= self->num_moves; ++i) {
+		free(self->fen[i]);
+	}
+	free(self->fen);
 
 	free(self);
 }

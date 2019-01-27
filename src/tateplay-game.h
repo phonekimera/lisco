@@ -36,10 +36,15 @@ typedef struct Game {
 	Engine *white;
 	Engine *black;
 
+	/* The current position.  */
 	chi_pos pos;
 
+	/* Moves played.  */
 	chi_move *moves;
 	size_t num_moves;
+
+	/* Positions.  */
+	char **fen;
 
 	struct timeval start;
 
