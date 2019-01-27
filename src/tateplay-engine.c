@@ -47,6 +47,7 @@ static bool engine_handle_input(Engine *self, char *buf, ssize_t nbytes);
 static bool engine_process_input(Engine *self, const char *line);
 static bool engine_process_input_negotiating(Engine *self, const char *line);
 static bool engine_process_input_acknowledged(Engine *self, const char *line);
+static bool engine_process_input_configuring(Engine *self, const char *line);
 
 static bool engine_process_xboard_features(Engine *self, const char *line);
 static bool engine_process_uci_option(Engine *self, const char *line);
@@ -473,6 +474,9 @@ engine_process_input(Engine *self, const char *cmd)
 		case acknowledged:
 			status = engine_process_input_acknowledged(self, cmd);
 			break;
+		case configuring:
+			status = engine_process_input_configuring(self, cmd);
+			break;
 		default:
 			error(EXIT_SUCCESS, 0,
 			      "engine '%s' in unhandled state %d.\n",
@@ -518,9 +522,27 @@ engine_process_input_acknowledged(Engine *self, const char *cmd)
 			return engine_process_uci_id(self, cmd + 2);
 		} else if (strncmp("uciok", cmd, 5) == 0
 		           && ('\0' == cmd[5] || isspace(cmd[5]))) {
-			log_realm(self->nick, "engine is ready");
-			self->state = ready;
+			self->state = configuring;
 			self->max_waiting_time = 0UL;
+			/* FIXME! Configure engine!  */
+			engine_spool_output(self, "ucinewgame\nisready\n",
+			                    NULL);
+			return true;
+		}
+	}
+
+	return true;
+}
+
+static bool
+engine_process_input_configuring(Engine *self, const char *cmd)
+{
+	if (self->protocol == xboard) {
+		error(EXIT_FAILURE, 0, "xboard engine in state configuring\n");
+	} else if (self->protocol == uci) {
+		if (strncmp("readyok", cmd, 7) == 0
+		           && ('\0' == cmd[7] || isspace(cmd[7]))) {
+			self->state = ready;
 			return true;
 		}
 	}
