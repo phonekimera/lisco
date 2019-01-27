@@ -41,7 +41,8 @@
 #include "util.h"
 #include "xboard-feature.h"
 
-static void engine_spool_output(Engine *self, const char *buf);
+static void engine_spool_output(Engine *self, const char *buf,
+                                void (*callback) (Engine *self));
 static bool engine_handle_input(Engine *self, char *buf, ssize_t nbytes);
 static bool engine_process_input(Engine *self, const char *line);
 static bool engine_process_input_negotiating(Engine *self, const char *line);
@@ -50,6 +51,9 @@ static bool engine_process_input_acknowledged(Engine *self, const char *line);
 static bool engine_process_xboard_features(Engine *self, const char *line);
 static bool engine_process_uci_option(Engine *self, const char *line);
 static bool engine_process_uci_id(Engine *self, const char *line);
+
+/* Callbacks.  */
+static void engine_start_initial_timeout(Engine *self);
 
 Engine *
 engine_new()
@@ -219,12 +223,12 @@ engine_negotiate(Engine *self)
 {
 	switch (self->protocol) {
 		case xboard:
-			engine_spool_output(self, "xboard\nprotover 2\n");
-			self->max_waiting_time = 2UL * 1000000UL;
+			engine_spool_output(self, "xboard\nprotover 2\n",
+			                    engine_start_initial_timeout);
 			self->state = negotiating;
 			break;
 		case uci:
-			engine_spool_output(self, "uci\n");
+			engine_spool_output(self, "uci\n", NULL);
 
 			/* Xboard waits for one hour for the done=0 feature.  Do the same
 			 * for UCI.
@@ -363,13 +367,18 @@ engine_write_stdin(Engine *self)
 		memmove(self->outbuf, start, strlen(start));
 	} else {
 		self->outbuf[0] = '\0';
+		if (self->out_callback) {
+			self->out_callback(self);
+			self->out_callback = NULL;
+		}
 	}
 
 	return true;
 }
 
 static void
-engine_spool_output(Engine *self, const char *cmd)
+engine_spool_output(Engine *self, const char *cmd,
+                    void (*callback)(Engine * self))
 {
 	size_t len = strlen(cmd);
 	size_t required = 1 + len;
@@ -382,7 +391,8 @@ engine_spool_output(Engine *self, const char *cmd)
 	}
 	
 	strcpy(self->outbuf, cmd);
-	gettimeofday(&self->waiting_since, NULL);
+
+	self->out_callback = callback;
 }
 
 static bool
@@ -535,6 +545,10 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 			self->nick = xstrdup(feature->value);
 		} else if (strcmp("done", feature->name) == 0) {
 			if (strcmp("0", feature->value) == 0) {
+				gettimeofday(&self->waiting_since, NULL);
+				log_realm(self->nick, "now waiting up to one"
+				                      " one hour for engine"
+				                      " to be ready");
 				self->max_waiting_time = 3600UL * 1000000UL;
 			} else {
 				log_realm(self->nick, "engine is ready");
@@ -587,4 +601,14 @@ engine_process_uci_id(Engine *self, const char *line)
 	self->nick = name;
 
 	return true;
+}
+
+static void
+engine_start_initial_timeout(Engine *self)
+{
+	gettimeofday(&self->waiting_since, NULL);
+	self->max_waiting_time = 2UL * 1000000;
+
+	log_realm(self->nick,
+	          "wait at most two seconds for engine being ready.");
 }

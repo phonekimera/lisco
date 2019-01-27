@@ -77,6 +77,8 @@ typedef struct Engine {
 	size_t inbuf_size;
 	size_t inbuf_length;
 
+	void (*out_callback)(struct Engine *self);
+
 	struct timeval waiting_since;
 	unsigned long max_waiting_time;
 

@@ -76,8 +76,9 @@ tateplay_loop(Game *game)
 		
 		read_fd_set = active_read_fd_set;
 		timeout.tv_sec = 0;
-		timeout.tv_usec = 250000;
-		if (select(FD_SETSIZE, &read_fd_set, &write_fd_set, NULL, &timeout) < 0)
+		timeout.tv_usec = 100000;
+		if (select(FD_SETSIZE, &read_fd_set, &write_fd_set, NULL,
+		           &timeout) < 0)
 			error(EXIT_FAILURE, errno, "select failed");
 
 		for (i = 0; i < FD_SETSIZE; ++i) {
@@ -112,6 +113,8 @@ tateplay_loop(Game *game)
 			}
 		}
 
+		/* FIXME! Check engine timeout (done=0 etc.)!  */
+		
 		if (!game_started
 		    && white->state == ready && black->state == ready) {
 			// TODO.
