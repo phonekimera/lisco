@@ -239,7 +239,7 @@ bool
 engine_read_stdout(Engine *self)
 {
 #define BUFSIZE 4096
-	char buf[BUFSIZE];
+	char buf[BUFSIZE + 1];
 	ssize_t nbytes;
 
 	nbytes = read(self->out, buf, BUFSIZE);
@@ -254,6 +254,9 @@ engine_read_stdout(Engine *self)
 			  self->nick);
 		return false;
 	}
+
+	/* Terminate the buffer.  */
+	buf[nbytes] = '\0';
 
 	return engine_handle_input(self, buf, nbytes);
 }
@@ -392,20 +395,22 @@ engine_handle_input(Engine *self, char *buf, ssize_t nbytes)
 	size_t required;
 
 	/* Copy it into the input buffer.  */
-	required = self->inbuf_length + nbytes;
+	required = self->inbuf_length + nbytes + 1;
 	if (required > self->inbuf_size) {
 		self->inbuf_size = required;
 		self->inbuf = xrealloc(self->inbuf, self->inbuf_size);
 	}
 	
-	memcpy(self->inbuf + self->inbuf_length, buf, nbytes);
+	strcpy(self->inbuf + self->inbuf_length, buf);
 	self->inbuf_length += nbytes;
 
 	/* Now handle lines, one by one.  */
 	start = end = self->inbuf;
 
 	/* We accept LF, CRLF, LFCR, and CR as line endings.  */
-	while (end < self->inbuf + nbytes) {
+	char *eob = self->inbuf + self->inbuf_length;
+	assure(!*eob);
+	while (end < eob) {
 		char *line = NULL;
 		if (*end == '\012') {
 			*end = '\0';
