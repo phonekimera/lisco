@@ -102,6 +102,56 @@ START_TEST(test_castling)
 	free(buf);
 END_TEST
 
+START_TEST(test_promotion)
+	chi_move move;
+
+	char *buf = NULL;
+	unsigned int bufsize;
+	int errnum;
+
+	move = chi_coords2shift(4, 6)
+	       | (chi_coords2shift(4, 7) << 6)
+	       | ((~pawn & 0x7) << 13)
+	       | (queen << 19);
+	errnum = chi_coordinate_notation(move, chi_white, &buf, &bufsize);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_ptr_ne(buf, NULL);
+	ck_assert_str_eq(buf, "e7e8q");
+	ck_assert_int_ge(bufsize, 6);
+
+	move = chi_coords2shift(4, 6)
+	       | (chi_coords2shift(4, 7) << 6)
+	       | ((~pawn & 0x7) << 13)
+	       | (rook << 19);
+	errnum = chi_coordinate_notation(move, chi_white, &buf, &bufsize);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_ptr_ne(buf, NULL);
+	ck_assert_str_eq(buf, "e7e8r");
+	ck_assert_int_ge(bufsize, 6);
+
+	move = chi_coords2shift(4, 6)
+	       | (chi_coords2shift(4, 7) << 6)
+	       | ((~pawn & 0x7) << 13)
+	       | (bishop << 19);
+	errnum = chi_coordinate_notation(move, chi_white, &buf, &bufsize);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_ptr_ne(buf, NULL);
+	ck_assert_str_eq(buf, "e7e8b");
+	ck_assert_int_ge(bufsize, 6);
+
+	move = chi_coords2shift(4, 6)
+	       | (chi_coords2shift(4, 7) << 6)
+	       | ((~pawn & 0x7) << 13)
+	       | (knight << 19);
+	errnum = chi_coordinate_notation(move, chi_white, &buf, &bufsize);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_ptr_ne(buf, NULL);
+	ck_assert_str_eq(buf, "e7e8n");
+	ck_assert_int_ge(bufsize, 6);
+
+	free(buf);
+END_TEST
+
 Suite *
 coordinate_notation_suite(void)
 {
@@ -118,6 +168,7 @@ coordinate_notation_suite(void)
 
 	tc_special = tcase_create("Special moves");
 	tcase_add_test(tc_special, test_castling);
+	tcase_add_test(tc_special, test_promotion);
 	suite_add_tcase(suite, tc_special);
 
 	return suite;

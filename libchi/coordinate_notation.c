@@ -20,9 +20,10 @@
 # include <config.h>
 #endif
 
+#include <ctype.h>
 #include <stdlib.h>
 
-#include <libchi.h>
+#include "libchi.h"
 
 int
 chi_coordinate_notation(chi_move move, chi_color_t on_move,
@@ -74,7 +75,7 @@ chi_coordinate_notation(chi_move move, chi_color_t on_move,
 		promotion = chi_move_promote(move);
 
 		if (promotion) {
-			(*buf)[4] = chi_piece2char(promotion);
+			(*buf)[4] = tolower(chi_piece2char(promotion));
 			(*buf)[5] = '\0';
 		} else {
 			(*buf)[4] = '\0';
