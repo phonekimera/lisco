@@ -31,7 +31,7 @@ libchi_la_SOURCES = libchi.h dump_pieces.c strerror.c make_move.c \
 	zk_change_side.c update_material.c set_position.c \
 	parse_fen_position.c parse_epd.c perft.c \
 	char2figurine.c game_over.c fen.c stringbuf.c \
-	unapply_move.c unmake_move.c
+	unapply_move.c unmake_move.c coordinate_notation.c
 
 libchi_la_LDFLAGS = -version-info 0:0:0
 

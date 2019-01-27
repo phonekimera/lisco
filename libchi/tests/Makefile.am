@@ -22,6 +22,7 @@ noinst_PROGRAMS = check_libchi
 TESTS = ./check_libchi
 
 check_libchi_SOURCES = \
+		test_coordinate_notation.c \
 		test_fen.c \
 		test_game_over.c \
 		test_move_making.c \

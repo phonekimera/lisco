@@ -21,35 +21,32 @@
 #endif
 
 #include <check.h>
-#include <stdlib.h>
 
 #include "libchi.h"
 
-extern Suite *parsers_suite();
-extern Suite *presentation_suite();
-extern Suite *game_over_suite();
-extern Suite *move_making_suite();
-extern Suite *move_making_suite_pgn();
-extern Suite *fen_suite();
-extern Suite *coordinate_notation_suite();
+START_TEST(test_pawn_move)
+	chi_move move = chi_coords2shift(4, 1)
+	                | chi_coords2shift(4, 3) << 6
+			| pawn;
+	char *buf = NULL;
+	unsigned int bufsize;
+	int errnum;
 
-int
-main(int argc, char *argv[])
+	errnum = chi_coordinate_notation(move, &buf, &bufsize);
+	ck_assert_int_eq(errnum, 0);
+END_TEST
+
+Suite *
+coordinate_notation_suite(void)
 {
-	int failed = 0;
-	SRunner *runner;
+	Suite *suite;
+	TCase *tc_simple;
 
-	runner = srunner_create(parsers_suite());
-	srunner_add_suite(runner, presentation_suite());
-	srunner_add_suite(runner, game_over_suite());
-	srunner_add_suite(runner, move_making_suite());
-	srunner_add_suite(runner, move_making_suite_pgn());
-	srunner_add_suite(runner, fen_suite());
-	srunner_add_suite(runner, coordinate_notation_suite());
+	suite = suite_create("Moves in coordinate notation");
 
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
+	tc_simple = tcase_create("Simple");
+	tcase_add_test(tc_simple, test_pawn_move);
+	suite_add_tcase(suite, tc_simple);
 
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	return suite;
 }
