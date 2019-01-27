@@ -556,7 +556,9 @@ engine_process_uci_option(Engine *self, const char *line)
 		return true;
 	}
 
-	self->options = xrealloc(self->options, self->num_options + 1);
+	self->options = xrealloc(self->options,
+	                         (self->num_options + 1)
+	                         * sizeof self->options[0]);
 	self->options[self->num_options++] = option;
 
 	return true;
