@@ -506,7 +506,7 @@ engine_process_input_acknowledged(Engine *self, const char *cmd)
 			log_realm(self->nick, "engine is ready");
 			self->state = ready;
 			self->max_waiting_time = 0UL;
-			return false;
+			return true;
 		}
 	}
 
@@ -535,7 +535,7 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 				log_realm(self->nick, "engine is ready");
 				self->state = ready;
 				self->max_waiting_time = 0UL;
-				return false;
+				return true;
 			}
 		}
 
