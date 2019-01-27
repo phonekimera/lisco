@@ -52,6 +52,8 @@ typedef enum EngineState {
 extern "C" {
 #endif
 
+struct Game;
+
 typedef struct Engine {
 	/* The command-line options to start the engine.  */
 	char **argv;
@@ -67,6 +69,9 @@ typedef struct Engine {
 	int in;
 	int out;
 	int err;
+
+	/* The game that the engine is taking place in.  */
+	struct Game *game;
 
 	EngineProtocol protocol;
 	EngineState state;
@@ -91,7 +96,7 @@ typedef struct Engine {
 	size_t num_options;
 } Engine;
 
-extern Engine *engine_new();
+extern Engine *engine_new(struct Game *game);
 extern void engine_destroy(Engine *engine);
 
 /* Add to the engine's argument vector.  */

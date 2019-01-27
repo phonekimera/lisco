@@ -38,8 +38,8 @@ game_new(const char *fen)
 
 	memset(self, 0, sizeof *self);
 
-	self->white = engine_new();
-	self->black = engine_new();
+	self->white = engine_new(self);
+	self->black = engine_new(self);
 	chi_init_position(&self->pos);
 
 	// FIXME! This should start, when the time control starts.

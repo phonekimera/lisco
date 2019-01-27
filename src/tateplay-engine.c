@@ -37,6 +37,7 @@
 
 #include "libchi.h"
 #include "tateplay-engine.h"
+#include "tateplay-game.h"
 #include "log.h"
 #include "util.h"
 #include "xboard-feature.h"
@@ -57,7 +58,7 @@ static bool engine_process_uci_id(Engine *self, const char *line);
 static void engine_start_initial_timeout(Engine *self);
 
 Engine *
-engine_new()
+engine_new(Game *game)
 {
 	Engine *self = xmalloc(sizeof *self);
 	memset(self, 0, sizeof *self);
@@ -65,6 +66,8 @@ engine_new()
 	self->_argv_size = 1;
 	self->argv = xmalloc(sizeof self->argv[0]);
 	self->argv[0] = NULL;
+
+	self->game = game;
 
 	return self;
 }
