@@ -56,7 +56,6 @@ game_destroy(Game *self)
 	if (self->white) engine_destroy(self->white);
 	if (self->black) engine_destroy(self->black);
 	if (self->moves) free(self->moves);
-	if (self->initial_fen) free(self->initial_fen);
 
 	free(self);
 }
@@ -180,6 +179,7 @@ game_ping(Game *self)
 	if (!self->started
 	    && self->white->state == ready && self->black->state == ready) {
 		self->started = chi_true;
+		// FIXME! Trigger the engines!
 	}
 
 	return chi_true;
