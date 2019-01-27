@@ -34,6 +34,26 @@ START_TEST(test_pawn_move)
 
 	errnum = chi_coordinate_notation(move, &buf, &bufsize);
 	ck_assert_int_eq(errnum, 0);
+	ck_assert_ptr_ne(buf, NULL);
+	ck_assert_str_eq(buf, "e2e4");
+	ck_assert_int_ge(bufsize, 5);
+	free(buf);
+END_TEST
+
+START_TEST(test_knight_move)
+	chi_move move = chi_coords2shift(6, 0)
+	                | chi_coords2shift(5, 2) << 6
+			| knight << 13;
+	char *buf = NULL;
+	unsigned int bufsize;
+	int errnum;
+
+	errnum = chi_coordinate_notation(move, &buf, &bufsize);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_ptr_ne(buf, NULL);
+	ck_assert_str_eq(buf, "g1f3");
+	ck_assert_int_ge(bufsize, 5);
+	free(buf);
 END_TEST
 
 Suite *
@@ -46,6 +66,7 @@ coordinate_notation_suite(void)
 
 	tc_simple = tcase_create("Simple");
 	tcase_add_test(tc_simple, test_pawn_move);
+	tcase_add_test(tc_simple, test_knight_move);
 	suite_add_tcase(suite, tc_simple);
 
 	return suite;

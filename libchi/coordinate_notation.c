@@ -65,11 +65,3 @@ chi_coordinate_notation(chi_move move, char **buf,
 
 	return 0;
 }
-
-/*
-Local Variables:
-mode: c
-c-style: K&R
-c-basic-shift: 8
-End:
-*/
