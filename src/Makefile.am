@@ -32,7 +32,8 @@ noinst_HEADERS = \
 	tateplay-loop.h \
 	time_ctrl.h \
 	util.h \
-	xboard-feature.h
+	xboard-feature.h \
+        xmalloca-debug.h
 
 tate_SOURCES = tate.c board.c brain.c edit.c book.c time_ctrl.c \
 	evaluate.c next_move.c quiescence.c search.c print_pv.c \

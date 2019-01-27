@@ -33,7 +33,7 @@
 
 #include "assure.h"
 #include "error.h"
-#include "xmalloca.h"
+#include "xmalloca-debug.h"
 
 #include "libchi.h"
 #include "tateplay-engine.h"

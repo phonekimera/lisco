@@ -25,7 +25,7 @@
 #include <string.h>
 
 #include "assure.h"
-#include "xmalloca.h"
+#include "xmalloca-debug.h"
 #include "xstrndup.h"
 
 #include "util.h"

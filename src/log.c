@@ -25,7 +25,7 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include "xmalloca.h"
+#include "xmalloca-debug.h"
 
 #include "log.h"
 

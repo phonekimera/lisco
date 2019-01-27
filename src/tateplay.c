@@ -63,7 +63,9 @@ static const struct option long_options[] = {
 	{ NULL, 0, NULL, 0 }
 };
 
-#include <assert.h>
+#ifdef DEBUG_XMALLOC
+# include "xmalloc-debug.c"
+#endif
 
 int
 main(int argc, char *argv[])
@@ -75,6 +77,10 @@ main(int argc, char *argv[])
 	bool black_seen = false;
 	struct sigaction sa;
 	bool status;
+
+#ifdef DEBUG_XMALLOC
+	init_xmalloc_debug();
+#endif
 
 	game = game_new();
 

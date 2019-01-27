@@ -16,35 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#ifndef _XMALLOCA_DEBUG_H
+# define _XMALLOCA_DEBUG_H        /* Allow multiple inclusion.  */
 
-#include <check.h>
-
-#include "libchi.h"
-
-extern Suite *util_suite();
+#include "xmalloca.h"
 
 #ifdef DEBUG_XMALLOC
-# include "xmalloc-debug.c"
+# define xmalloc(size) xmalloc_debug(size)
+# define xrealloc(address, size) xrealloc_debug(address, size)
+# define xstrdup(address) xstrdup_debug(address)
+# define xstrndup(address, size) xstrndup_debug(address, size)
+# define free(address) xmalloc_debug_free(address)
+
+extern void *xmalloc(size_t size);
+extern void *xrealloc(void *address, size_t size);
+extern char *xstrdup(const char *string);
+extern char *xstrndup(const char *string, size_t n);
+extern void free(void *address);
 #endif
 
-int
-main(int argc, char *argv[])
-{
-	int failed = 0;
-	SRunner *runner;
-
-#ifdef DEBUG_XMALLOC
-	init_xmalloc_debug();
 #endif
-
-	runner = srunner_create(util_suite());
-
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
-
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
-}

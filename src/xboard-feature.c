@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "xmalloca.h"
+#include "xmalloca-debug.h"
 #include "xstrndup.h"
 
 #include "util.h"

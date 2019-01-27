@@ -27,11 +27,19 @@
 extern Suite *xboard_suite();
 extern Suite *uci_suite();
 
+#ifdef DEBUG_XMALLOC
+# include "xmalloc-debug.c"
+#endif
+
 int
 main(int argc, char *argv[])
 {
 	int failed = 0;
 	SRunner *runner;
+
+#ifdef DEBUG_XMALLOC
+	init_xmalloc_debug();
+#endif
 
 	runner = srunner_create(xboard_suite());
         srunner_add_suite(runner, uci_suite());

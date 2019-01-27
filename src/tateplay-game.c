@@ -25,7 +25,7 @@
 
 #include "error.h"
 #include "stdbool.h"
-#include "xmalloca.h"
+#include "xmalloca-debug.h"
 
 #include "tateplay-game.h"
 
