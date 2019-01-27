@@ -42,7 +42,6 @@ tateplay_loop(Game *game)
 	Engine *black = game->black;
 	int i;
 	struct timeval timeout;
-	chi_bool game_started = chi_false;
 
 	log_realm("info", "starting white engine");
 	if (!engine_start(game->white))
@@ -113,12 +112,8 @@ tateplay_loop(Game *game)
 			}
 		}
 
-		/* FIXME! Check engine timeout (done=0 etc.)!  */
-		
-		if (!game_started
-		    && white->state == ready && black->state == ready) {
-			// TODO.
-		}
+		if (!game_ping(game))
+			break;
 	}
 
 	return true;

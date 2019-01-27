@@ -43,6 +43,8 @@ typedef struct Game {
 
 	struct timeval start;
 
+	chi_bool started;
+
 	/* Normally NULL.  Otherwise, the FEN of the starting position.  */
 	char *initial_fen;
 
@@ -65,6 +67,8 @@ extern void game_set_round(Game *game, const char *round);
 extern void game_set_fen(Game *game, const char *fen);
 extern void game_set_player_white(Game *game, const char *white);
 extern void game_set_player_black(Game *game, const char *black);
+
+extern chi_bool game_ping(Game *game);
 
 extern void game_print_pgn(const Game *game);
 

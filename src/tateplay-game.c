@@ -171,3 +171,16 @@ legal_tag_value(const char *value)
 
 	return true;
 }
+
+chi_bool
+game_ping(Game *self)
+{
+	/* FIXME! Check engine timeout! */
+
+	if (!self->started
+	    && self->white->state == ready && self->black->state == ready) {
+		self->started = chi_true;
+	}
+
+	return chi_true;
+}
