@@ -1,3 +1,0 @@
-#! /bin/sh
-
-./configure --disable-shared CFLAGS="-DDEBUG_XMALLOC -g -O0 -Wall -I/opt/local/include" LDFLAGS="-L/opt/local/lib"
