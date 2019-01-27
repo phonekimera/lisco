@@ -27,7 +27,7 @@
 START_TEST(test_pawn_move)
 	chi_move move = chi_coords2shift(4, 1)
 	                | chi_coords2shift(4, 3) << 6
-			| pawn;
+			| ((~pawn & 0x7) << 13);
 	char *buf = NULL;
 	unsigned int bufsize;
 	int errnum;
@@ -43,7 +43,7 @@ END_TEST
 START_TEST(test_knight_move)
 	chi_move move = chi_coords2shift(6, 0)
 	                | chi_coords2shift(5, 2) << 6
-			| knight << 13;
+			| ((~knight & 0x7) << 13);
 	char *buf = NULL;
 	unsigned int bufsize;
 	int errnum;
