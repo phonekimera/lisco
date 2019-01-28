@@ -1,0 +1,8 @@
+Tate currently has the following run-time dependencies:
+
+- gdbm
+
+For building the software you need:
+
+- GNU autotools
+- pkg-config
