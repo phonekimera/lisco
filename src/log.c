@@ -25,8 +25,9 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include "xmalloca-debug.h"
+#include "error.h"
 
+#include "xmalloca-debug.h"
 #include "log.h"
 
 int verbose = 0;
@@ -86,6 +87,18 @@ log_engine_error(const char *engine, const char *fmt, ...)
 	va_start(ap, fmt);
 	vlog_realm(engine, "[error]", fmt, ap);
 	va_end(ap);
+}
+
+void
+log_engine_fatal(const char *engine, const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	vlog_realm(engine, "[fatal]", fmt, ap);
+	va_end(ap);
+
+	error(EXIT_FAILURE, 0, "terminating game\n");
 }
 
 void
