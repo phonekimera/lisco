@@ -31,6 +31,8 @@
 
 static bool legal_tag_value(const char *value);
 
+static void game_start(Game *game);
+
 Game *
 game_new(const char *fen)
 {
@@ -185,9 +187,16 @@ game_ping(Game *self)
 
 	if (!self->started
 	    && self->white->state == ready && self->black->state == ready) {
-		self->started = chi_true;
-		// FIXME! Trigger the engines!
+		game_start(self);
 	}
 
 	return chi_true;
+}
+
+static void
+game_start(Game *self)
+{
+	self->started = chi_true;
+	engine_think(self->white, &self->pos, (chi_move) 0);
+	engine_ponder(self->black, &self->pos);
 }

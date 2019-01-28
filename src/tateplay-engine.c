@@ -380,6 +380,16 @@ engine_write_stdin(Engine *self)
 	return true;
 }
 
+extern void
+engine_think(Engine *self, chi_pos *pos, chi_move move)
+{
+}
+
+extern void
+engine_ponder(Engine *self, chi_pos *pos)
+{
+}
+
 static void
 engine_spool_output(Engine *self, const char *cmd,
                     void (*callback)(Engine * self))

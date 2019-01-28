@@ -120,6 +120,14 @@ extern bool engine_read_stderr(Engine *self);
 /* Write commands to the engine's standard input.  */
 extern bool engine_write_stdin(Engine *self);
 
+/* Find the post move for pos, after move has been made.  If move is 0,
+ * pos is the starting position.
+ */
+extern void engine_think(Engine *self, chi_pos *pos, chi_move move);
+
+/* Ponder on position if pondering is enabled.  */
+extern void engine_ponder(Engine *self, chi_pos *pos);
+
 #ifdef __cplusplus
 }
 #endif
