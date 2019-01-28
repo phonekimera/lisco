@@ -36,6 +36,7 @@
 #include "xmalloca-debug.h"
 
 #include "libchi.h"
+#include "stringbuf.h"
 #include "tateplay-engine.h"
 #include "tateplay-game.h"
 #include "log.h"
@@ -56,6 +57,7 @@ static bool engine_process_uci_id(Engine *self, const char *line);
 
 /* Callbacks.  */
 static void engine_start_initial_timeout(Engine *self);
+static void engine_start_clock(Engine *self);
 
 Engine *
 engine_new(Game *game)
@@ -383,11 +385,63 @@ engine_write_stdin(Engine *self)
 extern void
 engine_think(Engine *self, chi_pos *pos, chi_move move)
 {
+	char *movestr = NULL;
+	unsigned int buflen;
+	int errnum;
+	char *fen;
+	chi_stringbuf* sb = _chi_stringbuf_new(200);
+
+	self->state = thinking;
+
+	if (self->protocol == xboard) {
+		if (move) {
+			if (self->san) {
+				errnum = chi_print_move(pos, move, &movestr, &buflen, 1);
+			} else {
+				errnum = chi_coordinate_notation(move, chi_on_move(pos),
+												&movestr, &buflen);
+			}
+			if (errnum) {
+				log_engine_fatal(self->nick, 
+								"error generating move string: %s",
+								chi_strerror(errnum));
+			}
+			if (self->xboard_usermove)
+				_chi_stringbuf_append(sb, "usermove ");
+			
+			_chi_stringbuf_append(sb, movestr);
+			_chi_stringbuf_append_char(sb, '\n');
+		} else {
+			_chi_stringbuf_append(sb, "go\n");
+		}
+	} else {
+		/* UCI.  First apply the move to the position.  */
+		if (move) {
+			errnum = chi_apply_move(pos, move);
+			if (errnum) {
+				log_engine_fatal(self->nick, 
+				                 "error applying move: %s",
+				                 chi_strerror(errnum));
+			}
+		}
+		fen = chi_fen(pos);
+		_chi_stringbuf_append(sb, "position ");
+		_chi_stringbuf_append(sb, fen);
+		_chi_stringbuf_append_char(sb, '\n');
+		_chi_stringbuf_append(sb, "go\n");
+
+		free(fen);
+	}
+
+	engine_spool_output(self, _chi_stringbuf_get_string(sb),
+	                    engine_start_clock);
+	_chi_stringbuf_destroy(sb);
 }
 
 extern void
 engine_ponder(Engine *self, chi_pos *pos)
 {
+	self->state = pondering;
 }
 
 static void
@@ -591,6 +645,12 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 				self->max_waiting_time = 0UL;
 				return true;
 			}
+		} else if (strcmp("usermve", feature->name) == 0) {
+			if (strcmp("0", feature->value) == 0) {
+				self->xboard_usermove = chi_false;
+			} else {
+				self->xboard_usermove = chi_true;
+			}
 		}
 
 		xboard_feature_destroy(feature);
@@ -646,4 +706,10 @@ engine_start_initial_timeout(Engine *self)
 
 	log_realm(self->nick,
 	          "wait at most two seconds for engine being ready.");
+}
+
+static void
+engine_start_clock(Engine *self)
+{
+	log_realm(self->nick, "FIXME! Start clock!");
 }

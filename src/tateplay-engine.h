@@ -45,7 +45,8 @@ typedef enum EngineState {
 	acknowledged,
 	configuring,
 	ready,
-	thinking
+	thinking,
+	pondering
 } EngineState;
 
 #ifdef __cplusplus
@@ -87,9 +88,14 @@ typedef struct Engine {
 	struct timeval waiting_since;
 	unsigned long max_waiting_time;
 
+	/* Common negotiable features.  Send moves as SAN instead of
+	 * coordinate notation.  Actually only possible for xboard.
+	 */
+	chi_bool san;
+
 	/* Negotiatable xboard features.  */
 	chi_bool xboard_name;
-	chi_bool xboard_san;
+	chi_bool xboard_usermove;
 
 	/* UCI options.  */
 	UCIOption **options;

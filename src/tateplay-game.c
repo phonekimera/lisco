@@ -196,7 +196,11 @@ game_ping(Game *self)
 static void
 game_start(Game *self)
 {
+	chi_pos copy;
+
 	self->started = chi_true;
+
+	chi_copy_pos(&copy, &self->pos);
 	engine_think(self->white, &self->pos, (chi_move) 0);
 	engine_ponder(self->black, &self->pos);
 }
