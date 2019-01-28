@@ -105,7 +105,7 @@ tateplay_loop(Game *game)
 				if (white->in == i) {
 					if (!engine_write_stdin(white))
 						return false;
-				} else if(black->in == i) {
+				} else if (black->in == i) {
 					if (!engine_write_stdin(black))
 						return false;
 				}

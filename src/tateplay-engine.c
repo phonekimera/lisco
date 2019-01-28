@@ -430,7 +430,7 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 		_chi_stringbuf_append_char(sb, '\n');
 		_chi_stringbuf_append(sb, "go\n");
 
-		free(fen);
+		chi_free(fen);
 	}
 
 	engine_spool_output(self, _chi_stringbuf_get_string(sb),

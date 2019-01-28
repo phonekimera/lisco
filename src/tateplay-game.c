@@ -62,7 +62,7 @@ game_destroy(Game *self)
 	if (self->moves) free(self->moves);
 
 	for (i = 0; i <= self->num_moves; ++i) {
-		free(self->fen[i]);
+		chi_free(self->fen[i]);
 	}
 	free(self->fen);
 

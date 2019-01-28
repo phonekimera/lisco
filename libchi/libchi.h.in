@@ -724,6 +724,12 @@ extern bitv64 chi_zk_change_side(chi_zk_handle chi_arg_zk_handle,
    pathological case, the returned prime is no prime at all.  */
 extern unsigned long int chi_closest_prime(unsigned long int);
 
+/* This is just an alias for free().  If free() is overloaded with
+ * the debugging version of the xmalloc functions, you can force
+ * using the original function.
+ */
+void chi_free(void *ptr);
+
 CHI_END_DECLS
 
 #endif
