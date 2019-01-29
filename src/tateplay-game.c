@@ -27,6 +27,7 @@
 #include "stdbool.h"
 #include "xmalloca-debug.h"
 
+#include "display-board.h"
 #include "log.h"
 #include "tateplay-game.h"
 
@@ -207,6 +208,7 @@ game_do_move(Game *self, const char *movestr)
 	Engine *waiter = chi_on_move(&self->pos) == chi_white ?
 		self->black : self->white;
 	chi_pos old_pos;
+	char *fen;
 
 	errnum = chi_parse_move(&self->pos, &move, movestr);
 	if (errnum) {
@@ -220,6 +222,16 @@ game_do_move(Game *self, const char *movestr)
 	if (errnum) {
 		log_engine_fatal(mover->nick, "move %s: %s", movestr,
 		                 chi_strerror(errnum));
+	}
+
+	if (verbose) {
+		fen = chi_fen(&self->pos);
+		if (chi_on_move(&self->pos) == chi_white)
+			log_engine_error(self->white->nick, "FEN: %s\n", fen);
+		else 
+			log_engine_error(self->black->nick, "FEN: %s\n", fen);
+		display_board(stderr, &self->pos);
+		chi_free(fen);
 	}
 
 	/* Extend the game history.  */

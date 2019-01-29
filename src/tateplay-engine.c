@@ -398,7 +398,7 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 
 	self->state = thinking;
 
-	if (verbose) {
+	if (verbose && !move) {
 		fen = chi_fen(pos);
 		log_engine_error(self->nick, "FEN: %s\n", fen);
 		display_board(stderr, pos);
