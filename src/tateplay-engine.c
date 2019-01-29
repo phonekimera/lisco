@@ -33,7 +33,6 @@
 
 #include "assure.h"
 #include "error.h"
-#include "xmalloca-debug.h"
 
 #include "libchi.h"
 #include "stringbuf.h"
@@ -42,6 +41,7 @@
 #include "log.h"
 #include "util.h"
 #include "xboard-feature.h"
+#include "xmalloca-debug.h"
 
 static void engine_spool_output(Engine *self, const char *buf,
                                 void (*callback) (Engine *self));
@@ -628,6 +628,28 @@ engine_process_input_configuring(Engine *self, const char *cmd)
 static bool
 engine_process_input_thinking(Engine *self, const char *cmd)
 {
+	const char *token;
+	/* This cast saves an unnecessary strdup.  The command buffer is
+	 * already dynamically allocated.
+	 */
+	char *endptr = (char *) cmd;
+
+	token = strsep(&endptr, " \t\v\f");
+	if (!token)
+		return true;
+
+	if (self->protocol == xboard) {
+		log_engine_fatal(self->nick, "in state thinking");
+	} else {
+		if (strcmp("bestmove", token) == 0) {
+			token = strsep(&endptr, " \t\v\f");
+			if (!token)
+				return true;
+			
+			return game_do_move(self->game, token);
+		}
+	}
+
 	return true;
 }
 

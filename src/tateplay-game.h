@@ -70,6 +70,7 @@ extern void game_set_player_white(Game *game, const char *white);
 extern void game_set_player_black(Game *game, const char *black);
 
 extern chi_bool game_ping(Game *game);
+extern chi_bool game_do_move(Game *game, const char *movestr);
 
 extern void game_print_pgn(const Game *game);
 

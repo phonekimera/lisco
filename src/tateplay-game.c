@@ -27,6 +27,7 @@
 #include "stdbool.h"
 #include "xmalloca-debug.h"
 
+#include "log.h"
 #include "tateplay-game.h"
 
 static bool legal_tag_value(const char *value);
@@ -191,6 +192,45 @@ game_ping(Game *self)
 	}
 
 	return chi_true;
+}
+
+chi_bool
+game_do_move(Game *self, const char *movestr)
+{
+	chi_move move;
+	int errnum;
+	Engine *mover = chi_on_move(&self->pos) == chi_white ?
+		self->white : self->black;
+	Engine *waiter = chi_on_move(&self->pos) == chi_white ?
+		self->black : self->white;
+	chi_pos old_pos;
+
+	errnum = chi_parse_move(&self->pos, &move, movestr);
+	if (errnum) {
+		log_engine_fatal(mover->nick, "move %s: %s", movestr,
+		                 chi_strerror(errnum));
+	}
+
+	chi_copy_pos(&old_pos, &self->pos);
+
+	errnum = chi_apply_move(&self->pos, move);
+	if (errnum) {
+		log_engine_fatal(mover->nick, "move %s: %s", movestr,
+		                 chi_strerror(errnum));
+	}
+
+	/* Extend the game history.  */
+	self->moves = xrealloc(self->moves,
+	                       sizeof self->moves[0] * ++self->num_moves);
+	self->moves[self->num_moves - 1] = move;
+	self->fen = xrealloc(self->fen,
+	                     sizeof self->fen[0] * (self->num_moves + 1));
+	self->fen[self->num_moves] = chi_fen(&self->pos);
+
+	engine_ponder(mover, &self->pos);
+	engine_think(waiter, &old_pos, move);
+
+	return true;
 }
 
 static void
