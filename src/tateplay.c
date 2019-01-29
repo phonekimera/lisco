@@ -37,21 +37,25 @@
 #include "log.h"
 #include "tateplay-game.h"
 #include "tateplay-loop.h"
+#include "util.h"
 
 static void usage(int status);
 static void version(void);
 static void set_protocol(const char *name);
+static void set_depth(const char *depth);
 static void handle_sigchld(int signo);
 static void reap_children(void);
 
 static Game *game;
 
 static int opt_protocol_seen = 0;
+static int opt_depth_seen = 0;
 
 static const struct option long_options[] = {
 	{ "white", required_argument, NULL, 'w' },
 	{ "black", required_argument, NULL, 'b' },
 	{ "protocol", required_argument, NULL, 'p' },
+	{ "depth", required_argument, NULL, 'd' },
 	{ "event", required_argument, NULL, 'e' },
 	{ "site", required_argument, NULL, 's' },
 	{ "round", required_argument, NULL, 'r' },
@@ -115,6 +119,10 @@ main(int argc, char *argv[])
 
 			case 'p':
 				set_protocol(optarg);
+				break;
+
+			case 'd':
+				set_depth(optarg);
 				break;
 
 			case 'e':
@@ -207,7 +215,8 @@ for black):\n\
 ");
 		printf("\
   -p, --protocol=PROTOCOL     one of 'uci' (default), 'xboard', or 'cecp'\n\
-                              (an alias for 'xboard'\n");
+                              (an alias for 'xboard'\n\
+  -d, --depth=PLIES           search at most to depth PLIES\n");
 		printf("\n");
 		printf ("\
 Game information:\n");
@@ -304,6 +313,35 @@ set_protocol(const char *proto_name)
 		default:
 			error(EXIT_SUCCESS, 0,
 			      "option --protocol can be given at most twice.");
+			usage(EXIT_FAILURE);
+	}
+}
+
+static void
+set_depth(const char *_depth)
+{
+	long depth;
+
+	if (!parse_integer(&depth, _depth)) {
+		error(EXIT_SUCCESS, errno, "invalid depth \"%s\"", _depth);
+		usage(EXIT_FAILURE);
+	}
+
+	if (depth <= 0) {
+		error(EXIT_SUCCESS, 0, "depth must be a positive number");
+		usage(EXIT_FAILURE);
+	}
+
+	switch(++opt_depth_seen) {
+		case 1:
+			game->white->depth = depth;
+			/* FALLTHRU */
+		case 2:
+			game->black->depth = depth;
+			break;
+		default:
+			error(EXIT_SUCCESS, 0,
+			      "option --depth can be given at most twice.");
 			usage(EXIT_FAILURE);
 	}
 }

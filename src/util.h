@@ -23,12 +23,15 @@
 # include <config.h>
 #endif
 
+#include "libchi.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 extern char *trim(char *str);
 extern const char *ltrim(const char *str);
+extern chi_bool parse_integer(long *result, const char *string);
 
 #ifdef __cplusplus
 }

@@ -88,10 +88,15 @@ typedef struct Engine {
 	struct timeval waiting_since;
 	unsigned long max_waiting_time;
 
-	/* Common negotiable features.  Send moves as SAN instead of
+	/* Common negotiable features.  */
+	
+	/* Send moves as SAN instead of
 	 * coordinate notation.  Actually only possible for xboard.
 	 */
 	chi_bool san;
+
+	/* Maximum search depth in plies.  0 means, search to infinite depth.  */
+	unsigned long depth;
 
 	/* Negotiatable xboard features.  */
 	chi_bool xboard_name;
