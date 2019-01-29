@@ -26,7 +26,6 @@
 
 extern Suite *xboard_suite();
 extern Suite *uci_suite();
-extern Suite *game_suite();
 
 #ifdef DEBUG_XMALLOC
 # include "xmalloc-debug.c"
@@ -43,8 +42,7 @@ main(int argc, char *argv[])
 #endif
 
 	runner = srunner_create(xboard_suite());
-	srunner_add_suite(runner, uci_suite());
-	srunner_add_suite(runner, game_suite());
+        srunner_add_suite(runner, uci_suite());
 
 	srunner_run_all(runner, CK_NORMAL);
 	failed = srunner_ntests_failed(runner);
