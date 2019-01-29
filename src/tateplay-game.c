@@ -25,8 +25,10 @@
 
 #include "error.h"
 #include "stdbool.h"
-#include "xmalloca-debug.h"
 
+#include "stringbuf.h"
+
+#include "xmalloca-debug.h"
 #include "display-board.h"
 #include "log.h"
 #include "tateplay-game.h"
@@ -142,6 +144,15 @@ game_print_pgn(const Game *self)
 	struct tm *tm;
 	const char *white_player;
 	const char *black_player;
+	size_t i;
+	chi_pos pos;
+	char *buf = NULL;
+	unsigned int bufsize;
+	int errnum;
+	chi_stringbuf *sb;
+	size_t last_space, column;
+	char *moves;
+	size_t length;
 
 	printf("[Site \"%s\"]\012", self->site ? self->site : "?");
 	printf("[Event \"%s\"]\012", self->event ? self->event : "?");
@@ -168,7 +179,57 @@ game_print_pgn(const Game *self)
 		white_player = "?";
 	printf("[Black \"%s\"]\n", black_player);
 
-	printf("moves still missing\n");
+	printf("\n");
+
+	chi_init_position(&pos);
+	sb = _chi_stringbuf_new(128);
+
+	for (i = 0; i < self->num_moves; ++i) {
+		errnum = chi_print_move(&pos, self->moves[i], &buf, &bufsize, 1);
+		if (errnum) {
+			error(EXIT_FAILURE, 0, "internal error: cannot generate move: %s",
+			      chi_strerror(errnum));
+		}
+
+		if (!(i & 1)) {
+			if (i)
+				_chi_stringbuf_append_char(sb, ' ');
+
+			_chi_stringbuf_append_unsigned(sb, 1 + (i >> 1), 10);
+			_chi_stringbuf_append_char(sb, '.');
+		}
+		_chi_stringbuf_append_char(sb, ' ');
+		_chi_stringbuf_append(sb, buf);
+
+		errnum = chi_apply_move(&pos, self->moves[i]);
+		if (errnum) {
+			error(EXIT_FAILURE, 0, "internal error: cannot apply move: %s",
+			      chi_strerror(errnum));
+		}
+	}
+	if (buf)
+		chi_free(buf);
+
+	/* Break lines.  */
+	last_space = column = 0;
+	moves = (char *) _chi_stringbuf_get_string(sb);
+	length = strlen(moves);
+
+	for (i = 0; i < length; ++i) {
+		if (column >= 80) {
+			moves[last_space] = '\n';
+			column = i - last_space;
+		} else {
+			if (' ' == moves[i] && '.' != moves[i - 1]) {
+				last_space = i;
+			}
+			++column;
+		}
+	}
+
+	printf("%s\n", moves);
+
+	_chi_stringbuf_destroy(sb);
 }
 
 static bool
