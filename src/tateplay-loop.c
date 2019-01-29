@@ -65,11 +65,9 @@ tateplay_loop(Game *game)
 		/* Multiplex input and output.  */
 		FD_ZERO(&write_fd_set);
 		if (white->outbuf && white->outbuf[0] != '\0') {
-			log_realm(white->nick, "waiting for write ready");
 			FD_SET(white->in, &write_fd_set);
 		}
 		if (black->outbuf && black->outbuf[0] != '\0') {
-			log_realm(black->nick, "waiting for write ready");
 			FD_SET(black->in, &write_fd_set);
 		}
 		
