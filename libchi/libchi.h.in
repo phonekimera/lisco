@@ -279,7 +279,7 @@ typedef enum chi_result {
 #define chi_result_draw_by_50_moves_rule chi_result_draw_by_50_moves_rule
 	chi_result_draw_by_insufficient_material = 5,
 #define chi_result_draw_by_insufficient_material chi_result_draw_by_insufficient_material
-	chi_result_draw_by_impossible_checkate = 6,
+	chi_result_draw_by_impossible_checkmate = 6,
 #define chi_result_draw_by_impossible_checkmate chi_result_draw_by_impossible_checkmate
 	chi_result_draw_by_agreement = 7,
 #define chi_result_draw_by_agreement chi_result_draw_by_agreement
