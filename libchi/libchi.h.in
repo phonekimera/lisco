@@ -295,10 +295,10 @@ typedef enum chi_result {
 #define chi_result_white_wins_on_time chi_result_white_wins_on_time
 	chi_result_black_wins_on_time = -12,
 #define chi_result_black_wins_on_time chi_result_black_wins_on_time
-	chi_result_white_wins_on_surrender = 13,
-#define chi_result_white_wins_on_surrender chi_result_white_wins_on_surrender
-	chi_result_black_wins_on_surrender = 13,
-#define chi_result_black_wins_on_surrender chi_result_black_wins_on_surrender
+	chi_result_white_wins_by_resignation = 13,
+#define chi_result_white_wins_by_resignation chi_result_white_wins_by_resignation
+	chi_result_black_wins_by_resignation = -13,
+#define chi_result_black_wins_by_resignation chi_result_black_wins_by_resignation
 } chi_result;
 
 #define chi_result_is_white_win(result) ((result) >= chi_result_white_wins)
