@@ -35,10 +35,11 @@
 #include "error.h"
 
 #include "libchi.h"
+#include "display-board.h"
+#include "log.h"
 #include "stringbuf.h"
 #include "tateplay-engine.h"
 #include "tateplay-game.h"
-#include "log.h"
 #include "util.h"
 #include "xboard-feature.h"
 #include "xmalloca-debug.h"
@@ -394,6 +395,13 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 	chi_stringbuf* sb = _chi_stringbuf_new(200);
 
 	self->state = thinking;
+
+	if (verbose) {
+		fen = chi_fen(pos);
+		log_engine_error(self->nick, "FEN: %s\n", fen);
+		display_board(stderr, pos);
+		chi_free(fen);
+	}
 
 	if (self->protocol == xboard) {
 		if (move) {
