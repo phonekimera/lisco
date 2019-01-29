@@ -33,6 +33,7 @@
 static bool legal_tag_value(const char *value);
 
 static void game_start(Game *game);
+static chi_bool game_check_over(Game *game);
 
 Game *
 game_new(const char *fen)
@@ -165,6 +166,8 @@ game_print_pgn(const Game *self)
 	else
 		white_player = "?";
 	printf("[Black \"%s\"]\n", black_player);
+
+	printf("moves still missing\n");
 }
 
 static bool
@@ -227,10 +230,27 @@ game_do_move(Game *self, const char *movestr)
 	                     sizeof self->fen[0] * (self->num_moves + 1));
 	self->fen[self->num_moves] = chi_fen(&self->pos);
 
+	if (game_check_over(self)) {
+		/* FIXME! Tell engines to quit! */
+		return false;
+	}
+
 	engine_ponder(mover, &self->pos);
 	engine_think(waiter, &old_pos, move);
 
 	return true;
+}
+
+static chi_bool
+game_check_over(Game *self)
+{
+	if (chi_game_over(&self->pos, &self->result)) {
+		self->white->state = finished;
+		self->black->state = finished;
+		return true;
+	}
+
+	return false;
 }
 
 static void

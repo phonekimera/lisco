@@ -50,6 +50,8 @@ typedef struct Game {
 
 	chi_bool started;
 
+	chi_result result;
+
 	/* PGN properties (Seven Tag Roster STR) that can be set via
 	 * command-line options.
 	 */

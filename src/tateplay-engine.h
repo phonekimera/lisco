@@ -46,7 +46,8 @@ typedef enum EngineState {
 	configuring,
 	ready,
 	thinking,
-	pondering
+	pondering,
+	finished
 } EngineState;
 
 #ifdef __cplusplus
