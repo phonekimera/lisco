@@ -179,7 +179,7 @@ main(int argc, char *argv[])
 	log_realm("info", "terminating engines");
 	game_destroy(game);
 
-	return status ? 0 : 1;
+	return status ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 static void
