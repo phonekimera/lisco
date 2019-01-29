@@ -256,10 +256,49 @@ game_do_move(Game *self, const char *movestr)
 static chi_bool
 game_check_over(Game *self)
 {
+	size_t seen = 1;
+	size_t i;
+	char *fen;
+	size_t relevant_fen_length;
+	int spaces = 0;
+
 	if (chi_game_over(&self->pos, &self->result)) {
 		self->white->state = finished;
 		self->black->state = finished;
 		return true;
+	}
+
+	if (self->pos.half_move_clock > 100) {
+		self->result = chi_result_draw_by_50_moves_rule;
+		self->white->state = finished;
+		self->black->state = finished;
+		return true;
+	}
+
+	if (self->pos.half_move_clock < 8)
+		return false;
+
+	/* Check for draw by 3-fold repetition.  First find the length of the
+	 * FEN substring that holds the actual position, without the half move
+	 * clock and move number.
+	 */
+	fen = self->fen[self->num_moves];
+	for (relevant_fen_length = 0; spaces < 4; ++relevant_fen_length) {
+		if (fen[relevant_fen_length] == ' ')
+			++spaces;
+	}
+	--relevant_fen_length;
+
+	for (i = 2; i <= self->pos.half_move_clock; i += 2) {
+		if (strncmp(fen, self->fen[self->num_moves - i],
+		            relevant_fen_length) == 0)
+			++seen;
+		if (seen >= 3) {
+			self->result = chi_result_draw_by_50_moves_rule;
+			self->white->state = finished;
+			self->black->state = finished;
+			return true;
+		}
 	}
 
 	return false;
