@@ -286,7 +286,7 @@ typedef enum chi_result {
 	chi_result_white_wins = 10, /* Reason unknown */
 #define chi_result_white_wins chi_result_white_wins
 	chi_result_black_wins = -10, /* Reason unknown */
-#define chi_result_black_wins chi_result_black_wins_wins
+#define chi_result_black_wins chi_result_black_wins
 	chi_result_white_mates = 11,
 #define chi_result_white_mates chi_result_white_mates
 	chi_result_black_mates = -11,
