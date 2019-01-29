@@ -262,6 +262,17 @@ game_check_over(Game *self)
 		return true;
 	}
 
+	/* UCI has the known flaw to not allow an engine to decide itself
+	 * whether to accept a draw or not.  So we have to stop the game in these
+	 * cases ourselves.
+	 */
+	if (self->pos.half_move_clock >= 100) {
+		self->result = chi_result_draw_by_50_moves_rule;
+		self->white->state = finished;
+		self->black->state = finished;
+		return true;
+	}
+
 	return false;
 }
 

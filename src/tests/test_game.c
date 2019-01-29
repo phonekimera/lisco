@@ -22,33 +22,27 @@
 
 #include <check.h>
 
-#include "libchi.h"
+#include "tateplay-game.h"
 
-extern Suite *xboard_suite();
-extern Suite *uci_suite();
-extern Suite *game_suite();
+START_TEST(test_stalemate)
+	Game *game = game_new();
 
-#ifdef DEBUG_XMALLOC
-# include "xmalloc-debug.c"
-#endif
+	ck_assert_ptr_ne(game, NULL);
 
-int
-main(int argc, char *argv[])
+	game_destroy(game);
+END_TEST
+
+Suite *
+game_suite(void)
 {
-	int failed = 0;
-	SRunner *runner;
+	Suite *suite;
+	TCase *tc_draw;
 
-#ifdef DEBUG_XMALLOC
-	init_xmalloc_debug();
-#endif
+	suite = suite_create("Game");
 
-	runner = srunner_create(xboard_suite());
-	srunner_add_suite(runner, uci_suite());
-	srunner_add_suite(runner, game_suite());
+	tc_draw = tcase_create("Draw detection");
+	tcase_add_test(tc_draw, test_stalemate);
+	suite_add_tcase(suite, tc_draw);
 
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
-
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	return suite;
 }
