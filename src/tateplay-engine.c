@@ -427,7 +427,7 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 			}
 		}
 		fen = chi_fen(pos);
-		_chi_stringbuf_append(sb, "position ");
+		_chi_stringbuf_append(sb, "position fen ");
 		_chi_stringbuf_append(sb, fen);
 		_chi_stringbuf_append_char(sb, '\n');
 		_chi_stringbuf_append(sb, "go\n");
