@@ -179,6 +179,14 @@ game_print_pgn(const Game *self)
 		white_player = "?";
 	printf("[Black \"%s\"]\n", black_player);
 
+	if (self->result < 0) {
+		printf("[Result \"0-1\"]\n");
+	} else if (self->result >= chi_result_white_wins) {
+		printf("[Result \"1-0\"]\n");
+	} else {
+		printf("[Result \"1/2-1/2\"]\n");
+	}
+
 	printf("\n");
 
 	chi_init_position(&pos);
@@ -230,6 +238,57 @@ game_print_pgn(const Game *self)
 	printf("%s\n", moves);
 
 	_chi_stringbuf_destroy(sb);
+
+	switch(self->result) {
+		case chi_result_unknown:
+			printf("*\n");
+			break;
+		case chi_result_draw:
+			printf("{Draw} 1/2-1/2\n");
+			break;
+		case chi_result_stalemate:
+			printf("{Stalemate} 1/2-1/2\n");
+			break;
+		case chi_result_draw_by_repetition:
+			printf("{Draw by 3-fold repetition} 1/2-1/2\n");
+			break;
+		case chi_result_draw_by_50_moves_rule:
+			printf("{Draw by 50 moves rule} 1/2-1/2\n");
+			break;
+		case chi_result_draw_by_insufficient_material:
+			printf("{Draw by insufficient material} 1/2-1/2\n");
+			break;
+		case chi_result_draw_by_impossible_checkmate:
+			printf("{Draw by impossible checkmate} 1/2-1/2\n");
+			break;
+		case chi_result_draw_by_agreement:
+			printf("{Draw by mutual agreement} 1/2-1/2\n");
+			break;
+		case chi_result_white_wins:
+			printf("{White wins} 1-0\n");
+			break;
+		case chi_result_white_mates:
+			printf("{White mates} 1-0\n");
+			break;
+		case chi_result_white_wins_on_time:
+			printf("{White wins on time} 1-0\n");
+			break;
+		case chi_result_white_wins_by_resignation:
+			printf("{Black resigns} 1-0\n");
+			break;
+		case chi_result_black_wins:
+			printf("{Black wins} 0-1\n");
+			break;
+		case chi_result_black_mates:
+			printf("{Black mates} 0-1\n");
+			break;
+		case chi_result_black_wins_on_time:
+			printf("{Black wins on time} 0-1\n");
+			break;
+		case chi_result_black_wins_by_resignation:
+			printf("{White resigns} 0-1\n");
+			break;
+	}
 }
 
 static bool
