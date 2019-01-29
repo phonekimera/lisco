@@ -46,7 +46,6 @@ find_slot(void *address, const char *funcname)
 
 	fprintf(stderr, "xmalloc-debug: %s: invalid pointer %p!\n",
 	        funcname, address);
-fprintf(stderr, "content: %s\n", address);
 	exit(1);
 }
 
