@@ -50,6 +50,8 @@ static bool engine_process_input(Engine *self, const char *line);
 static bool engine_process_input_negotiating(Engine *self, const char *line);
 static bool engine_process_input_acknowledged(Engine *self, const char *line);
 static bool engine_process_input_configuring(Engine *self, const char *line);
+static bool engine_process_input_thinking(Engine *self, const char *line);
+static bool engine_process_input_pondering(Engine *self, const char *line);
 
 static bool engine_process_xboard_features(Engine *self, const char *line);
 static bool engine_process_uci_option(Engine *self, const char *line);
@@ -544,6 +546,12 @@ engine_process_input(Engine *self, const char *cmd)
 		case configuring:
 			status = engine_process_input_configuring(self, cmd);
 			break;
+		case thinking:
+			status = engine_process_input_thinking(self, cmd);
+			break;
+		case pondering:
+			status = engine_process_input_pondering(self, cmd);
+			break;
 		default:
 			error(EXIT_SUCCESS, 0,
 			      "engine '%s' in unhandled state %d.\n",
@@ -614,6 +622,18 @@ engine_process_input_configuring(Engine *self, const char *cmd)
 		}
 	}
 
+	return true;
+}
+
+static bool
+engine_process_input_thinking(Engine *self, const char *cmd)
+{
+	return true;
+}
+
+static bool
+engine_process_input_pondering(Engine *self, const char *cmd)
+{
 	return true;
 }
 
