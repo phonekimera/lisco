@@ -126,7 +126,7 @@ display_board(FILE *stream, chi_pos *pos)
 	fprintf(stream, "    ");
 	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
 		if (file == CHI_FILE_H)
-			printf(" %c", chi_file2char(file));
+			fprintf(stream, " %c", chi_file2char(file));
 		else
 			fprintf(stream, " %c  ", chi_file2char(file));
 	}
