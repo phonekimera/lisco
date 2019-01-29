@@ -23,10 +23,12 @@
 # include <config.h>
 #endif
 
-#include <libchi.h>
+#include <stdio.h>
 
-void display_board(chi_pos* pos);
-void dump_board(chi_pos* pos);
+#include "libchi.h"
+
+void display_board(FILE *file, chi_pos* pos);
+void dump_board(FILE *file, chi_pos* pos);
 void print_game(void);
 
 #endif

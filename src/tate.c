@@ -248,7 +248,7 @@ get_event ()
 	    }
 	} else if (strcasecmp (cmd, "display") == 0) {
 	    /* Convenience.  */
-	    display_board (&current);
+	    display_board (stdout, &current);
 	    fprintf (stdout, "\n");
 	} else if (strcasecmp (cmd, "quit") == 0) {
 	    /* Convenience, too.  */
@@ -434,7 +434,7 @@ get_event ()
     } else if (strcasecmp (cmd, "quit") == 0) {
 	    return EVENT_TERMINATE;
     } else if (strcasecmp (cmd, "dump") == 0) {
-	dump_board (&current);
+	dump_board (stdout, &current);
     } else if (strcasecmp (cmd, "print") == 0) {
 	print_game ();
     } else if (strcasecmp (cmd, "hash") == 0) {
@@ -477,7 +477,7 @@ get_event ()
 	game_hist[0].pos = current;
 	game_hist[0].signature = chi_zk_signature (zk_handle, &current);
     } else if (strcasecmp (cmd, "display") == 0) {
-	display_board (&current);
+	display_board (stdout, &current);
 	fprintf (stdout, "\n");
     } else if (strcasecmp (cmd, "offsets") == 0) {
 	display_offsets ();
@@ -1040,7 +1040,7 @@ handle_go (epd)
     if (errnum != 0) {
 	print_game (); fflush (stdout);
 	display_moves (); fflush (stdout);
-	dump_board (&current);
+	dump_board (stdout, &current);
 	fprintf (stderr, "engine move: ");
 
 	fprintf (stderr, "[%08x:", move);

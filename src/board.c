@@ -30,168 +30,166 @@
 #include "tate.h"
 
 void
-dump_board (pos)
-     chi_pos* pos;
+dump_board (FILE *stream, chi_pos *pos)
 {
     int rank, file;
 
-    display_board (pos);
+    display_board (stream, pos);
 
-    fprintf (stdout, "\n Pieces   Pawns    Knights  Bishops  Rooks    Queens   Kings    Pieces90\n");
+    fprintf (stream, "\n Pieces   Pawns    Knights  Bishops  Rooks    Queens   Kings    Pieces90\n");
     for (rank = CHI_RANK_8; rank >= CHI_RANK_1; --rank) {
 	
-	fputc (' ', stdout);
+	fputc (' ', stream);
 	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
 	    bitv64 off = chi_coords2shift (file, rank);
 
 	    if (pos->w_pieces & (1ULL << off))
-		fputc ('W', stdout);
+		fputc ('W', stream);
 	    else if (pos->b_pieces & (1ULL << off))
-		fputc ('b', stdout);
+		fputc ('b', stream);
 	    else
-		fputc ('.', stdout);
+		fputc ('.', stream);
 	}
 
-	fputc (' ', stdout);
+	fputc (' ', stream);
 	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
 	    bitv64 off = chi_coords2shift (file, rank);
 	    
 	    if (pos->w_pawns & (1ULL << off))
-		fputc ('P', stdout);
+		fputc ('P', stream);
 	    else if (pos->b_pawns & (1ULL << off))
-		fputc ('p', stdout);
+		fputc ('p', stream);
 	    else
-		fputc ('.', stdout);
+		fputc ('.', stream);
 	}
 
-	fputc (' ', stdout);
+	fputc (' ', stream);
 	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
 	    bitv64 off = chi_coords2shift (file, rank);
 	    
 	    if (pos->w_knights & (1ULL << off))
-		fputc ('N', stdout);
+		fputc ('N', stream);
 	    else if (pos->b_knights & (1ULL << off))
-		fputc ('n', stdout);
+		fputc ('n', stream);
 	    else
-		fputc ('.', stdout);
+		fputc ('.', stream);
 	}
 
-	fputc (' ', stdout);
+	fputc (' ', stream);
 	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
 	    bitv64 off = chi_coords2shift (file, rank);
 	    
 	    if (pos->w_bishops & ~pos->w_rooks & (1ULL << off))
-		fputc ('B', stdout);
+		fputc ('B', stream);
 	    else if (pos->b_bishops & ~pos->b_rooks & (1ULL << off))
-		fputc ('b', stdout);
+		fputc ('b', stream);
 	    else
-		fputc ('.', stdout);
+		fputc ('.', stream);
 	}
 
-	fputc (' ', stdout);
+	fputc (' ', stream);
 	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
 	    bitv64 off = chi_coords2shift (file, rank);
 	    
 	    if (pos->w_rooks & ~pos->w_bishops & (1ULL << off))
-		fputc ('R', stdout);
+		fputc ('R', stream);
 	    else if (pos->b_rooks & ~pos->b_bishops & (1ULL << off))
-		fputc ('r', stdout);
+		fputc ('r', stream);
 	    else
-		fputc ('.', stdout);
+		fputc ('.', stream);
 	}
 
-	fputc (' ', stdout);
+	fputc (' ', stream);
 	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
 	    bitv64 off = chi_coords2shift (file, rank);
 	    
 	    if (pos->w_rooks & pos->w_bishops & (1ULL << off))
-		fputc ('Q', stdout);
+		fputc ('Q', stream);
 	    else if (pos->b_rooks & pos->b_bishops & (1ULL << off))
-		fputc ('q', stdout);
+		fputc ('q', stream);
 	    else
-		fputc ('.', stdout);
+		fputc ('.', stream);
 	}
 
-	fputc (' ', stdout);
+	fputc (' ', stream);
 	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
 	    bitv64 off = chi_coords2shift (file, rank);
 	    
 	    if (pos->w_kings & (1ULL << off))
-		fputc ('K', stdout);
+		fputc ('K', stream);
 	    else if (pos->b_kings & (1ULL << off))
-		fputc ('k', stdout);
+		fputc ('k', stream);
 	    else
-		fputc ('.', stdout);
+		fputc ('.', stream);
 	}
 
-	fputc (' ', stdout);
+	fputc (' ', stream);
 	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
 	    bitv64 off = chi_coords2shift (file, rank);
 	    
 	    if (pos->w_pieces90 & (1ULL << off))
-		fputc ('W', stdout);
+		fputc ('W', stream);
 	    else if (pos->b_pieces90 & (1ULL << off))
-		fputc ('b', stdout);
+		fputc ('b', stream);
 	    else
-		fputc ('.', stdout);
+		fputc ('.', stream);
 	}
 	
-	fputs ("\n", stdout);
+	fputs ("\n", stream);
     }
 
-    fputs ("\n", stdout);
+    fputs ("\n", stream);
 }
 
 void
-display_board (pos)
-     chi_pos* pos;
+display_board (FILE * stream, chi_pos *pos)
 {
     static char*  buf = NULL;
     static unsigned int bufsize;
     int file;
     int rank;
 
-    printf ("    ");
+    fprintf(stream, "    ");
     for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
-	printf (" %c  ", chi_file2char(file));
+	fprintf(stream, " %c  ", chi_file2char(file));
     }
-    printf ("\n   +---+---+---+---+---+---+---+---+\n");
+    fprintf(stream, "\n   +---+---+---+---+---+---+---+---+\n");
 
     chi_dump_pieces (pos, &buf, &bufsize);
 
     for (rank = CHI_RANK_8; rank >= CHI_RANK_1; --rank) {
-	printf (" %c ", chi_rank2char (rank));
+	fprintf(stream, " %c ", chi_rank2char (rank));
 	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
 	    int shift = chi_coords2shift (file, rank);
-	    printf ("| %c ", buf[shift]);
+	    fprintf(stream, "| %c ", buf[shift]);
 	}
-	printf ("| ");
+	fprintf(stream, "| ");
 
 	switch (rank) {
 	    case CHI_RANK_8:
 		if (chi_ep (pos)) {
-		    printf ("En passant possible on file %c.", 
+		    fprintf(stream, "En passant possible on file %c.", 
 			    chi_ep_file (pos) + 'a');
 		} else {
-		    printf ("En passant not possible.");
+		    fprintf(stream, "En passant not possible.");
 		}
 		break;
 	    case CHI_RANK_7:
-		printf ("White queen castle: %s.", 
+		fprintf(stream, "White queen castle: %s.", 
 			chi_wq_castle (pos) ? "yes" : "no");
 		break;
 	    case CHI_RANK_6:
-		printf ("Black queen castle: %s.", 
+		fprintf(stream, "Black queen castle: %s.", 
 			chi_bq_castle (pos) ? "yes" : "no");
 		break;
 	    case CHI_RANK_5:
-		printf ("Half moves: %d.", pos->half_moves);
+		fprintf(stream, "Half moves: %d.", pos->half_moves);
 		break;
 	    case CHI_RANK_4:
-		printf ("Material: %+d.", chi_material (pos));
+		fprintf(stream, "Material: %+d.", chi_material (pos));
 		break;
 	    case CHI_RANK_3:
-		    printf ("White has castled: %s.",
+		    fprintf(stream, "White has castled: %s.",
 			    chi_w_castled (pos) ? "yes" : "no");
 		break;
 	}
@@ -200,27 +198,27 @@ display_board (pos)
 
 	switch (rank) {
 	    case CHI_RANK_8:
-		printf ("White king castle: %s.", 
+		fprintf(stream, "White king castle: %s.", 
 			chi_wk_castle (pos) ? "yes" : "no");
 		break;
 	    case CHI_RANK_7:
-		printf ("Black king castle: %s.", 
+		fprintf(stream, "Black king castle: %s.", 
 			chi_bk_castle (pos) ? "yes" : "no");
 		break;
 	    case CHI_RANK_6:
-		printf ("Half move clock (50 moves): %d.", 
+		fprintf(stream, "Half move clock (50 moves): %d.", 
 			pos->half_move_clock);
 		break;
 	    case CHI_RANK_5:
-		printf ("Next move: %s.", 
+		fprintf(stream, "Next move: %s.", 
 			chi_on_move (pos) ? "black" : "white");
 		break;
 	    case CHI_RANK_4:
-		printf ("Zobrist key: 0x%016llx.", 
+		fprintf(stream, "Zobrist key: 0x%016llx.", 
 			chi_zk_signature (zk_handle, pos));
 		break;
 	    case CHI_RANK_3:
-		printf ("Black has castled: %s.",
+		fprintf(stream, "Black has castled: %s.",
 			chi_b_castled (pos) ? "yes" : "no");
 		break;
 	}
@@ -228,11 +226,11 @@ display_board (pos)
 	fputc ('\n', stdout);
     }
 
-    printf ("    ");
+    fprintf(stream, "    ");
     for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
-	printf (" %c  ", chi_file2char(file));
+	fprintf(stream, " %c  ", chi_file2char(file));
     }
-    printf ("\n");
+    fprintf(stream, "\n");
 }
 
 void
