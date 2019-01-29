@@ -639,7 +639,13 @@ engine_process_input_thinking(Engine *self, const char *cmd)
 		return true;
 
 	if (self->protocol == xboard) {
-		log_engine_fatal(self->nick, "in state thinking");
+		if (strcmp("move", token) == 0) {
+			token = strsep(&endptr, " \t\v\f");
+			if (!token)
+				return true;
+			
+			return game_do_move(self->game, token);
+		}
 	} else {
 		if (strcmp("bestmove", token) == 0) {
 			token = strsep(&endptr, " \t\v\f");
