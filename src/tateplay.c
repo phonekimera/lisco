@@ -229,7 +229,7 @@ for black):\n\
   -d, --depth=PLIES           search at most to depth PLIES\n");
 		printf("\n");
 		printf("\
-General engine options (UCI only, no escaping possible)\n");
+General engine options\n");
 		printf("\
       --option-white=KEY=VALUE  set option KEY for white engine to VALUE\n\
       --option-black=KEY=VALUE  set option KEY for white engine to VALUE\n");
