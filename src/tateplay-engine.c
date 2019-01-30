@@ -63,6 +63,12 @@ static void engine_configure_option(Engine *self, chi_stringbuf *sb,
 
 static void engine_check_string_option(Engine *self, Option *option,
                                        const UserOption *user_option);
+static void engine_check_spin_option(Engine *self, Option *option,
+                                     const UserOption *user_option);
+static void engine_check_check_option(Engine *self, Option *option,
+                                      const UserOption *user_option);
+static void engine_check_combo_option(Engine *self, Option *option,
+                                      const UserOption *user_option);
 
 /* Callbacks.  */
 static void engine_start_initial_timeout(Engine *self);
@@ -885,6 +891,30 @@ engine_configure_option(Engine *self, chi_stringbuf *sb,
 			_chi_stringbuf_append(sb, user_option->value);
 			_chi_stringbuf_append_char(sb, '\n');
 			break;
+		case option_type_spin:
+			engine_check_spin_option(self, option, user_option);
+			_chi_stringbuf_append(sb, "setoption name ");
+			_chi_stringbuf_append(sb, user_option->name);
+			_chi_stringbuf_append_char(sb, ' ');
+			_chi_stringbuf_append(sb, user_option->value);
+			_chi_stringbuf_append_char(sb, '\n');
+			break;
+		case option_type_check:
+			engine_check_check_option(self, option, user_option);
+			_chi_stringbuf_append(sb, "setoption name ");
+			_chi_stringbuf_append(sb, user_option->name);
+			_chi_stringbuf_append_char(sb, ' ');
+			_chi_stringbuf_append(sb, user_option->value);
+			_chi_stringbuf_append_char(sb, '\n');
+			break;
+		case option_type_combo:
+			engine_check_combo_option(self, option, user_option);
+			_chi_stringbuf_append(sb, "setoption name ");
+			_chi_stringbuf_append(sb, user_option->name);
+			_chi_stringbuf_append_char(sb, ' ');
+			_chi_stringbuf_append(sb, user_option->value);
+			_chi_stringbuf_append_char(sb, '\n');
+			break;
 	}
 }
 
@@ -928,4 +958,79 @@ engine_check_string_option(Engine *self, Option *option,
 					self->nick, user_option->name, option->max);
 		}
 	}
+}
+
+static void
+engine_check_spin_option(Engine *self, Option *option,
+                         const UserOption *user_option)
+{
+	long value, min, max;
+
+	if (!(option->min || option->max))
+		return;
+
+	if (!parse_integer(&value, user_option->value)) {
+		error(EXIT_FAILURE, errno,
+				"%s: invalid value '%s' for option '%s'",
+				self->nick, user_option->value, user_option->name);
+	}
+
+	if (option->min) {
+		if (!parse_integer(&min, option->min)) {
+			error(EXIT_FAILURE, errno,
+			      "%s: engine gave invalid minimum value '%s' for option '%s'",
+			      self->nick, option->min, user_option->name);
+		}
+		if (value < min) {
+			error(EXIT_FAILURE, errno,
+					"%s: minimum value for option '%s' is %s.",
+					self->nick, user_option->name, option->min);
+		}
+	}
+
+	if (option->max) {
+		if (!parse_integer(&max, option->max)) {
+			error(EXIT_FAILURE, errno,
+			      "%s: engine gave invalid maximum value '%s' for option '%s'",
+			      self->nick, option->min, user_option->name);
+		}
+		if (value > max) {
+			error(EXIT_FAILURE, errno,
+					"%s: maximum value for option '%s' is %s.",
+					self->nick, user_option->name, option->max);
+		}
+	}
+}
+
+static void
+engine_check_check_option(Engine *self, Option *option,
+                          const UserOption *user_option)
+{
+	if (strcmp(user_option->value, "true") == 0
+	    || strcmp(user_option->value, "false") == 0)
+		return;
+
+	error(EXIT_FAILURE, 0, "%s: value for option '%s' must be 'true' or 'false'",
+	      self->nick, user_option->name);
+}
+
+static void
+engine_check_combo_option(Engine *self, Option *option,
+                          const UserOption *user_option)
+{
+	size_t i;
+
+	for (i = 0; i < option->num_vars; ++i) {
+		if (strcmp(user_option->value, option->vars[i]) == 0)
+			return;
+	}
+
+	error(EXIT_SUCCESS, 0, "%s: value for option '%s' must be one of:",
+	      self->nick, user_option->name);
+
+	for (i = 0; i < option->num_vars; ++i) {
+		fprintf(stderr, "\t%s\n", option->vars[i]);
+	}
+
+	exit(EXIT_FAILURE);
 }
