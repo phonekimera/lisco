@@ -61,6 +61,8 @@ static const struct option long_options[] = {
 	{ "round", required_argument, NULL, 'r' },
 	{ "player-white", required_argument, NULL, CHAR_MAX + 1 },
 	{ "player-black", required_argument, NULL, CHAR_MAX + 2 },
+	{ "option-white", required_argument, NULL, CHAR_MAX + 3 },
+	{ "option-black", required_argument, NULL, CHAR_MAX + 4 },
 	{ "help", no_argument, NULL, 'h' },
 	{ "version", no_argument, NULL, 'V' },
 	{ "verbose", no_argument, NULL, 'v' },
@@ -217,6 +219,12 @@ for black):\n\
   -p, --protocol=PROTOCOL     one of 'uci' (default), 'xboard', or 'cecp'\n\
                               (an alias for 'xboard'\n\
   -d, --depth=PLIES           search at most to depth PLIES\n");
+		printf("\n");
+		printf("\
+General engine options (UCI only, no escaping possible)\n");
+		printf("\
+      --option-white=KEY=VALUE  set option KEY for white engine to VALUE\n\
+      --option-black=KEY=VALUE  set option KEY for white engine to VALUE\n");
 		printf("\n");
 		printf ("\
 Game information:\n");
