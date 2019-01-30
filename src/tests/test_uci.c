@@ -36,7 +36,7 @@ START_TEST(test_uci_spin_option)
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Has \t Space", option->name);
 	
-	ck_assert_int_eq(uci_option_type_spin, option->type);
+	ck_assert_int_eq(option_type_spin, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
 	ck_assert_str_eq("1", option->default_value);
@@ -57,7 +57,7 @@ START_TEST(test_uci_spin_option)
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Selectivity", option->name);
 	
-	ck_assert_int_eq(uci_option_type_spin, option->type);
+	ck_assert_int_eq(option_type_spin, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
 	ck_assert_str_eq("2", option->default_value);
@@ -83,7 +83,7 @@ START_TEST(test_uci_check_option)
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Nullmove", option->name);
 	
-	ck_assert_int_eq(uci_option_type_check, option->type);
+	ck_assert_int_eq(option_type_check, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
 	ck_assert_str_eq("true", option->default_value);
@@ -103,7 +103,7 @@ START_TEST(test_uci_combo_option)
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Style", option->name);
 	
-	ck_assert_int_eq(uci_option_type_combo, option->type);
+	ck_assert_int_eq(option_type_combo, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
 	ck_assert_str_eq("Normal", option->default_value);
@@ -133,7 +133,7 @@ START_TEST(test_stockfish_logfile_option)
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Debug Log File", option->name);
 
-	ck_assert_int_eq(uci_option_type_string, option->type);
+	ck_assert_int_eq(option_type_string, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
 	ck_assert_str_eq("", option->default_value);

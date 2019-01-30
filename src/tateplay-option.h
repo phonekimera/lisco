@@ -30,11 +30,11 @@ extern "C" {
 #endif
 
 typedef enum OptionType {
-	uci_option_type_string = 1,
-	uci_option_type_check,
-	uci_option_type_spin,
-	uci_option_type_button,
-	uci_option_type_combo,
+	option_type_string = 1,
+	option_type_check,
+	option_type_spin,
+	option_type_button,
+	option_type_combo,
 } OptionType;
 
 typedef struct Option {

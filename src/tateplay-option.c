@@ -82,15 +82,15 @@ option_uci_new(const char *input)
 			if (self->type)
 				goto bail_out;
 			if (strcmp("check", value) == 0) {
-				self->type = uci_option_type_check;
+				self->type = option_type_check;
 			} else if (strcmp("spin", value) == 0) {
-				self->type = uci_option_type_spin;
+				self->type = option_type_spin;
 			} else if (strcmp("combo", value) == 0) {
-				self->type = uci_option_type_combo;
+				self->type = option_type_combo;
 			} else if (strcmp("button", value) == 0) {
-				self->type = uci_option_type_button;
+				self->type = option_type_button;
 			} else if (strcmp("string", value) == 0) {
-				self->type = uci_option_type_string;
+				self->type = option_type_string;
 			} else {
 				goto bail_out;
 			}
