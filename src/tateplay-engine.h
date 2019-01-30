@@ -113,8 +113,8 @@ typedef struct Engine {
 	chi_bool xboard_usermove;
 
 	/* UCI options.  */
-	UCIOption **options;
-	size_t num_options;
+	UCIOption **uci_options;
+	size_t num_uci_options;
 } Engine;
 
 extern Engine *engine_new(struct Game *game);
@@ -124,7 +124,7 @@ extern void engine_destroy(Engine *engine);
 extern void engine_add_argv(Engine *self, const char *arg);
 
 /* Add an option set by the user via CLI for the configuration phase.  */
-extern void engine_set_option(Engine *self, const char *key, const char *value);
+extern void engine_set_option(Engine *self, char *name, char *value);
 
 /* Set the engine protocol.  */
 extern void engine_set_protocol(Engine *self, EngineProtocol protocol);

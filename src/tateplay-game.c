@@ -32,6 +32,7 @@
 #include "display-board.h"
 #include "log.h"
 #include "tateplay-game.h"
+#include "util.h"
 
 static bool legal_tag_value(const char *value);
 
@@ -455,10 +456,12 @@ game_set_engine_option(Game *self, Engine *engine, char *optspec)
 {
 	char *endptr = optspec;
 
-	char *name = strsep(&endptr, "=");
+	const char *name = ltrim(strsep(&endptr, "="));
+	const char *value;
+
 	if (!*name)
 		return;
-	char *value = strsep(&optspec, "=");
+	value = ltrim(strsep(&optspec, "="));
 
-	engine_set_option(engine, name, value);
+	engine_set_option(engine, trim(xstrdup(name)), trim(xstrdup(value)));
 }

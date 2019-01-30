@@ -58,6 +58,8 @@ static bool engine_process_xboard_features(Engine *self, const char *line);
 static bool engine_process_uci_option(Engine *self, const char *line);
 static bool engine_process_uci_id(Engine *self, const char *line);
 static bool engine_configure(Engine *self);
+static void engine_configure_option(Engine *self, chi_stringbuf *sb,
+                                    const UserOption *option);
 
 /* Callbacks.  */
 static void engine_start_initial_timeout(Engine *self);
@@ -127,13 +129,13 @@ engine_destroy(Engine *self)
 		free(self->user_options);
 	}
 
-	if (self->options) {
+	if (self->uci_options) {
 		size_t i;
-		for (i = 0; i < self->num_options; ++i) {
-			UCIOption *option = self->options[i];
+		for (i = 0; i < self->num_uci_options; ++i) {
+			UCIOption *option = self->uci_options[i];
 			uci_option_destroy(option);
 		}
-		free(self->options);
+		free(self->uci_options);
 	}
 
 	if (self->argv) free(self->argv);
@@ -474,7 +476,7 @@ engine_ponder(Engine *self, chi_pos *pos)
 }
 
 void
-engine_set_option(Engine *self, const char *name, const char *value)
+engine_set_option(Engine *self, char *name, char *value)
 {
 	UserOption option;
 
@@ -482,8 +484,8 @@ engine_set_option(Engine *self, const char *name, const char *value)
 	self->user_options = xrealloc(self->user_options,
 	                              self->num_user_options
 	                              * sizeof self->user_options[0]);
-	option.name = xstrdup(name);
-	option.value = xstrdup(value);
+	option.name = name;
+	option.value = value;
 	self->user_options[self->num_user_options - 1] = option;
 }
 
@@ -752,10 +754,10 @@ engine_process_uci_option(Engine *self, const char *line)
 		return true;
 	}
 
-	self->options = xrealloc(self->options,
-	                         (self->num_options + 1)
-	                         * sizeof self->options[0]);
-	self->options[self->num_options++] = option;
+	self->uci_options = xrealloc(self->uci_options,
+	                             (self->num_uci_options + 1)
+	                              * sizeof self->uci_options[0]);
+	self->uci_options[self->num_uci_options++] = option;
 
 	return true;
 }
@@ -807,6 +809,7 @@ engine_configure(Engine *self)
 {
 	chi_stringbuf *sb = _chi_stringbuf_new(128);
 	const char *commands;
+	size_t i;
 
 	self->state = configuring;
 
@@ -817,6 +820,11 @@ engine_configure(Engine *self)
 			_chi_stringbuf_append_char(sb, '\n');
 		}
 
+		if (self->user_options) {
+			error(EXIT_FAILURE, 0, "%s: xboard engines do not support\
+  options.  Use --config-COLOR instead?\n", self->nick);
+		}
+
 		commands = _chi_stringbuf_get_string(sb);
 		if (*commands) {
 			engine_spool_output(self, _chi_stringbuf_get_string(sb),
@@ -824,10 +832,33 @@ engine_configure(Engine *self)
 		}
 		_chi_stringbuf_destroy(sb);
 	} else if (self->protocol == uci) {
+		for (i = 0; self->user_options && i < self->num_user_options; ++i) {
+			engine_configure_option(self, sb, self->user_options + i);
+		}
 		_chi_stringbuf_append(sb, "ucinewgame\nisready\n");
 		engine_spool_output(self, _chi_stringbuf_get_string(sb), NULL);
 		_chi_stringbuf_destroy(sb);
 	}
 
 	return true;
+}
+
+static void
+engine_configure_option(Engine *self, chi_stringbuf *sb,
+                        const UserOption *option)
+{
+	size_t i;
+	UCIOption *uci_option = NULL;
+
+	for (i = 0; i < self->num_uci_options; ++i) {
+		if (strcmp(option->name, self->uci_options[i]->name) == 0) {
+			uci_option = self->uci_options[i];
+			break;
+		}
+	}
+
+	if (uci_option == NULL) {
+		error(EXIT_FAILURE, 0, "%s: engine does not support option '%s'.",
+		      self->nick, option->name);
+	}
 }
