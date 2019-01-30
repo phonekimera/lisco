@@ -37,6 +37,8 @@ static bool legal_tag_value(const char *value);
 
 static void game_start(Game *game);
 static chi_bool game_check_over(Game *game);
+static void game_set_engine_option(Game *game, Engine *engine,
+                                   char *optspec);
 
 Game *
 game_new(const char *fen)
@@ -136,6 +138,18 @@ game_set_player_black(Game *self, const char *name)
 		free(self->player_black);
 
 	self->player_black = xstrdup(name);
+}
+
+void
+game_set_option_white(Game *self, char *optspec)
+{
+	game_set_engine_option(self, self->white, optspec);
+}
+
+void
+game_set_option_black(Game *self, char *optspec)
+{
+	game_set_engine_option(self, self->black, optspec);
 }
 
 void
@@ -434,4 +448,17 @@ game_start(Game *self)
 	chi_copy_pos(&copy, &self->pos);
 	engine_think(self->white, &self->pos, (chi_move) 0);
 	engine_ponder(self->black, &self->pos);
+}
+
+static void
+game_set_engine_option(Game *self, Engine *engine, char *optspec)
+{
+	char *endptr = optspec;
+
+	char *name = strsep(&endptr, "=");
+	if (!*name)
+		return;
+	char *value = strsep(&optspec, "=");
+
+	engine_set_option(engine, name, value);
 }

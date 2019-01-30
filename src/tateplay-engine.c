@@ -397,7 +397,7 @@ engine_write_stdin(Engine *self)
 	return true;
 }
 
-extern void
+void
 engine_think(Engine *self, chi_pos *pos, chi_move move)
 {
 	char *movestr = NULL;
@@ -467,10 +467,24 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 	_chi_stringbuf_destroy(sb);
 }
 
-extern void
+void
 engine_ponder(Engine *self, chi_pos *pos)
 {
 	self->state = pondering;
+}
+
+void
+engine_set_option(Engine *self, const char *name, const char *value)
+{
+	UserOption option;
+
+	++self->num_user_options;
+	self->user_options = xrealloc(self->user_options,
+	                              self->num_user_options
+	                              * sizeof self->user_options[0]);
+	option.name = xstrdup(name);
+	option.value = xstrdup(value);
+	self->user_options[self->num_user_options - 1] = option;
 }
 
 static void

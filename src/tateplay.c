@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 		error(EXIT_FAILURE, errno, "cannot install SIGCHLD handler");
 
 	while ((optchar = getopt_long(argc, argv,
-	                              "w:b:hVv",
+	                              "w:b:d:e:s:r:hp:Vv",
 								  long_options, NULL)) != EOF) {
 		switch (optchar) {
 			case '\0':
@@ -145,6 +145,14 @@ main(int argc, char *argv[])
 
 			case CHAR_MAX + 2:
 				game_set_player_black(game, optarg);
+				break;
+			
+			case CHAR_MAX + 3:
+				game_set_option_white(game, optarg);
+				break;
+
+			case CHAR_MAX + 4:
+				game_set_option_black(game, optarg);
 				break;
 
 			case 'h':
