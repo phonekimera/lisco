@@ -589,6 +589,9 @@ engine_process_input(Engine *self, const char *cmd)
 		case configuring:
 			status = engine_process_input_configuring(self, cmd);
 			break;
+		case ready:
+			status = true;
+			break;
 		case thinking:
 			status = engine_process_input_thinking(self, cmd);
 			break;
@@ -811,6 +814,7 @@ engine_configure(Engine *self)
 	const char *commands;
 	size_t i;
 
+	log_realm(self->nick, "starting configuration");
 	self->state = configuring;
 
 	if (self->protocol == xboard) {
@@ -829,6 +833,8 @@ engine_configure(Engine *self)
 		if (*commands) {
 			engine_spool_output(self, _chi_stringbuf_get_string(sb),
 			                    engine_state_ready);			
+		} else {
+			self->state = ready;
 		}
 		_chi_stringbuf_destroy(sb);
 	} else if (self->protocol == uci) {
