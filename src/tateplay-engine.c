@@ -61,6 +61,9 @@ static bool engine_configure(Engine *self);
 static void engine_configure_option(Engine *self, chi_stringbuf *sb,
                                     const UserOption *option);
 
+static void engine_check_string_option(Engine *self, Option *option,
+                                       const UserOption *user_option);
+
 /* Callbacks.  */
 static void engine_start_initial_timeout(Engine *self);
 static void engine_start_clock(Engine *self);
@@ -866,5 +869,63 @@ engine_configure_option(Engine *self, chi_stringbuf *sb,
 	if (option == NULL) {
 		error(EXIT_FAILURE, 0, "%s: engine does not support option '%s'.",
 		      self->nick, user_option->name);
+	}
+
+	switch(option->type) {
+		case option_type_button:
+			_chi_stringbuf_append(sb, "setoption name ");
+			_chi_stringbuf_append(sb, option->name);
+			_chi_stringbuf_append_char(sb, '\n');
+			break;
+		case option_type_string:
+			engine_check_string_option(self, option, user_option);
+			_chi_stringbuf_append(sb, "setoption name ");
+			_chi_stringbuf_append(sb, user_option->name);
+			_chi_stringbuf_append_char(sb, ' ');
+			_chi_stringbuf_append(sb, user_option->value);
+			_chi_stringbuf_append_char(sb, '\n');
+			break;
+	}
+}
+
+static void
+engine_check_string_option(Engine *self, Option *option,
+                           const UserOption *user_option)
+{
+	double value, min, max;
+
+	if (!(option->min || option->max))
+		return;
+
+	if (!parse_double(&value, user_option->value)) {
+		error(EXIT_FAILURE, errno,
+				"%s: invalid value '%s' for option '%s'",
+				self->nick, user_option->value, user_option->name);
+	}
+
+	if (option->min) {
+		if (!parse_double(&min, option->min)) {
+			error(EXIT_FAILURE, errno,
+			      "%s: engine gave invalid minimum value '%s' for option '%s'",
+			      self->nick, option->min, user_option->name);
+		}
+		if (value < min) {
+			error(EXIT_FAILURE, errno,
+					"%s: minimum value for option '%s' is %s.",
+					self->nick, user_option->name, option->min);
+		}
+	}
+
+	if (option->max) {
+		if (!parse_double(&max, option->max)) {
+			error(EXIT_FAILURE, errno,
+			      "%s: engine gave invalid maximum value '%s' for option '%s'",
+			      self->nick, option->min, user_option->name);
+		}
+		if (value > max) {
+			error(EXIT_FAILURE, errno,
+					"%s: maximum value for option '%s' is %s.",
+					self->nick, user_option->name, option->max);
+		}
 	}
 }

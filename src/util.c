@@ -23,6 +23,8 @@
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
+#include <math.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "util.h"
@@ -61,6 +63,29 @@ parse_integer(long *result, const char *string)
 	errno = 0;
 	number = strtoul(string, &endptr, 0);
 	if (number == LONG_MAX && errno) {
+		return chi_false;
+	} else if (string[0] && *endptr == 0) {
+		*result = number;
+		return chi_true;
+	} else if (endptr == string) {
+		return chi_false;
+	} else if (*endptr) {
+		/* Trailing garbage.  */
+		return chi_false;
+	}
+
+	return chi_false;
+}
+
+chi_bool
+parse_double(double *result, const char *string)
+{
+	long number;
+	char *endptr;
+
+	errno = 0;
+	number = strtod(string, &endptr);
+	if (number == HUGE_VAL && errno) {
 		return chi_false;
 	} else if (string[0] && *endptr == 0) {
 		*result = number;

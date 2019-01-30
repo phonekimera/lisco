@@ -32,6 +32,7 @@ extern "C" {
 extern char *trim(char *str);
 extern const char *ltrim(const char *str);
 extern chi_bool parse_integer(long *result, const char *string);
+extern chi_bool parse_double(double *result, const char *string);
 
 #ifdef __cplusplus
 }
