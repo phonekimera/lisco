@@ -27,12 +27,14 @@ src/tateplay
 *~
 /INSTALL
 /libchi/bitmasks.h
+.dirstamp
+
+src/tests/check_common
+src/tests/check_tateplay
 
 libchi/libchi.h
 libchi/showfen
 libchi/tests/check_libchi
 libchi/genmasks
-libchi/tests/check_libchi.log
-libchi/tests/check_libchi.trs
-libchi/tests/test-suite.log
-
+*.log
+*.trs

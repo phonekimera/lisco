@@ -20,14 +20,101 @@
 # include <config.h>
 #endif
 
+#include <errno.h>
+#include <stdio.h>
+
+#include "error.h"
 #include "stdbool.h"
 
-#include "tateplay-engine.h"
+#include "log.h"
+#include "tateplay-loop.h"
 
 int child_exited = 0;
 
+#define ever (;;)
+
 bool
-tateplay_loop(Engine *white, Engine *black)
+tateplay_loop(Game *game)
 {
+	fd_set active_read_fd_set, read_fd_set;
+	fd_set write_fd_set;
+	Engine *white = game->white;
+	Engine *black = game->black;
+	int i;
+	struct timeval timeout;
+
+	log_realm("info", "starting white engine");
+	if (!engine_start(game->white))
+		error(EXIT_FAILURE, errno, "error starting white engine '%s'",
+		      game->white->nick);
+	engine_negotiate(game->white);
+
+	log_realm("info", "starting black engine");
+	if (!engine_start(game->black))
+		error(EXIT_FAILURE, errno, "error starting black engine '%s'",
+		      game->black->nick);
+	engine_negotiate(game->black);
+
+	FD_ZERO(&active_read_fd_set);
+	FD_SET(white->out, &active_read_fd_set);
+	FD_SET(white->err, &active_read_fd_set);
+	FD_SET(black->out, &active_read_fd_set);
+	FD_SET(black->err, &active_read_fd_set);
+
+	for ever {
+		/* Multiplex input and output.  */
+		FD_ZERO(&write_fd_set);
+		if (white->outbuf && white->outbuf[0] != '\0') {
+			log_realm(white->nick, "waiting for write ready");
+			FD_SET(white->in, &write_fd_set);
+		}
+		if (black->outbuf && black->outbuf[0] != '\0') {
+			log_realm(black->nick, "waiting for write ready");
+			FD_SET(black->in, &write_fd_set);
+		}
+		
+		read_fd_set = active_read_fd_set;
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 100000;
+		if (select(FD_SETSIZE, &read_fd_set, &write_fd_set, NULL,
+		           &timeout) < 0)
+			error(EXIT_FAILURE, errno, "select failed");
+
+		for (i = 0; i < FD_SETSIZE; ++i) {
+			/* Input available.  */
+			if (FD_ISSET(i, &read_fd_set)) {
+				if (white->out == i) {
+					if (!engine_read_stdout(white))
+						return false;
+				} else if(white->err == i) {
+					if (!engine_read_stderr(white))
+						return false;
+				} else if(black->out == i) {
+					if (!engine_read_stdout(black))
+						return false;
+				} else if(black->err == i) {
+					if (!engine_read_stderr(black))
+						return false;
+				}
+			}
+		}
+
+		for (i = 0; i < FD_SETSIZE; ++i) {
+			/* Output possible.  */
+			if (FD_ISSET(i, &write_fd_set)) {
+				if (white->in == i) {
+					if (!engine_write_stdin(white))
+						return false;
+				} else if(black->in == i) {
+					if (!engine_write_stdin(black))
+						return false;
+				}
+			}
+		}
+
+		if (!game_ping(game))
+			break;
+	}
+
 	return true;
 }

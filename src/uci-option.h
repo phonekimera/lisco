@@ -16,24 +16,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TATEPLAY_LOOP_H
-# define _TATEPLAY_LOOP_H        /* Allow multiple inclusion.  */
+#ifndef _UCI_OPTION_H
+# define _UCI_OPTION_H        /* Allow multiple inclusion.  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include "stdbool.h"
-
-#include "tateplay-game.h"
+#include "libchi.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern int child_exited;
+typedef enum UCIOptionType {
+	uci_option_type_string = 1,
+	uci_option_type_check,
+	uci_option_type_spin,
+	uci_option_type_button,
+	uci_option_type_combo,
+} UCIOptionType;
 
-bool tateplay_loop(Game *game);
+typedef struct UCIOption {
+	char *name;
+	UCIOptionType type;
+	char *min;
+	char *max;
+	char **vars;
+	size_t num_vars;
+	char *default_value;
+	chi_bool default_set;
+} UCIOption;
+
+extern UCIOption *uci_option_new(const char *input);
+extern void uci_option_destroy(UCIOption *option);
 
 #ifdef __cplusplus
 }

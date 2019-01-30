@@ -6,7 +6,7 @@ Tate is a chess engine implementing parts of the xboard protocol.
 
 Tate should compile and work on all operating systems.  It does *not* work
 under Windows, even if it compiles! Tate is currently relying on the
-existance for "/dev/urandom" for high quality random data and that device
+existence for "/dev/urandom" for high quality random data and that device
 does not exist under Windows.  Patches are welcome!
 
 ## Description
@@ -29,7 +29,7 @@ git history by committing release files.
 
 ## Copyright
 
-Copyright (C) 2002-2018, Guido Flohr <guido.flohr@cantanea.com>.
+Copyright (C) 2002-2019, Guido Flohr <guido.flohr@cantanea.com>.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 Written by Guido Flohr.

@@ -16,24 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TATEPLAY_LOOP_H
-# define _TATEPLAY_LOOP_H        /* Allow multiple inclusion.  */
+#ifndef _XBOARD_FEATURE_H
+# define _XBOARD_FEATURE_H        /* Allow multiple inclusion.  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include "stdbool.h"
-
-#include "tateplay-game.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern int child_exited;
+typedef struct XboardFeature {
+	char *name;
+	char *value;
+} XboardFeature;
 
-bool tateplay_loop(Game *game);
+extern XboardFeature *xboard_feature_new(const char *input,
+                                         const char **endptr);
+extern void xboard_feature_destroy(XboardFeature *feature);
 
 #ifdef __cplusplus
 }

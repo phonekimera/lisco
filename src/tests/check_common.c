@@ -21,17 +21,14 @@
 #endif
 
 #include <check.h>
-#include <stdlib.h>
 
 #include "libchi.h"
 
-extern Suite *parsers_suite();
-extern Suite *presentation_suite();
-extern Suite *game_over_suite();
-extern Suite *move_making_suite();
-extern Suite *move_making_suite_pgn();
-extern Suite *fen_suite();
-extern Suite *coordinate_notation_suite();
+extern Suite *util_suite();
+
+#ifdef DEBUG_XMALLOC
+# include "xmalloc-debug.c"
+#endif
 
 int
 main(int argc, char *argv[])
@@ -39,13 +36,11 @@ main(int argc, char *argv[])
 	int failed = 0;
 	SRunner *runner;
 
-	runner = srunner_create(parsers_suite());
-	srunner_add_suite(runner, presentation_suite());
-	srunner_add_suite(runner, game_over_suite());
-	srunner_add_suite(runner, move_making_suite());
-	srunner_add_suite(runner, move_making_suite_pgn());
-	srunner_add_suite(runner, fen_suite());
-	srunner_add_suite(runner, coordinate_notation_suite());
+#ifdef DEBUG_XMALLOC
+	init_xmalloc_debug();
+#endif
+
+	runner = srunner_create(util_suite());
 
 	srunner_run_all(runner, CK_NORMAL);
 	failed = srunner_ntests_failed(runner);

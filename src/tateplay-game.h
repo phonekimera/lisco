@@ -36,15 +36,19 @@ typedef struct Game {
 	Engine *white;
 	Engine *black;
 
+	/* The current position.  */
 	chi_pos pos;
 
+	/* Moves played.  */
 	chi_move *moves;
 	size_t num_moves;
 
+	/* Positions.  */
+	char **fen;
+
 	struct timeval start;
 
-	/* Normally NULL.  Otherwise, the FEN of the starting position.  */
-	char *initial_fen;
+	chi_bool started;
 
 	/* PGN properties (Seven Tag Roster STR) that can be set via
 	 * command-line options.
@@ -62,9 +66,10 @@ extern void game_destroy(Game *game);
 extern void game_set_event(Game *game, const char *event);
 extern void game_set_site(Game *game, const char *site);
 extern void game_set_round(Game *game, const char *round);
-extern void game_set_fen(Game *game, const char *fen);
 extern void game_set_player_white(Game *game, const char *white);
 extern void game_set_player_black(Game *game, const char *black);
+
+extern chi_bool game_ping(Game *game);
 
 extern void game_print_pgn(const Game *game);
 

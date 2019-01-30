@@ -16,24 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TATEPLAY_LOOP_H
-# define _TATEPLAY_LOOP_H        /* Allow multiple inclusion.  */
+#ifndef _UTIL_H
+# define _UTIL_H        /* Allow multiple inclusion.  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include "stdbool.h"
-
-#include "tateplay-game.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern int child_exited;
-
-bool tateplay_loop(Game *game);
+extern char *trim(char *str);
+extern const char *ltrim(const char *str);
 
 #ifdef __cplusplus
 }

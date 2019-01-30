@@ -29,6 +29,8 @@ chi_game_over(chi_pos *pos, chi_result *result)
 {
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move *end_ptr;
+    /* White bishop is on white fields, black bishop ... */
+    chi_bool wbisw, bbisw;
 
 	end_ptr = chi_legal_moves(pos, moves);
 	if (end_ptr == moves) {
@@ -74,11 +76,14 @@ chi_game_over(chi_pos *pos, chi_result *result)
 	/* Neither side has queens, rooks, or pawns. And neither side has more
 	 * than one bishop or knight.
 	 */
-	if (!(pos->w_bishops || pos->b_bishops))
+	if (!(pos->w_bishops && pos->b_bishops))
 		goto draw;
 
 	/* Both sides have exactly one bishop.  */
-	if ((pos->w_bishops & CHI_BLACK_MASK) == (pos->w_bishops & CHI_BLACK_MASK))
+    wbisw = (pos->w_bishops & CHI_WHITE_MASK) ? chi_true : chi_false;
+    bbisw = (pos->b_bishops & CHI_WHITE_MASK) ? chi_true : chi_false;
+
+	if (wbisw == bbisw)
 		goto draw;
 	/* FALLTHROUGH */
 no_draw:

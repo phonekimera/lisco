@@ -16,27 +16,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TATEPLAY_LOOP_H
-# define _TATEPLAY_LOOP_H        /* Allow multiple inclusion.  */
-
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include "stdbool.h"
+#include <ctype.h>
+#include <string.h>
 
-#include "tateplay-game.h"
+char *
+trim(char *str)
+{
+	char *end_ptr;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+	while (isspace((unsigned char) *str)) ++str;
 
-extern int child_exited;
+	if (*str =='\0') return str;
 
-bool tateplay_loop(Game *game);
+	end_ptr = str + strlen(str) - 1;
+	while (end_ptr > str && isspace((unsigned char) *end_ptr)) --end_ptr;
 
-#ifdef __cplusplus
+	end_ptr[1] = '\0';
+
+	return str;
 }
-#endif
 
-#endif
+const char *
+ltrim(const char *str)
+{
+	while (isspace((unsigned const char) *str)) ++str;
+
+	return str;
+}

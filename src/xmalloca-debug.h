@@ -16,27 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TATEPLAY_LOOP_H
-# define _TATEPLAY_LOOP_H        /* Allow multiple inclusion.  */
+#ifndef _XMALLOCA_DEBUG_H
+# define _XMALLOCA_DEBUG_H        /* Allow multiple inclusion.  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include "xmalloca.h"
 
-#include "stdbool.h"
+#ifdef DEBUG_XMALLOC
+# define xmalloc(size) xmalloc_debug(size)
+# define xrealloc(address, size) xrealloc_debug(address, size)
+# define xstrdup(address) xstrdup_debug(address)
+# define xstrndup(address, size) xstrndup_debug(address, size)
+# define free(address) xmalloc_debug_free(address)
 
-#include "tateplay-game.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern int child_exited;
-
-bool tateplay_loop(Game *game);
-
-#ifdef __cplusplus
-}
+extern void *xmalloc(size_t size);
+extern void *xrealloc(void *address, size_t size);
+extern char *xstrdup(const char *string);
+extern char *xstrndup(const char *string, size_t n);
+extern void free(void *address);
 #endif
 
 #endif

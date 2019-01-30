@@ -63,7 +63,9 @@ static const struct option long_options[] = {
 	{ NULL, 0, NULL, 0 }
 };
 
-#include <assert.h>
+#ifdef DEBUG_XMALLOC
+# include "xmalloc-debug.c"
+#endif
 
 int
 main(int argc, char *argv[])
@@ -74,6 +76,11 @@ main(int argc, char *argv[])
 	bool white_seen = false;
 	bool black_seen = false;
 	struct sigaction sa;
+	bool status;
+
+#ifdef DEBUG_XMALLOC
+	init_xmalloc_debug();
+#endif
 
 	game = game_new();
 
@@ -157,24 +164,14 @@ main(int argc, char *argv[])
 		usage(EXIT_FAILURE);
 	}
 
-	log_realm("info", "starting white engine");
-	if (!engine_start(game->white))
-		error(EXIT_FAILURE, errno, "error starting white engine '%s'",
-		      game->white->nick);
-
-	log_realm("info", "starting black engine");
-	if (!engine_start(game->black))
-		error(EXIT_FAILURE, errno, "error starting black engine '%s'",
-		      game->black->nick);
+	status = tateplay_loop(game);
 
 	game_print_pgn(game);
-
-	sleep(3);
 
 	log_realm("info", "terminating engines");
 	game_destroy(game);
 
-	return 0;
+	return status ? 0 : 1;
 }
 
 static void

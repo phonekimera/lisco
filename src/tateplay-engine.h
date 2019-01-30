@@ -24,27 +24,35 @@
 #endif
 
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "stdbool.h"
 
-typedef enum {
+#include "uci-option.h"
+
+typedef enum EngineProtocol {
 	uci = 0,
 #define uci uci
 	xboard = 1,
 #define xboard xboard
 } EngineProtocol;
 
-typedef enum {
+typedef enum EngineState {
 	initial,
 	started,
-	protover,
-	done
+	negotiating,
+	acknowledged,
+	configuring,
+	ready,
+	thinking
 } EngineState;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct Game;
 
 typedef struct Engine {
 	/* The command-line options to start the engine.  */
@@ -62,11 +70,33 @@ typedef struct Engine {
 	int out;
 	int err;
 
+	/* The game that the engine is taking place in.  */
+	struct Game *game;
+
 	EngineProtocol protocol;
 	EngineState state;
+
+	char *outbuf;
+	size_t outbuf_size;
+	char *inbuf;
+	size_t inbuf_size;
+	size_t inbuf_length;
+
+	void (*out_callback)(struct Engine *self);
+
+	struct timeval waiting_since;
+	unsigned long max_waiting_time;
+
+	/* Negotiatable xboard features.  */
+	chi_bool xboard_name;
+	chi_bool xboard_san;
+
+	/* UCI options.  */
+	UCIOption **options;
+	size_t num_options;
 } Engine;
 
-extern Engine *engine_new();
+extern Engine *engine_new(struct Game *game);
 extern void engine_destroy(Engine *engine);
 
 /* Add to the engine's argument vector.  */
@@ -77,6 +107,18 @@ extern void engine_set_protocol(Engine *self, EngineProtocol protocol);
 
 /* Start the engine.  */
 extern bool engine_start(Engine *self);
+
+/* Initialize the protocol.  */
+extern void engine_negotiate(Engine *self);
+
+/* Read from the engine's standard output and parse it.  */
+extern bool engine_read_stdout(Engine *self);
+
+/* Read from the engine's standard error and log it.  */
+extern bool engine_read_stderr(Engine *self);
+
+/* Write commands to the engine's standard input.  */
+extern bool engine_write_stdin(Engine *self);
 
 #ifdef __cplusplus
 }
