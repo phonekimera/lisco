@@ -27,8 +27,13 @@
 START_TEST(test_st_constructor)
 	TimeControl tc;
 
-	ck_assert_int_eq(time_control_init_st(&tc, ""), chi_true);
+	ck_assert_int_eq(time_control_init_st(&tc, "2304"), chi_true);
 	ck_assert_int_eq(tc.fixed_time, chi_true);
+	ck_assert_int_eq(tc.seconds_per_move, 2304);
+
+	ck_assert_int_eq(time_control_init_st(&tc, "-10"), chi_false);
+
+	ck_assert_int_eq(time_control_init_st(&tc, "0"), chi_false);
 END_TEST
 
 Suite *

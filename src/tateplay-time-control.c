@@ -24,12 +24,21 @@
 
 #include "libchi.h"
 #include "tateplay-time-control.h"
+#include "util.h"
 
 chi_bool
 time_control_init_st(TimeControl *self, const char *input)
 {
+	long seconds_per_move;
+
 	memset(self, 0, sizeof *self);
 
+	if (!parse_integer(&seconds_per_move, input))
+		return chi_false;
+	if (seconds_per_move <= 0)
+		return chi_false;
+
+	self->seconds_per_move = seconds_per_move;
 	self->fixed_time = chi_true;
 
 	return chi_true;
