@@ -22,15 +22,15 @@
 
 #include <check.h>
 
-#include "uci-option.h"
+#include "tateplay-option.h"
 
 START_TEST(test_uci_spin_option)
 	const char *input;
-	UCIOption *option;
+	Option *option;
 
 	input = "  name Has \t Space type spin default 1 min 1 max 128    ";
 
-	option = uci_option_new(input);
+	option = option_uci_new(input);
 	ck_assert_ptr_ne(NULL, option);
 
 	ck_assert_ptr_ne(NULL, option->name);
@@ -47,11 +47,11 @@ START_TEST(test_uci_spin_option)
 	ck_assert_ptr_ne(NULL, option->max);
 	ck_assert_str_eq("128", option->max);
 
-	uci_option_destroy(option);
+	option_destroy(option);
 
 	input = " name Selectivity type spin default 2 min 0 max 4";
 
-	option = uci_option_new(input);
+	option = option_uci_new(input);
 	ck_assert_ptr_ne(NULL, option);
 
 	ck_assert_ptr_ne(NULL, option->name);
@@ -68,16 +68,16 @@ START_TEST(test_uci_spin_option)
 	ck_assert_ptr_ne(NULL, option->max);
 	ck_assert_str_eq("4", option->max);
 
-	uci_option_destroy(option);
+	option_destroy(option);
 END_TEST
 
 START_TEST(test_uci_check_option)
 	const char *input;
-	UCIOption *option;
+	Option *option;
 
 	input = " name Nullmove type check default true";
 
-	option = uci_option_new(input);
+	option = option_uci_new(input);
 	ck_assert_ptr_ne(NULL, option);
 
 	ck_assert_ptr_ne(NULL, option->name);
@@ -88,16 +88,16 @@ START_TEST(test_uci_check_option)
 	ck_assert_ptr_ne(NULL, option->default_value);
 	ck_assert_str_eq("true", option->default_value);
 
-	uci_option_destroy(option);
+	option_destroy(option);
 END_TEST
 
 START_TEST(test_uci_combo_option)
 	const char *input;
-	UCIOption *option;
+	Option *option;
 
 	input = "name Style type combo default Normal var Solid var Normal var Risky";
 
-	option = uci_option_new(input);
+	option = option_uci_new(input);
 	ck_assert_ptr_ne(NULL, option);
 
 	ck_assert_ptr_ne(NULL, option->name);
@@ -118,16 +118,16 @@ START_TEST(test_uci_combo_option)
 	ck_assert_ptr_ne(NULL, option->vars[2]);
 	ck_assert_str_eq("Risky", option->vars[2]);
 	
-	uci_option_destroy(option);
+	option_destroy(option);
 END_TEST
 
 START_TEST(test_stockfish_logfile_option)
 	const char *input;
-	UCIOption *option;
+	Option *option;
 
 	input = " name Debug Log File type string default";
 
-	option = uci_option_new(input);
+	option = option_uci_new(input);
 	ck_assert_ptr_ne(NULL, option);
 
 	ck_assert_ptr_ne(NULL, option->name);
@@ -138,7 +138,7 @@ START_TEST(test_stockfish_logfile_option)
 	ck_assert_ptr_ne(NULL, option->default_value);
 	ck_assert_str_eq("", option->default_value);
 
-	uci_option_destroy(option);
+	option_destroy(option);
 END_TEST
 
 Suite *

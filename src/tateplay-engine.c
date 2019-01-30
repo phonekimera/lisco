@@ -129,13 +129,13 @@ engine_destroy(Engine *self)
 		free(self->user_options);
 	}
 
-	if (self->uci_options) {
+	if (self->options) {
 		size_t i;
-		for (i = 0; i < self->num_uci_options; ++i) {
-			UCIOption *option = self->uci_options[i];
-			uci_option_destroy(option);
+		for (i = 0; i < self->num_options; ++i) {
+			Option *option = self->options[i];
+			option_destroy(option);
 		}
-		free(self->uci_options);
+		free(self->options);
 	}
 
 	if (self->argv) free(self->argv);
@@ -749,7 +749,7 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 static bool
 engine_process_uci_option(Engine *self, const char *line)
 {
-	UCIOption *option = uci_option_new(line);
+	Option *option = option_uci_new(line);
 
 	if (!option) {
 		log_engine_error(self->nick, "unable to parse UCI option: %s",
@@ -757,10 +757,10 @@ engine_process_uci_option(Engine *self, const char *line)
 		return true;
 	}
 
-	self->uci_options = xrealloc(self->uci_options,
-	                             (self->num_uci_options + 1)
-	                              * sizeof self->uci_options[0]);
-	self->uci_options[self->num_uci_options++] = option;
+	self->options = xrealloc(self->options,
+	                         (self->num_options + 1)
+	                          * sizeof self->options[0]);
+	self->options[self->num_options++] = option;
 
 	return true;
 }
@@ -851,20 +851,20 @@ engine_configure(Engine *self)
 
 static void
 engine_configure_option(Engine *self, chi_stringbuf *sb,
-                        const UserOption *option)
+                        const UserOption *user_option)
 {
 	size_t i;
-	UCIOption *uci_option = NULL;
+	Option *option = NULL;
 
-	for (i = 0; i < self->num_uci_options; ++i) {
-		if (strcmp(option->name, self->uci_options[i]->name) == 0) {
-			uci_option = self->uci_options[i];
+	for (i = 0; i < self->num_options; ++i) {
+		if (strcmp(user_option->name, self->options[i]->name) == 0) {
+			option = self->options[i];
 			break;
 		}
 	}
 
-	if (uci_option == NULL) {
+	if (option == NULL) {
 		error(EXIT_FAILURE, 0, "%s: engine does not support option '%s'.",
-		      self->nick, option->name);
+		      self->nick, user_option->name);
 	}
 }

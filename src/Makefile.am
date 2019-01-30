@@ -30,16 +30,17 @@ noinst_HEADERS = \
 	tateplay-engine.h \
 	tateplay-game.h \
 	tateplay-loop.h \
+	tateplay-option.h \
 	time_ctrl.h \
 	util.h \
 	xboard-feature.h \
-        xmalloca-debug.h
+	xmalloca-debug.h
 
 tate_SOURCES = tate.c board.c brain.c edit.c book.c time_ctrl.c \
 	evaluate.c next_move.c quiescence.c search.c print_pv.c \
 	tt_hash.c epd.c ev_hash.c qtt_hash.c three-fold.c
 tateplay_SOURCES = tateplay.c tateplay-engine.c log.c tateplay-game.c \
-	tateplay-loop.c util.c uci-option.c xboard-feature.c display-board.c
+	tateplay-loop.c util.c tateplay-option.c xboard-feature.c display-board.c
 
 tate_LDADD = ../lib/libtate.la ../libchi/libchi.la
 tate_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la

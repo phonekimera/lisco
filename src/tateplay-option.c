@@ -29,16 +29,16 @@
 #include "xstrndup.h"
 
 #include "util.h"
-#include "uci-option.h"
+#include "tateplay-option.h"
 
-static size_t uci_option_consume_tokens(UCIOption *self, char **tokens,
-                                        const char *original);
-static void uci_option_add_var(UCIOption *self, char *var);
+static size_t option_consume_tokens(Option *self, char **tokens,
+                                    const char *original);
+static void option_add_var(Option *self, char *var);
 
-UCIOption *
-uci_option_new(const char *input)
+Option *
+option_uci_new(const char *input)
 {
-	UCIOption *self = xmalloc(sizeof *self);
+	Option *self = xmalloc(sizeof *self);
 	const char *original = ltrim(input);
 	char *copy = xstrdup(original);
 	char *string = copy;
@@ -62,10 +62,10 @@ uci_option_new(const char *input)
 		char *keyword = tokens[i++];
 		char *value;
 
-		size_t skip = uci_option_consume_tokens(self, tokens + i,
-		                                        original
-		                                        + (&tokens[i][0]
-		                                           - &tokens[0][0]));
+		size_t skip = option_consume_tokens(self, tokens + i,
+                                            original
+                                            + (&tokens[i][0]
+                                            - &tokens[0][0]));
 		if (skip) {
 			value = tokens[i];
 			i += skip;
@@ -107,7 +107,7 @@ uci_option_new(const char *input)
 				goto bail_out;
 			self->max = xstrdup(value);
 		} else if (strcmp("var", keyword) == 0) {
-			uci_option_add_var(self, value);
+			option_add_var(self, value);
 		} else {
 			goto bail_out;
 		}
@@ -127,13 +127,13 @@ bail_out:
 	if (tokens)
 		free(tokens);
 
-	uci_option_destroy(self);
+	option_destroy(self);
 
 	return NULL;
 }
 
 void
-uci_option_destroy(UCIOption *self)
+option_destroy(Option *self)
 {
 	size_t i;
 
@@ -153,7 +153,7 @@ uci_option_destroy(UCIOption *self)
 }
 
 static size_t
-uci_option_consume_tokens(UCIOption *self, char **tokens, const char *original)
+option_consume_tokens(Option *self, char **tokens, const char *original)
 {
 	size_t i, j;
 
@@ -197,7 +197,7 @@ uci_option_consume_tokens(UCIOption *self, char **tokens, const char *original)
 }
 
 static void
-uci_option_add_var(UCIOption *self, char *var)
+option_add_var(Option *self, char *var)
 {
 	++self->num_vars;
 	self->vars = xrealloc(self->vars,

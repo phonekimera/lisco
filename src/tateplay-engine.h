@@ -29,7 +29,7 @@
 
 #include "stdbool.h"
 
-#include "uci-option.h"
+#include "tateplay-option.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -112,9 +112,9 @@ typedef struct Engine {
 	chi_bool xboard_name;
 	chi_bool xboard_usermove;
 
-	/* UCI options.  */
-	UCIOption **uci_options;
-	size_t num_uci_options;
+	/* Engine options.  */
+	Option **options;
+	size_t num_options;
 } Engine;
 
 extern Engine *engine_new(struct Game *game);

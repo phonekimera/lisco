@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _UCI_OPTION_H
-# define _UCI_OPTION_H        /* Allow multiple inclusion.  */
+#ifndef _TATEPLAY_OPTION_H
+# define _TATEPLAY_OPTION_H        /* Allow multiple inclusion.  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -29,27 +29,27 @@
 extern "C" {
 #endif
 
-typedef enum UCIOptionType {
+typedef enum OptionType {
 	uci_option_type_string = 1,
 	uci_option_type_check,
 	uci_option_type_spin,
 	uci_option_type_button,
 	uci_option_type_combo,
-} UCIOptionType;
+} OptionType;
 
-typedef struct UCIOption {
+typedef struct Option {
 	char *name;
-	UCIOptionType type;
+	OptionType type;
 	char *min;
 	char *max;
 	char **vars;
 	size_t num_vars;
 	char *default_value;
 	chi_bool default_set;
-} UCIOption;
+} Option;
 
-extern UCIOption *uci_option_new(const char *input);
-extern void uci_option_destroy(UCIOption *option);
+extern Option *option_uci_new(const char *input);
+extern void option_destroy(Option *option);
 
 #ifdef __cplusplus
 }
