@@ -463,7 +463,10 @@ game_set_engine_option(Game *self, Engine *engine, char *optspec)
 
 	if (!*name)
 		return;
-	value = ltrim(strsep(&optspec, "="));
+	if (endptr)
+		value = ltrim(endptr);
+	else
+		value = "";
 
 	engine_set_option(engine, trim(xstrdup(name)), trim(xstrdup(value)));
 }
