@@ -28,8 +28,10 @@ check_common_SOURCES = \
 
 check_tateplay_SOURCES = \
 		../tateplay-option.c \
+		../tateplay-time-control.c \
 		../util.c \
 		../xboard-feature.c \
+		test_tate_time_control.c \
 		test_xboard.c \
 		test_uci.c \
 		check_tateplay.c

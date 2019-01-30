@@ -16,39 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _TATEPLAY_TIME_CONTROL_H
+# define _TATEPLAY_TIME_CONTROL_H        /* Allow multiple inclusion.  */
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include <check.h>
-
 #include "libchi.h"
 
-extern Suite *xboard_suite();
-extern Suite *uci_suite();
-extern Suite *time_control_suite();
-
-#ifdef DEBUG_XMALLOC
-# include "xmalloc-debug.c"
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-int
-main(int argc, char *argv[])
-{
-	int failed = 0;
-	SRunner *runner;
+typedef struct TimeControl {
+	chi_bool fixed_time;
+	unsigned long seconds_per_move;
+} TimeControl;
 
-#ifdef DEBUG_XMALLOC
-	init_xmalloc_debug();
-#endif
+extern chi_bool time_control_init_st(TimeControl *tc, const char *input);
 
-	runner = srunner_create(xboard_suite());
-	srunner_add_suite(runner, uci_suite());
-	srunner_add_suite(runner, time_control_suite());
-
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
-
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+#ifdef __cplusplus
 }
+#endif
+
+#endif

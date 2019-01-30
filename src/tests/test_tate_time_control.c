@@ -22,33 +22,26 @@
 
 #include <check.h>
 
-#include "libchi.h"
+#include "tateplay-time-control.h"
 
-extern Suite *xboard_suite();
-extern Suite *uci_suite();
-extern Suite *time_control_suite();
+START_TEST(test_st_constructor)
+	TimeControl tc;
 
-#ifdef DEBUG_XMALLOC
-# include "xmalloc-debug.c"
-#endif
+	ck_assert_int_eq(time_control_init_st(&tc, ""), chi_true);
+	ck_assert_int_eq(tc.fixed_time, chi_true);
+END_TEST
 
-int
-main(int argc, char *argv[])
+Suite *
+time_control_suite(void)
 {
-	int failed = 0;
-	SRunner *runner;
+	Suite *suite;
+	TCase *tc_search_time;
 
-#ifdef DEBUG_XMALLOC
-	init_xmalloc_debug();
-#endif
+	suite = suite_create("Time Control");
 
-	runner = srunner_create(xboard_suite());
-	srunner_add_suite(runner, uci_suite());
-	srunner_add_suite(runner, time_control_suite());
+	tc_search_time = tcase_create("Fixed search time");
+	tcase_add_test(tc_search_time, test_st_constructor);
+	suite_add_tcase(suite, tc_search_time);
 
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
-
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	return suite;
 }
