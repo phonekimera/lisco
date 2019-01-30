@@ -31,6 +31,10 @@
 
 #include "uci-option.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum EngineProtocol {
 	uci = 0,
 #define uci uci
@@ -50,9 +54,10 @@ typedef enum EngineState {
 	finished
 } EngineState;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef struct UserOption {
+	char *name;
+	char *value;
+} UserOption;
 
 struct Game;
 
@@ -99,6 +104,10 @@ typedef struct Engine {
 	/* Maximum search depth in plies.  0 means, search to infinite depth.  */
 	unsigned long depth;
 
+	/* Options set by the user via CLI --option-COLOR.  */
+	UserOption *user_options;
+	size_t num_user_options;
+
 	/* Negotiatable xboard features.  */
 	chi_bool xboard_name;
 	chi_bool xboard_usermove;
@@ -113,6 +122,9 @@ extern void engine_destroy(Engine *engine);
 
 /* Add to the engine's argument vector.  */
 extern void engine_add_argv(Engine *self, const char *arg);
+
+/* Add an option set by the user via CLI for the configuration phase.  */
+extern void engine_set_option(Engine *self, const char *key, const char *value);
 
 /* Set the engine protocol.  */
 extern void engine_set_protocol(Engine *self, EngineProtocol protocol);

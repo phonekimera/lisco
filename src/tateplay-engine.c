@@ -117,6 +117,16 @@ engine_destroy(Engine *self)
 		(void) waitpid(self->pid, NULL, WNOHANG);
 	}
 
+	if (self->user_options) {
+		size_t i;
+		for (i = 0; i < self->num_user_options; ++i) {
+			UserOption option = self->user_options[i];
+			free(option.name);
+			free(option.value);
+		}
+		free(self->user_options);
+	}
+
 	if (self->options) {
 		size_t i;
 		for (i = 0; i < self->num_options; ++i) {
