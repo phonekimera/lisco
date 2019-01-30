@@ -16,27 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _LOG_H
-# define _LOG_H        /* Allow multiple inclusion.  */
+#ifndef _DISPLAY_BOARD_H
+# define _DISPLAY_BOARD_H        /* Allow multiple inclusion.  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <stdio.h>
 
-extern int verbose;
+#include "libchi.h"
 
-extern void log_realm(const char *realm, const char *message, ...);
-extern void log_engine_in(const char *realm, const char *message, ...);
-extern void log_engine_out(const char *realm, const char *message, ...);
-extern void log_engine_error(const char *realm, const char *message, ...);
-extern void log_engine_fatal(const char *realm, const char *message, ...);
+CHI_BEGIN_DECLS
 
-#ifdef __cplusplus
-}
-#endif
+extern void display_board(FILE *stream, chi_pos *pos);
+
+CHI_END_DECLS
 
 #endif

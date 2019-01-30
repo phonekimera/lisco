@@ -33,14 +33,16 @@
 
 #include "assure.h"
 #include "error.h"
-#include "xmalloca-debug.h"
 
 #include "libchi.h"
+#include "display-board.h"
+#include "log.h"
+#include "stringbuf.h"
 #include "tateplay-engine.h"
 #include "tateplay-game.h"
-#include "log.h"
 #include "util.h"
 #include "xboard-feature.h"
+#include "xmalloca-debug.h"
 
 static void engine_spool_output(Engine *self, const char *buf,
                                 void (*callback) (Engine *self));
@@ -49,13 +51,18 @@ static bool engine_process_input(Engine *self, const char *line);
 static bool engine_process_input_negotiating(Engine *self, const char *line);
 static bool engine_process_input_acknowledged(Engine *self, const char *line);
 static bool engine_process_input_configuring(Engine *self, const char *line);
+static bool engine_process_input_thinking(Engine *self, const char *line);
+static bool engine_process_input_pondering(Engine *self, const char *line);
 
 static bool engine_process_xboard_features(Engine *self, const char *line);
 static bool engine_process_uci_option(Engine *self, const char *line);
 static bool engine_process_uci_id(Engine *self, const char *line);
+static bool engine_configure(Engine *self);
 
 /* Callbacks.  */
 static void engine_start_initial_timeout(Engine *self);
+static void engine_start_clock(Engine *self);
+static void engine_state_ready(Engine *self);
 
 Engine *
 engine_new(Game *game)
@@ -108,6 +115,16 @@ engine_destroy(Engine *self)
 		log_realm(self->nick, "giving up waiting, sending SIGKILL");
 		kill(self->pid, SIGKILL);
 		(void) waitpid(self->pid, NULL, WNOHANG);
+	}
+
+	if (self->user_options) {
+		size_t i;
+		for (i = 0; i < self->num_user_options; ++i) {
+			UserOption option = self->user_options[i];
+			free(option.name);
+			free(option.value);
+		}
+		free(self->user_options);
 	}
 
 	if (self->options) {
@@ -380,6 +397,96 @@ engine_write_stdin(Engine *self)
 	return true;
 }
 
+void
+engine_think(Engine *self, chi_pos *pos, chi_move move)
+{
+	char *movestr = NULL;
+	unsigned int buflen;
+	int errnum;
+	char *fen;
+	chi_stringbuf* sb = _chi_stringbuf_new(200);
+
+	self->state = thinking;
+
+	if (verbose && !move) {
+		fen = chi_fen(pos);
+		log_engine_error(self->nick, "FEN: %s\n", fen);
+		display_board(stderr, pos);
+		chi_free(fen);
+	}
+
+	if (self->protocol == xboard) {
+		if (move) {
+			if (self->san) {
+				errnum = chi_print_move(pos, move, &movestr, &buflen, 1);
+			} else {
+				errnum = chi_coordinate_notation(move, chi_on_move(pos),
+												&movestr, &buflen);
+			}
+			if (errnum) {
+				log_engine_fatal(self->nick, 
+								"error generating move string: %s",
+								chi_strerror(errnum));
+			}
+			if (self->xboard_usermove)
+				_chi_stringbuf_append(sb, "usermove ");
+			
+			_chi_stringbuf_append(sb, movestr);
+			_chi_stringbuf_append_char(sb, '\n');
+		} else {
+			_chi_stringbuf_append(sb, "go\n");
+		}
+	} else {
+		/* UCI.  First apply the move to the position.  */
+		if (move) {
+			errnum = chi_apply_move(pos, move);
+			if (errnum) {
+				log_engine_fatal(self->nick, 
+				                 "error applying move: %s",
+				                 chi_strerror(errnum));
+			}
+		}
+		fen = chi_fen(pos);
+		_chi_stringbuf_append(sb, "position fen ");
+		_chi_stringbuf_append(sb, fen);
+		_chi_stringbuf_append_char(sb, '\n');
+		_chi_stringbuf_append(sb, "go");
+
+		if (self->depth) {
+			_chi_stringbuf_append(sb, " depth ");
+			_chi_stringbuf_append_unsigned(sb, self->depth, 10);
+			_chi_stringbuf_append_char(sb, '\n');
+		}
+
+		_chi_stringbuf_append_char(sb, '\n');
+		chi_free(fen);
+	}
+
+	engine_spool_output(self, _chi_stringbuf_get_string(sb),
+	                    engine_start_clock);
+	_chi_stringbuf_destroy(sb);
+}
+
+void
+engine_ponder(Engine *self, chi_pos *pos)
+{
+	self->state = pondering;
+}
+
+void
+engine_set_option(Engine *self, const char *name, const char *value)
+{
+	UserOption option;
+
+	++self->num_user_options;
+	self->user_options = xrealloc(self->user_options,
+	                              self->num_user_options
+	                              * sizeof self->user_options[0]);
+	option.name = xstrdup(name);
+	option.value = xstrdup(value);
+	self->user_options[self->num_user_options - 1] = option;
+}
+
 static void
 engine_spool_output(Engine *self, const char *cmd,
                     void (*callback)(Engine * self))
@@ -480,6 +587,12 @@ engine_process_input(Engine *self, const char *cmd)
 		case configuring:
 			status = engine_process_input_configuring(self, cmd);
 			break;
+		case thinking:
+			status = engine_process_input_thinking(self, cmd);
+			break;
+		case pondering:
+			status = engine_process_input_pondering(self, cmd);
+			break;
 		default:
 			error(EXIT_SUCCESS, 0,
 			      "engine '%s' in unhandled state %d.\n",
@@ -525,11 +638,8 @@ engine_process_input_acknowledged(Engine *self, const char *cmd)
 			return engine_process_uci_id(self, cmd + 2);
 		} else if (strncmp("uciok", cmd, 5) == 0
 		           && ('\0' == cmd[5] || isspace(cmd[5]))) {
-			self->state = configuring;
 			self->max_waiting_time = 0UL;
-			/* FIXME! Configure engine!  */
-			engine_spool_output(self, "ucinewgame\nisready\n",
-			                    NULL);
+			engine_configure(self);
 			return true;
 		}
 	}
@@ -540,16 +650,53 @@ engine_process_input_acknowledged(Engine *self, const char *cmd)
 static bool
 engine_process_input_configuring(Engine *self, const char *cmd)
 {
-	if (self->protocol == xboard) {
-		error(EXIT_FAILURE, 0, "xboard engine in state configuring\n");
-	} else if (self->protocol == uci) {
+	if (self->protocol == uci) {
 		if (strncmp("readyok", cmd, 7) == 0
 		           && ('\0' == cmd[7] || isspace(cmd[7]))) {
 			self->state = ready;
-			return true;
 		}
 	}
 
+	return true;
+}
+
+static bool
+engine_process_input_thinking(Engine *self, const char *cmd)
+{
+	const char *token;
+	/* This cast saves an unnecessary strdup.  The command buffer is
+	 * already dynamically allocated.
+	 */
+	char *endptr = (char *) cmd;
+
+	token = strsep(&endptr, " \t\v\f");
+	if (!token)
+		return true;
+
+	if (self->protocol == xboard) {
+		if (strcmp("move", token) == 0) {
+			token = strsep(&endptr, " \t\v\f");
+			if (!token)
+				return true;
+			
+			return game_do_move(self->game, token);
+		}
+	} else {
+		if (strcmp("bestmove", token) == 0) {
+			token = strsep(&endptr, " \t\v\f");
+			if (!token)
+				return true;
+			
+			return game_do_move(self->game, token);
+		}
+	}
+
+	return true;
+}
+
+static bool
+engine_process_input_pondering(Engine *self, const char *cmd)
+{
 	return true;
 }
 
@@ -576,10 +723,15 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 				                      " to be ready");
 				self->max_waiting_time = 3600UL * 1000000UL;
 			} else {
-				log_realm(self->nick, "engine is ready");
-				self->state = ready;
 				self->max_waiting_time = 0UL;
+				engine_configure(self);
 				return true;
+			}
+		} else if (strcmp("usermove", feature->name) == 0) {
+			if (strcmp("0", feature->value) == 0) {
+				self->xboard_usermove = chi_false;
+			} else {
+				self->xboard_usermove = chi_true;
 			}
 		}
 
@@ -636,4 +788,46 @@ engine_start_initial_timeout(Engine *self)
 
 	log_realm(self->nick,
 	          "wait at most two seconds for engine being ready.");
+}
+
+static void
+engine_start_clock(Engine *self)
+{
+	log_realm(self->nick, "FIXME! Start clock!");
+}
+
+static void
+engine_state_ready(Engine *self)
+{
+	self->state = ready;
+}
+
+static bool
+engine_configure(Engine *self)
+{
+	chi_stringbuf *sb = _chi_stringbuf_new(128);
+	const char *commands;
+
+	self->state = configuring;
+
+	if (self->protocol == xboard) {
+		if (self->depth) {
+			_chi_stringbuf_append(sb, "sd ");
+			_chi_stringbuf_append_unsigned(sb, self->depth, 10);
+			_chi_stringbuf_append_char(sb, '\n');
+		}
+
+		commands = _chi_stringbuf_get_string(sb);
+		if (*commands) {
+			engine_spool_output(self, _chi_stringbuf_get_string(sb),
+			                    engine_state_ready);			
+		}
+		_chi_stringbuf_destroy(sb);
+	} else if (self->protocol == uci) {
+		_chi_stringbuf_append(sb, "ucinewgame\nisready\n");
+		engine_spool_output(self, _chi_stringbuf_get_string(sb), NULL);
+		_chi_stringbuf_destroy(sb);
+	}
+
+	return true;
 }

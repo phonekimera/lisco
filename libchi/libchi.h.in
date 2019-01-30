@@ -279,14 +279,14 @@ typedef enum chi_result {
 #define chi_result_draw_by_50_moves_rule chi_result_draw_by_50_moves_rule
 	chi_result_draw_by_insufficient_material = 5,
 #define chi_result_draw_by_insufficient_material chi_result_draw_by_insufficient_material
-	chi_result_draw_by_impossible_checkate = 6,
+	chi_result_draw_by_impossible_checkmate = 6,
 #define chi_result_draw_by_impossible_checkmate chi_result_draw_by_impossible_checkmate
 	chi_result_draw_by_agreement = 7,
 #define chi_result_draw_by_agreement chi_result_draw_by_agreement
 	chi_result_white_wins = 10, /* Reason unknown */
 #define chi_result_white_wins chi_result_white_wins
 	chi_result_black_wins = -10, /* Reason unknown */
-#define chi_result_black_wins chi_result_black_wins_wins
+#define chi_result_black_wins chi_result_black_wins
 	chi_result_white_mates = 11,
 #define chi_result_white_mates chi_result_white_mates
 	chi_result_black_mates = -11,
@@ -295,10 +295,10 @@ typedef enum chi_result {
 #define chi_result_white_wins_on_time chi_result_white_wins_on_time
 	chi_result_black_wins_on_time = -12,
 #define chi_result_black_wins_on_time chi_result_black_wins_on_time
-	chi_result_white_wins_on_surrender = 13,
-#define chi_result_white_wins_on_surrender chi_result_white_wins_on_surrender
-	chi_result_black_wins_on_surrender = 13,
-#define chi_result_black_wins_on_surrender chi_result_black_wins_on_surrender
+	chi_result_white_wins_by_resignation = 13,
+#define chi_result_white_wins_by_resignation chi_result_white_wins_by_resignation
+	chi_result_black_wins_by_resignation = -13,
+#define chi_result_black_wins_by_resignation chi_result_black_wins_by_resignation
 } chi_result;
 
 #define chi_result_is_white_win(result) ((result) >= chi_result_white_wins)
@@ -723,6 +723,12 @@ extern bitv64 chi_zk_change_side(chi_zk_handle chi_arg_zk_handle,
    there can be a prime one closer to the argument.  In even more 
    pathological case, the returned prime is no prime at all.  */
 extern unsigned long int chi_closest_prime(unsigned long int);
+
+/* This is just an alias for free().  If free() is overloaded with
+ * the debugging version of the xmalloc functions, you can force
+ * using the original function.
+ */
+void chi_free(void *ptr);
 
 CHI_END_DECLS
 
