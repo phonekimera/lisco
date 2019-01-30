@@ -325,6 +325,29 @@ START_TEST(test_ks_black_rook_capture)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
+
+    /* Now the same, when the castling right was already lost.  */
+    fen = "4k2r/8/8/8/8/8/7R/4K3 w - - 0 1";
+
+    errnum = chi_set_position(&pos, fen);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&pos, &move, "Rxh8");
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = "4k2R/8/8/8/8/8/8/4K3 b - - 0 1";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = fen;
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
 END_TEST;
 
 START_TEST(test_ks_white_rook_capture)
@@ -375,6 +398,183 @@ START_TEST(test_ks_white_rook_capture)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
+
+    /* Now the same, when the castling right was already lost.  */
+    fen = "4k3/7r/8/8/8/8/8/4K2R b - - 0 1";
+
+    errnum = chi_set_position(&pos, fen);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&pos, &move, "Rxh1");
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = "4k3/8/8/8/8/8/8/4K2r w - - 0 2";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = fen;
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+END_TEST;
+
+
+START_TEST(test_qs_black_rook_capture)
+	chi_pos pos;
+
+/*
+      a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | r |   |   |   | k |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: yes.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 2.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 | R |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   | K |   |   |   |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+*/
+
+    const char *fen = "r3k3/8/8/8/8/8/R7/4K3 w q - 0 2";
+	chi_move move;
+	const char *wanted;
+	char *got;
+	int errnum;
+
+    errnum = chi_set_position(&pos, fen);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&pos, &move, "Rxa8");
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = "R3k3/8/8/8/8/8/8/4K3 b - - 0 2";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = fen;
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+    /* Now the same, when the castling right was already lost.  */
+    fen = "r3k3/8/8/8/8/8/R7/4K3 w - - 0 2";
+
+    errnum = chi_set_position(&pos, fen);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&pos, &move, "Rxa8");
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = "R3k3/8/8/8/8/8/8/4K3 b - - 0 2";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = fen;
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+    
+END_TEST;
+
+
+START_TEST(test_qs_white_rook_capture)
+	chi_pos pos;
+
+/*
+    a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   |   |   |   | k |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 | r |   |   |   |   |   |   |   | White queen castle: yes.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 5.
+   +---+---+---+---+---+---+---+---+ Next move: black.
+ 4 |   |   |   |   |   |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 | R |   |   |   | K |   |   |   |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+*/
+    const char *fen = "4k3/r7/8/8/8/8/8/R3K3 b Q - 0 3";
+	chi_move move;
+	const char *wanted;
+	char *got;
+	int errnum;
+
+    errnum = chi_set_position(&pos, fen);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&pos, &move, "Rxa1");
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = "4k3/8/8/8/8/8/8/r3K3 w - - 0 4";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = fen;
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+    /* Now the same, when the castling right was already lost.  */
+    fen = "4k3/r7/8/8/8/8/8/R3K3 b - - 0 3";
+
+    errnum = chi_set_position(&pos, fen);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&pos, &move, "Rxa1");
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = "4k3/8/8/8/8/8/8/r3K3 w - - 0 4";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = fen;
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
 END_TEST;
 
 
@@ -398,6 +598,8 @@ move_making_suite(void)
     tc_rook = tcase_create("Castling States");
     tcase_add_test(tc_rook, test_ks_black_rook_capture);
     tcase_add_test(tc_rook, test_ks_white_rook_capture);
+    tcase_add_test(tc_rook, test_qs_black_rook_capture);
+    tcase_add_test(tc_rook, test_qs_white_rook_capture);
     suite_add_tcase(suite, tc_rook);
 
 	return suite;
