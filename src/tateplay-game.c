@@ -196,6 +196,8 @@ game_print_pgn(const Game *self)
 
 	if (self->result < 0) {
 		printf("[Result \"0-1\"]\n");
+	} else if (self->result == chi_result_unknown) {
+		printf("[Result \"*\"]\n");
 	} else if (self->result >= chi_result_white_wins) {
 		printf("[Result \"1-0\"]\n");
 	} else {
