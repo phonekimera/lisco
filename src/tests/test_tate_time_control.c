@@ -56,6 +56,13 @@ START_TEST(test_level_constructor)
 	ck_assert_int_eq(tc.moves_per_time_control, 0);
 	ck_assert_int_eq(tc.seconds_per_time_control, 120);
 	ck_assert_int_eq(tc.increment, 12);
+
+	ck_assert_int_eq(time_control_init_level(&tc, "   40-00:30|0 "),
+	                                         chi_true);
+	ck_assert_int_eq(tc.fixed_time, chi_false);
+	ck_assert_int_eq(tc.moves_per_time_control, 40);
+	ck_assert_int_eq(tc.seconds_per_time_control, 30);
+	ck_assert_int_eq(tc.increment, 0);
 END_TEST
 
 Suite *
