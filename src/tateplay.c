@@ -250,7 +250,7 @@ for black):\n\
 		printf("\
 You can specify fractions of a minute for the time control, for example 0:30.\n\
 The three tokens can be separate by anything but a digit, a plus sign ('+'),\n\
-or a colon (':').\n\
+or a colon (':').  The default is '40 15:00 0'.\n\
 ");
 		printf("\n");
 		printf("\
