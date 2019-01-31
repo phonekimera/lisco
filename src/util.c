@@ -61,7 +61,7 @@ parse_integer(long *result, const char *string)
 	char *endptr;
 
 	errno = 0;
-	number = strtoul(string, &endptr, 0);
+	number = strtoul(string, &endptr, 10);
 	if (number == LONG_MAX && errno) {
 		return chi_false;
 	} else if (string[0] && *endptr == 0) {
