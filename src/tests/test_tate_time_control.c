@@ -36,17 +36,44 @@ START_TEST(test_st_constructor)
 	ck_assert_int_eq(time_control_init_st(&tc, "0"), chi_false);
 END_TEST
 
+START_TEST(test_level_constructor)
+	TimeControl tc;
+
+	ck_assert_int_eq(time_control_init_level(&tc, "40 5 0"), chi_true);
+	ck_assert_int_eq(tc.fixed_time, chi_false);
+	ck_assert_int_eq(tc.moves_per_time_control, 40);
+	ck_assert_int_eq(tc.seconds_per_time_control, 300);
+	ck_assert_int_eq(tc.increment, 0);
+
+	ck_assert_int_eq(time_control_init_level(&tc, "40 00:30 0"), chi_true);
+	ck_assert_int_eq(tc.fixed_time, chi_false);
+	ck_assert_int_eq(tc.moves_per_time_control, 40);
+	ck_assert_int_eq(tc.seconds_per_time_control, 30);
+	ck_assert_int_eq(tc.increment, 0);
+
+	ck_assert_int_eq(time_control_init_level(&tc, "0 2 12"), chi_true);
+	ck_assert_int_eq(tc.fixed_time, chi_false);
+	ck_assert_int_eq(tc.moves_per_time_control, 0);
+	ck_assert_int_eq(tc.seconds_per_time_control, 120);
+	ck_assert_int_eq(tc.increment, 12);
+END_TEST
+
 Suite *
 time_control_suite(void)
 {
 	Suite *suite;
 	TCase *tc_search_time;
+	TCase *tc_level;
 
-	suite = suite_create("Time Control");
+	suite = suite_create("Time control");
 
 	tc_search_time = tcase_create("Fixed search time");
 	tcase_add_test(tc_search_time, test_st_constructor);
 	suite_add_tcase(suite, tc_search_time);
+
+	tc_level = tcase_create("Level time control");
+	tcase_add_test(tc_level, test_level_constructor);
+	suite_add_tcase(suite, tc_level);
 
 	return suite;
 }

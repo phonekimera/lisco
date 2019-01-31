@@ -32,9 +32,14 @@ extern "C" {
 typedef struct TimeControl {
 	chi_bool fixed_time;
 	unsigned long seconds_per_move;
+
+	long moves_per_time_control;
+	long seconds_per_time_control;
+	long increment;
 } TimeControl;
 
 extern chi_bool time_control_init_st(TimeControl *tc, const char *input);
+extern chi_bool time_control_init_level(TimeControl *tc, const char *input);
 
 #ifdef __cplusplus
 }

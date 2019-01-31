@@ -226,7 +226,16 @@ for black):\n\
 		printf("\
   -p, --protocol=PROTOCOL     one of 'uci' (default), 'xboard', or 'cecp'\n\
                               (an alias for 'xboard'\n\
-  -d, --depth=PLIES           search at most to depth PLIES\n");
+  -d, --depth=PLIES           search at most to depth PLIES\n\
+      --seconds-per-move=SEC  set time control to fixed SEC seconds per move\n\
+  -t, --time-control=NUM MINUTES INCREMENT  set time control to NUM moves\n\
+                              in MINUTES minutes with INCREMENT seconds\n\
+");
+		printf("\n");
+		printf("\
+You can specify fractions of a minute for the time control, for example 0:30.\n\
+The three tokens can be separate by anything but a digit or a colon (':').\n\
+");
 		printf("\n");
 		printf("\
 General engine options\n");

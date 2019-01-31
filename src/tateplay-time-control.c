@@ -22,19 +22,127 @@
 
 #include <string.h>
 
+#include "error.h"
+
 #include "libchi.h"
 #include "tateplay-time-control.h"
 #include "util.h"
+#include "xmalloca-debug.h"
+
+static char delimiter[256];
+static chi_bool delimiter_initialized = chi_false;
 
 chi_bool
-time_control_init_st(TimeControl *self, const char *input)
+time_control_init_level(TimeControl *self, const char *_input)
 {
-	long seconds_per_move;
+	unsigned char c;
+	size_t i;
+	char *input;
+	char *endptr;
+	char *moves_per_time_control_str;
+	char *minutes_per_time_control_str;
+	char *seconds_str;
+	long minutes, seconds = 0L;
+	char *increment_str;
+
+	if (!delimiter_initialized) {
+		for (i = 0, c = '\001'; c < '0' && i < sizeof delimiter; ++c) {
+			delimiter[i++] = c;
+		}
+		for (c = ';'; c > 0 && i < sizeof delimiter; ++c) {
+			delimiter[i++] = c;
+		}
+		delimiter[i] = '\0';
+		delimiter_initialized = chi_true;
+	}
 
 	memset(self, 0, sizeof *self);
 
-	if (!parse_integer(&seconds_per_move, input))
+	input = xstrdup(_input);
+
+	endptr = trim(input);
+
+	/* First tokenize the three parts.  */
+	moves_per_time_control_str = strsep(&endptr, delimiter);
+	if (!(moves_per_time_control_str && *moves_per_time_control_str)) {
+		free(input);
 		return chi_false;
+	}
+	minutes_per_time_control_str = strsep(&endptr, delimiter);
+	if (!(minutes_per_time_control_str && *minutes_per_time_control_str)) {
+		free(input);
+		return chi_false;
+	}
+	increment_str = strsep(&endptr, delimiter);
+	if (!(increment_str && *increment_str)) {
+		free(input);
+		return chi_false;
+	}
+	if (endptr) {
+		free(input);
+		return chi_false;
+	}
+
+	/* We never have to take negative numbers into account.  The minus sign
+	 * is part of our delimiter and will be discarded.
+	 */
+
+	if (!parse_integer(&self->moves_per_time_control,
+	                   moves_per_time_control_str)) {
+		free(input);
+		return chi_false;
+	}
+
+	/* Possibly split the minutes.  */
+	endptr = minutes_per_time_control_str;
+	minutes_per_time_control_str = strsep(&endptr, ":");
+	if (!(minutes_per_time_control_str && *minutes_per_time_control_str)) {
+		/* Cannot happen.  */
+		free(input);
+		return chi_false;
+	}
+	seconds_str = strsep(&endptr, ":");
+	if (seconds_str && endptr && *endptr) {
+		free(input);
+		return chi_false;
+	}
+	if (!parse_integer(&minutes, minutes_per_time_control_str)) {
+		free(input);
+		return chi_false;
+	}
+	if (seconds_str && !parse_integer(&seconds, seconds_str)) {
+		free(input);
+		return chi_false;
+	}
+	self->seconds_per_time_control = 60 * minutes + seconds;
+
+	if (!parse_integer(&self->increment, increment_str)) {
+		free(input);
+		return chi_false;
+	}
+
+	free(input);
+
+	return chi_true;
+}
+
+chi_bool
+time_control_init_st(TimeControl *self, const char *_input)
+{
+	long seconds_per_move;
+	char *buf;
+	char *input;
+
+	memset(self, 0, sizeof *self);
+
+	buf = xstrdup(_input);
+	input = trim(buf);
+
+	if (!parse_integer(&seconds_per_move, input)) {
+		free(buf);
+		return chi_false;
+	}
+	free(buf);
 	if (seconds_per_move <= 0)
 		return chi_false;
 
