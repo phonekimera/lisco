@@ -45,6 +45,9 @@ time_control_init_level(TimeControl *self, const char *_input)
 	long minutes, seconds = 0L;
 	char *increment_str;
 
+	/* FIXME! Be less permissive here! We may need more characters, especially
+	 * the plus sign.
+	 */
 	if (!delimiter_initialized) {
 		for (i = 0, c = '\001'; c < '0' && i < sizeof delimiter; ++c) {
 			delimiter[i++] = c;
@@ -52,6 +55,7 @@ time_control_init_level(TimeControl *self, const char *_input)
 		for (c = ';'; c > 0 && i < sizeof delimiter; ++c) {
 			delimiter[i++] = c;
 		}
+		delimiter[i++] = '+';
 		delimiter[i] = '\0';
 		delimiter_initialized = chi_true;
 	}
