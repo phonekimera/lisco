@@ -30,6 +30,7 @@
 #include "stdbool.h"
 
 #include "tateplay-option.h"
+#include "tateplay-time-control.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -103,6 +104,9 @@ typedef struct Engine {
 
 	/* Maximum search depth in plies.  0 means, search to infinite depth.  */
 	unsigned long depth;
+
+	/* Time control.  */
+	TimeControl tc;
 
 	/* Options set by the user via CLI --option-COLOR.  */
 	UserOption *user_options;

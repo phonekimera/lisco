@@ -37,12 +37,15 @@
 #include "log.h"
 #include "tateplay-game.h"
 #include "tateplay-loop.h"
+#include "tateplay-time-control.h"
 #include "util.h"
 
 static void usage(int status);
 static void version(void);
 static void set_protocol(const char *name);
 static void set_depth(const char *depth);
+static void set_seconds_per_move(const char *depth);
+static void set_time_control(const char *depth);
 static void handle_sigchld(int signo);
 static void reap_children(void);
 
@@ -50,12 +53,16 @@ static Game *game;
 
 static int opt_protocol_seen = 0;
 static int opt_depth_seen = 0;
+static int opt_seconds_per_move_seen = 0;
+static int opt_time_control_seen = 0;
 
 static const struct option long_options[] = {
 	{ "white", required_argument, NULL, 'w' },
 	{ "black", required_argument, NULL, 'b' },
 	{ "protocol", required_argument, NULL, 'p' },
 	{ "depth", required_argument, NULL, 'd' },
+	{ "seconds-per-move", required_argument, NULL, CHAR_MAX + 5 },
+	{ "time-control", required_argument, NULL, 't' },
 	{ "event", required_argument, NULL, 'e' },
 	{ "site", required_argument, NULL, 's' },
 	{ "round", required_argument, NULL, 'r' },
@@ -125,6 +132,14 @@ main(int argc, char *argv[])
 
 			case 'd':
 				set_depth(optarg);
+				break;
+
+			case CHAR_MAX + 5:
+				set_seconds_per_move(optarg);
+				break;
+
+			case 't':
+				set_time_control(optarg);
 				break;
 
 			case 'e':
@@ -367,6 +382,68 @@ set_depth(const char *_depth)
 		default:
 			error(EXIT_SUCCESS, 0,
 			      "option --depth can be given at most twice.");
+			usage(EXIT_FAILURE);
+	}
+}
+
+static void
+set_seconds_per_move(const char *spec)
+{
+	TimeControl tc;
+
+	if (opt_time_control_seen) {
+		error(EXIT_SUCCESS, 0,
+		      "the options '--seconds-per-move' and '--time-control' are \
+mutually exclusive");
+		usage(EXIT_FAILURE);
+	}
+
+	if (!time_control_init_st(&tc, spec)) {
+		error(EXIT_SUCCESS, 0, "invalid seconds per move '%s'", spec);
+		usage(EXIT_FAILURE);
+	}
+
+	switch(++opt_seconds_per_move_seen) {
+		case 1:
+			game->white->tc = tc;
+			/* FALLTHRU */
+		case 2:
+			game->black->tc = tc;
+			break;
+		default:
+			error(EXIT_SUCCESS, 0,
+			      "option --seconds-per-move can be given at most twice.");
+			usage(EXIT_FAILURE);
+	}
+}
+
+static void
+set_time_control(const char *spec)
+{
+	TimeControl tc;
+
+	if (opt_seconds_per_move_seen) {
+		error(EXIT_SUCCESS, 0,
+		      "the options '--seconds-per-move' and '--time-control' are \
+mutually exclusive");
+		usage(EXIT_FAILURE);
+	}
+
+	if (!time_control_init_level(&tc, spec)) {
+		error(EXIT_SUCCESS, 0, "invalid time control '%s'", spec);
+		usage(EXIT_FAILURE);
+	}
+
+	switch(++opt_time_control_seen) {
+		case 1:
+			game->white->tc = tc;
+			/* FALLTHRU */
+		case 2:
+			game->black->tc = tc;
+			break;
+		default:
+			error(EXIT_SUCCESS, 0,
+			      "option --seconds-per-move can be given at most twice.");
 			usage(EXIT_FAILURE);
 	}
 }

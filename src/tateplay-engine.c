@@ -85,6 +85,10 @@ engine_new(Game *game)
 	self->argv = xmalloc(sizeof self->argv[0]);
 	self->argv[0] = NULL;
 
+	self->tc.moves_per_time_control = 40;
+	self->tc.seconds_per_time_control = 15 * 60;
+	self->tc.increment = 0;
+
 	self->game = game;
 
 	return self;
