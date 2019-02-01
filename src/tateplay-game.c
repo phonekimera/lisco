@@ -346,6 +346,8 @@ game_do_move(Game *self, const char *movestr)
 		self->black : self->white;
 	chi_pos old_pos;
 	char *fen;
+	double playing_time, seconds_per_move;
+	unsigned int moves_played;
 
 	engine_stop_clock(mover);
 	/* FIXME! Check time control!  */
@@ -384,7 +386,20 @@ game_do_move(Game *self, const char *movestr)
 
 	if (game_check_over(self)) {
 		/* FIXME! Tell engines to quit! */
+		moves_played = (self->num_moves + 1) >> 1;
+		playing_time = (double) mover->playing_time.tv_sec
+		               + ((double) mover->playing_time.tv_usec
+		                  / (double) 1000000);
+		seconds_per_move = playing_time / (double) moves_played;
+		info_realm(mover->nick, "%lu moves played in %g s (%g s/move)",
+		                        moves_played, playing_time, seconds_per_move);
 
+		playing_time = (double) waiter->playing_time.tv_sec
+		               + ((double) waiter->playing_time.tv_usec
+		                  / (double) 1000000);
+		seconds_per_move = playing_time / (double) moves_played;
+		info_realm(waiter->nick, "%lu moves played in %g s (%g s/move)",
+		                         moves_played, playing_time, seconds_per_move);
 		return false;
 	}
 
