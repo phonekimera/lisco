@@ -502,6 +502,17 @@ engine_set_option(Engine *self, char *name, char *value)
 	self->user_options[self->num_user_options - 1] = option;
 }
 
+void
+engine_stop_clock(Engine *self)
+{
+	struct timeval now;
+	struct timeval elapsed;
+
+	gettimeofday(&now, NULL);
+	time_diff(&elapsed, &self->start_thinking, &now);
+	time_add(&self->playing_time, &elapsed);
+}
+
 static void
 engine_spool_output(Engine *self, const char *cmd,
                     void (*callback)(Engine * self))
@@ -811,7 +822,9 @@ engine_start_initial_timeout(Engine *self)
 static void
 engine_start_clock(Engine *self)
 {
-	log_realm(self->nick, "FIXME! Start clock!");
+	gettimeofday(&self->start_thinking, NULL);
+
+	/* FIXME! Calculate when the flag will fall.  */
 }
 
 static void

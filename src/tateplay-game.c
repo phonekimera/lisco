@@ -347,6 +347,9 @@ game_do_move(Game *self, const char *movestr)
 	chi_pos old_pos;
 	char *fen;
 
+	engine_stop_clock(mover);
+	/* FIXME! Check time control!  */
+
 	errnum = chi_parse_move(&self->pos, &move, movestr);
 	if (errnum) {
 		log_engine_fatal(mover->nick, "move %s: %s", movestr,
@@ -381,6 +384,7 @@ game_do_move(Game *self, const char *movestr)
 
 	if (game_check_over(self)) {
 		/* FIXME! Tell engines to quit! */
+
 		return false;
 	}
 

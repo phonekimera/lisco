@@ -99,3 +99,26 @@ parse_double(double *result, const char *string)
 
 	return chi_false;
 }
+
+extern void
+time_diff(struct timeval *result, struct timeval *start, struct timeval *end)
+{
+	result->tv_sec = end->tv_sec - start->tv_sec;
+	if (end->tv_usec >= start->tv_usec) {
+		result->tv_usec = end->tv_usec - start->tv_usec;
+	} else {
+		--result->tv_sec;
+		result->tv_usec = 1000000 + end->tv_usec - start->tv_usec;
+	}
+}
+
+extern void
+time_add(struct timeval *total, struct timeval *elapsed)
+{
+	total->tv_sec += elapsed->tv_sec;
+	total->tv_usec += elapsed->tv_usec;
+	if (total->tv_usec >= 1000000) {
+		++total->tv_sec;
+		total->tv_usec -= 1000000;
+	}
+}

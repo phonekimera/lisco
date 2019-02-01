@@ -44,6 +44,18 @@ static void vlog_realm(const char *realm, const char *direction,
                        const char *_msg, va_list ap);
 
 void
+info_realm(const char *realm, const char *fmt, ...)
+{
+	va_list ap;
+
+	if (!verbose) return;
+
+	va_start(ap, fmt);
+	vlog_realm(realm, NULL, fmt, ap);
+	va_end(ap);
+}
+
+void
 log_realm(const char *realm, const char *fmt, ...)
 {
 	va_list ap;

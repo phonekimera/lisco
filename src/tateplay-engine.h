@@ -84,6 +84,15 @@ typedef struct Engine {
 	EngineProtocol protocol;
 	EngineState state;
 
+	/* Total time played.  */
+	struct timeval playing_time;
+
+	/* When did the engine start thinking? */
+	struct timeval start_thinking;
+
+	/* When will the engine's flag fall.  */
+	struct timeval flag_falling;
+
 	char *outbuf;
 	size_t outbuf_size;
 	char *inbuf;
@@ -155,6 +164,11 @@ extern void engine_think(Engine *self, chi_pos *pos, chi_move move);
 
 /* Ponder on position if pondering is enabled.  */
 extern void engine_ponder(Engine *self, chi_pos *pos);
+
+/* Stop the clocks engine.  Starting the clock is done, after a move has been
+ * successfully sent.
+ */
+extern void engine_stop_clock(Engine *self);
 
 #ifdef __cplusplus
 }
