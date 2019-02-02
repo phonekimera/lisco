@@ -40,6 +40,7 @@ static void game_start(Game *game);
 static chi_bool game_check_over(Game *game);
 static void game_set_engine_option(Game *game, Engine *engine,
                                    char *optspec);
+static void game_terminate(Game *game);
 
 Game *
 game_new(const char *fen)
@@ -346,10 +347,14 @@ game_do_move(Game *self, const char *movestr)
 		self->black : self->white;
 	chi_pos old_pos;
 	char *fen;
-	double playing_time, seconds_per_move;
-	unsigned int moves_played;
 
-	engine_stop_clock(mover);
+	if (!engine_stop_clock(mover)) {
+		if (chi_on_move(&self->pos) == chi_white)
+			self->result = chi_result_black_wins_on_time;
+		else
+			self->result = chi_result_white_wins_on_time;		
+		game_terminate(self);
+	}
 	/* FIXME! Check time control!  */
 
 	errnum = chi_parse_move(&self->pos, &move, movestr);
@@ -385,21 +390,7 @@ game_do_move(Game *self, const char *movestr)
 	self->fen[self->num_moves] = chi_fen(&self->pos);
 
 	if (game_check_over(self)) {
-		/* FIXME! Tell engines to quit! */
-		moves_played = (self->num_moves + 1) >> 1;
-		playing_time = (double) mover->playing_time.tv_sec
-		               + ((double) mover->playing_time.tv_usec
-		                  / (double) 1000000);
-		seconds_per_move = playing_time / (double) moves_played;
-		info_realm(mover->nick, "%lu moves played in %g s (%g s/move)",
-		                        moves_played, playing_time, seconds_per_move);
-
-		playing_time = (double) waiter->playing_time.tv_sec
-		               + ((double) waiter->playing_time.tv_usec
-		                  / (double) 1000000);
-		seconds_per_move = playing_time / (double) moves_played;
-		info_realm(waiter->nick, "%lu moves played in %g s (%g s/move)",
-		                         moves_played, playing_time, seconds_per_move);
+		game_terminate(self);
 		return false;
 	}
 
@@ -407,6 +398,29 @@ game_do_move(Game *self, const char *movestr)
 	engine_think(waiter, &old_pos, move);
 
 	return true;
+}
+
+static void
+game_terminate(Game *self)
+{
+	double thinking_time, seconds_per_move;
+	unsigned int moves_played;
+
+	/* FIXME! Tell engines to quit! */
+	moves_played = (self->num_moves + 1) >> 1;
+	thinking_time = (double) self->white->tc.thinking_time.tv_sec
+	                + ((double) self->white->tc.thinking_time.tv_usec
+	                   / (double) 1000000);
+	seconds_per_move = thinking_time / (double) moves_played;
+	info_realm(self->white->nick, "%lu moves played in %g s (%g s/move)",
+	           moves_played, thinking_time, seconds_per_move);
+
+	thinking_time = (double) self->black->tc.thinking_time.tv_sec
+	                + ((double) self->black->tc.thinking_time.tv_usec
+	                   / (double) 1000000);
+	seconds_per_move = thinking_time / (double) moves_played;
+	info_realm(self->black->nick, "%lu moves played in %g s (%g s/move)",
+	           moves_played, thinking_time, seconds_per_move);
 }
 
 static chi_bool

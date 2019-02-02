@@ -502,15 +502,13 @@ engine_set_option(Engine *self, char *name, char *value)
 	self->user_options[self->num_user_options - 1] = option;
 }
 
-void
+chi_bool
 engine_stop_clock(Engine *self)
 {
 	struct timeval now;
-	struct timeval elapsed;
 
 	gettimeofday(&now, NULL);
-	time_diff(&elapsed, &self->start_thinking, &now);
-	time_add(&self->playing_time, &elapsed);
+	return time_control_stop_thinking(&self->tc, &now);
 }
 
 static void
@@ -822,9 +820,11 @@ engine_start_initial_timeout(Engine *self)
 static void
 engine_start_clock(Engine *self)
 {
-	gettimeofday(&self->start_thinking, NULL);
+	struct timeval now;
 
-	/* FIXME! Calculate when the flag will fall.  */
+	gettimeofday(&now, NULL);
+
+	time_control_start_thinking(&self->tc, &now);
 }
 
 static void
