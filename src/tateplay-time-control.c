@@ -180,6 +180,9 @@ time_control_start_thinking(TimeControl *self, const struct timeval *now)
 		total.tv_usec = 0;
 
 		num_time_controls = 1;
+		if (self->moves_per_time_control) {
+			num_time_controls += self->num_moves / self->moves_per_time_control;
+		}
 		total.tv_sec += num_time_controls * self->seconds_per_time_control;
 		total.tv_sec += self->num_moves * self->increment;
 

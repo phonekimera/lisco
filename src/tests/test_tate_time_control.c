@@ -109,6 +109,40 @@ START_TEST(test_level_sudden_death_with_increment)
 	ck_assert_int_eq(time_control_stop_thinking(&tc, &now), chi_false);
 END_TEST
 
+START_TEST(test_level_conventional)
+	TimeControl tc;
+	struct timeval now;
+
+	ck_assert_int_eq(time_control_init_level(&tc, "2 0:30 0"), chi_true);
+	ck_assert_int_eq(tc.fixed_time, chi_false);
+
+	now.tv_sec = 0;
+	now.tv_usec = 0;
+	time_control_start_thinking(&tc, &now);
+
+	now.tv_sec = 15;
+	now.tv_usec = 0;
+	ck_assert_int_eq(time_control_stop_thinking(&tc, &now), chi_true);
+
+	time_control_start_thinking(&tc, &now);
+
+	now.tv_sec = 29;
+	now.tv_usec = 999999;
+	ck_assert_int_eq(time_control_stop_thinking(&tc, &now), chi_true);
+
+	time_control_start_thinking(&tc, &now);
+
+	now.tv_sec = 45;
+	now.tv_usec = 0;
+	ck_assert_int_eq(time_control_stop_thinking(&tc, &now), chi_true);
+
+	time_control_start_thinking(&tc, &now);
+
+	now.tv_sec = 60;
+	now.tv_usec = 0;
+	ck_assert_int_eq(time_control_stop_thinking(&tc, &now), chi_false);
+END_TEST
+
 START_TEST(test_level_constructor)
 	TimeControl tc;
 
@@ -156,6 +190,7 @@ time_control_suite(void)
 	tcase_add_test(tc_level, test_level_constructor);
 	tcase_add_test(tc_level, test_level_sudden_death);
 	tcase_add_test(tc_level, test_level_sudden_death_with_increment);
+	tcase_add_test(tc_level, test_level_conventional);
 	suite_add_tcase(suite, tc_level);
 
 	return suite;
