@@ -120,6 +120,12 @@ time_control_init_level(TimeControl *self, const char *_input)
 	}
 	self->seconds_per_time_control = 60 * minutes + seconds;
 
+	if (!self->seconds_per_time_control) {
+		/* That would mean that the flag would immediately fall.  */
+		free(input);
+		return chi_false;
+	}
+
 	if (!parse_integer(&self->increment, increment_str)) {
 		free(input);
 		return chi_false;
