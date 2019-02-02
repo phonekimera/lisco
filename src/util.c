@@ -124,6 +124,18 @@ time_add(struct timeval *total, const struct timeval *elapsed)
 	}
 }
 
+void
+time_subtract(struct timeval *total, const struct timeval *elapsed)
+{
+	total->tv_sec -= elapsed->tv_sec;
+	if (total->tv_usec >= elapsed->tv_usec) {
+		total->tv_usec -= elapsed->tv_usec;
+	} else {
+		--total->tv_sec;
+		total->tv_usec = 1000000 + total->tv_usec - elapsed->tv_usec;
+	}
+}
+
 chi_bool
 time_is_left(const struct timeval *deadline, const struct timeval *now)
 {

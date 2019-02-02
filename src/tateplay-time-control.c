@@ -159,6 +159,9 @@ time_control_init_st(TimeControl *self, const char *_input)
 extern void
 time_control_start_thinking(TimeControl *self, const struct timeval *now)
 {
+	struct timeval total;
+	size_t num_time_controls;
+
 	self->started_thinking.tv_sec = now->tv_sec;
 	self->started_thinking.tv_usec = now->tv_usec;
 
@@ -167,7 +170,14 @@ time_control_start_thinking(TimeControl *self, const struct timeval *now)
 				+ self->seconds_per_move;
 		self->flag.tv_usec = self->started_thinking.tv_usec;
 	} else {
-		// TODO!
+		total.tv_sec = 0;
+		total.tv_usec = 0;
+
+		num_time_controls = 1;
+		total.tv_sec += num_time_controls * self->seconds_per_time_control;
+		self->flag = *now;
+		time_add(&self->flag, &total);
+		time_subtract(&self->flag, &self->thinking_time);
 	}
 }
 
