@@ -406,6 +406,7 @@ game_uci_time_control(Game *self, chi_stringbuf *sb)
 	struct timeval time_left;
 	struct timeval now;
 	unsigned long time_left_ms;
+	size_t moves_to_go;
 
 	gettimeofday(&now, NULL);
 
@@ -419,6 +420,33 @@ game_uci_time_control(Game *self, chi_stringbuf *sb)
 	_chi_stringbuf_append(sb, " btime ");
 	_chi_stringbuf_append_unsigned(sb, time_left_ms, 10);
 
+	if (self->white->tc.increment) {
+		_chi_stringbuf_append(sb, " winc ");
+		_chi_stringbuf_append_unsigned(sb, self->white->tc.increment * 1000,
+		                               10);
+	}
+
+	if (self->black->tc.increment) {
+		_chi_stringbuf_append(sb, " binc ");
+		_chi_stringbuf_append_unsigned(sb, self->black->tc.increment * 1000,
+		                               10);
+	}
+
+	if (self->white->tc.moves_per_time_control) {
+		_chi_stringbuf_append(sb, " movestogo ");
+		moves_to_go = self->white->tc.moves_per_time_control
+		              - self->white->tc.num_moves 
+		                % self->white->tc.moves_per_time_control;
+		_chi_stringbuf_append_unsigned(sb, moves_to_go, 10);
+	}
+
+	if (self->black->tc.moves_per_time_control) {
+		_chi_stringbuf_append(sb, " movestogo ");
+		moves_to_go = self->black->tc.moves_per_time_control
+		              - self->black->tc.num_moves 
+		                % self->black->tc.moves_per_time_control;
+		_chi_stringbuf_append_unsigned(sb, moves_to_go, 10);
+	}
 }
 
 static void
