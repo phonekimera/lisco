@@ -175,6 +175,8 @@ time_control_start_thinking(TimeControl *self, const struct timeval *now)
 
 		num_time_controls = 1;
 		total.tv_sec += num_time_controls * self->seconds_per_time_control;
+		total.tv_sec += self->num_moves * self->increment;
+
 		self->flag = *now;
 		time_add(&self->flag, &total);
 		time_subtract(&self->flag, &self->thinking_time);
