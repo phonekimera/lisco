@@ -155,3 +155,18 @@ time_control_init_st(TimeControl *self, const char *_input)
 
 	return chi_true;
 }
+
+extern void
+time_control_start_thinking(TimeControl *self, const struct timeval *now)
+{
+	self->started_thinking.tv_sec = now->tv_sec;
+	self->started_thinking.tv_usec = now->tv_usec;
+
+	if (self->fixed_time) {
+		self->flag.tv_sec = self->started_thinking.tv_sec
+				+ self->seconds_per_move;
+		self->flag.tv_usec = self->started_thinking.tv_usec;
+	} else {
+		// TODO!
+	}
+}

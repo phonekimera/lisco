@@ -36,6 +36,22 @@ START_TEST(test_st_constructor)
 	ck_assert_int_eq(time_control_init_st(&tc, "0"), chi_false);
 END_TEST
 
+START_TEST(test_st_calculate_flag)
+	TimeControl tc;
+	struct timeval now;
+
+	ck_assert_int_eq(time_control_init_st(&tc, "10"), chi_true);
+	ck_assert_int_eq(tc.fixed_time, chi_true);
+
+	now.tv_sec = 3;
+	now.tv_usec = 500000;
+
+	time_control_start_thinking(&tc, &now);
+
+	ck_assert_int_eq(tc.flag.tv_sec, 13);
+	ck_assert_int_eq(tc.flag.tv_usec, 500000);
+END_TEST
+
 START_TEST(test_level_constructor)
 	TimeControl tc;
 
@@ -76,6 +92,7 @@ time_control_suite(void)
 
 	tc_search_time = tcase_create("Fixed search time");
 	tcase_add_test(tc_search_time, test_st_constructor);
+	tcase_add_test(tc_search_time, test_st_calculate_flag);
 	suite_add_tcase(suite, tc_search_time);
 
 	tc_level = tcase_create("Level time control");
