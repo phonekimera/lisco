@@ -44,6 +44,9 @@ typedef struct TimeControl {
 	/* When did the engine start thinking? */
 	struct timeval started_thinking;
 
+	/* Total time spent thinking. */
+	struct timeval thinking_time;
+
 	/* When will the flag fall? */
 	struct timeval flag;
 } TimeControl;
@@ -52,6 +55,8 @@ extern chi_bool time_control_init_st(TimeControl *tc, const char *input);
 extern chi_bool time_control_init_level(TimeControl *tc, const char *input);
 extern void time_control_start_thinking(TimeControl *tc,
                                         const struct timeval *now);
+extern chi_bool time_control_stop_thinking(TimeControl *tc,
+                                           const struct timeval *now);
 
 #ifdef __cplusplus
 }

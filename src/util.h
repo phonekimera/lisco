@@ -33,9 +33,11 @@ extern char *trim(char *str);
 extern const char *ltrim(const char *str);
 extern chi_bool parse_integer(long *result, const char *string);
 extern chi_bool parse_double(double *result, const char *string);
-extern void time_diff(struct timeval *result, struct timeval *start,
-                      struct timeval *end);
-extern void time_add(struct timeval *total, struct timeval *elapsed);
+extern void time_diff(struct timeval *result, const struct timeval *start,
+                      const struct timeval *end);
+extern void time_add(struct timeval *total, const struct timeval *elapsed);
+extern chi_bool time_is_left(const struct timeval *deadline,
+                             const struct timeval *now);
 
 #ifdef __cplusplus
 }

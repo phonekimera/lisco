@@ -47,9 +47,16 @@ START_TEST(test_st_calculate_flag)
 	now.tv_usec = 500000;
 
 	time_control_start_thinking(&tc, &now);
-
 	ck_assert_int_eq(tc.flag.tv_sec, 13);
 	ck_assert_int_eq(tc.flag.tv_usec, 500000);
+
+	now.tv_sec = 13;
+	now.tv_usec = 499999;
+	ck_assert_int_eq(time_control_stop_thinking(&tc, &now), chi_true);
+
+	now.tv_sec = 13;
+	now.tv_usec = 500000;
+	ck_assert_int_eq(time_control_stop_thinking(&tc, &now), chi_false);
 END_TEST
 
 START_TEST(test_level_constructor)

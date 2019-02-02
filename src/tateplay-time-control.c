@@ -170,3 +170,16 @@ time_control_start_thinking(TimeControl *self, const struct timeval *now)
 		// TODO!
 	}
 }
+
+extern chi_bool
+time_control_stop_thinking(TimeControl *self, const struct timeval *now)
+{
+	struct timeval thinking_time;
+
+	++self->num_moves;
+
+	time_diff(&thinking_time, &self->started_thinking, now);
+	time_add(&self->thinking_time, &thinking_time);
+
+	return time_is_left(&self->flag, now);
+}

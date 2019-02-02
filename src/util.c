@@ -100,8 +100,9 @@ parse_double(double *result, const char *string)
 	return chi_false;
 }
 
-extern void
-time_diff(struct timeval *result, struct timeval *start, struct timeval *end)
+void
+time_diff(struct timeval *result,
+          const struct timeval *start, const struct timeval *end)
 {
 	result->tv_sec = end->tv_sec - start->tv_sec;
 	if (end->tv_usec >= start->tv_usec) {
@@ -112,8 +113,8 @@ time_diff(struct timeval *result, struct timeval *start, struct timeval *end)
 	}
 }
 
-extern void
-time_add(struct timeval *total, struct timeval *elapsed)
+void
+time_add(struct timeval *total, const struct timeval *elapsed)
 {
 	total->tv_sec += elapsed->tv_sec;
 	total->tv_usec += elapsed->tv_usec;
@@ -121,4 +122,10 @@ time_add(struct timeval *total, struct timeval *elapsed)
 		++total->tv_sec;
 		total->tv_usec -= 1000000;
 	}
+}
+
+chi_bool
+time_is_left(const struct timeval *deadline, const struct timeval *now)
+{
+	return now->tv_sec < deadline->tv_sec || now->tv_usec < deadline->tv_usec;
 }
