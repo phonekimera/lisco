@@ -162,12 +162,9 @@ time_control_init_st(TimeControl *self, const char *_input)
 	return chi_true;
 }
 
-extern void
+void
 time_control_start_thinking(TimeControl *self, const struct timeval *now)
 {
-	struct timeval total;
-	size_t num_time_controls;
-
 	self->started_thinking.tv_sec = now->tv_sec;
 	self->started_thinking.tv_usec = now->tv_usec;
 
@@ -176,23 +173,12 @@ time_control_start_thinking(TimeControl *self, const struct timeval *now)
 				+ self->seconds_per_move;
 		self->flag.tv_usec = self->started_thinking.tv_usec;
 	} else {
-		total.tv_sec = 0;
-		total.tv_usec = 0;
-
-		num_time_controls = 1;
-		if (self->moves_per_time_control) {
-			num_time_controls += self->num_moves / self->moves_per_time_control;
-		}
-		total.tv_sec += num_time_controls * self->seconds_per_time_control;
-		total.tv_sec += self->num_moves * self->increment;
-
-		self->flag = *now;
-		time_add(&self->flag, &total);
-		time_subtract(&self->flag, &self->thinking_time);
+		time_control_time_left(self, &self->flag, now);
+		time_add(&self->flag, now);
 	}
 }
 
-extern chi_bool
+chi_bool
 time_control_stop_thinking(TimeControl *self, const struct timeval *now)
 {
 	struct timeval thinking_time;
@@ -203,4 +189,21 @@ time_control_stop_thinking(TimeControl *self, const struct timeval *now)
 	time_add(&self->thinking_time, &thinking_time);
 
 	return time_is_left(&self->flag, now);
+}
+
+void
+time_control_time_left(TimeControl *self, struct timeval *result,
+                       const struct timeval *now)
+{
+	size_t num_time_controls;
+
+	num_time_controls = 1;
+	if (self->moves_per_time_control) {
+		num_time_controls += self->num_moves / self->moves_per_time_control;
+	}
+
+	result->tv_sec += num_time_controls * self->seconds_per_time_control;
+	result->tv_sec += self->num_moves * self->increment;
+
+	time_subtract(result, &self->thinking_time);
 }

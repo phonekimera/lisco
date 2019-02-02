@@ -419,7 +419,7 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 	unsigned int buflen;
 	int errnum;
 	char *fen;
-	chi_stringbuf* sb = _chi_stringbuf_new(200);
+	chi_stringbuf *sb = _chi_stringbuf_new(200);
 
 	self->state = thinking;
 
@@ -471,6 +471,16 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 			_chi_stringbuf_append(sb, " depth ");
 			_chi_stringbuf_append_unsigned(sb, self->depth, 10);
 			_chi_stringbuf_append_char(sb, '\n');
+		}
+
+		if (self->tc.fixed_time) {
+			_chi_stringbuf_append(sb, " movetime ");
+			_chi_stringbuf_append_unsigned(sb,
+			                               self->tc.seconds_per_move * 1000,
+										   10);
+			_chi_stringbuf_append_char(sb, '\n');
+		} else {
+			game_uci_time_control(self->game, sb);
 		}
 
 		_chi_stringbuf_append_char(sb, '\n');

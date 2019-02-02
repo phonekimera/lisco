@@ -400,6 +400,27 @@ game_do_move(Game *self, const char *movestr)
 	return true;
 }
 
+void
+game_uci_time_control(Game *self, chi_stringbuf *sb)
+{
+	struct timeval time_left;
+	struct timeval now;
+	unsigned long time_left_ms;
+
+	gettimeofday(&now, NULL);
+
+	time_control_time_left(&self->white->tc, &time_left, &now);
+	time_left_ms = time_left.tv_sec * 1000 + time_left.tv_usec / 1000;
+	_chi_stringbuf_append(sb, " wtime ");
+	_chi_stringbuf_append_unsigned(sb, time_left_ms, 10);
+
+	time_control_time_left(&self->black->tc, &time_left, &now);
+	time_left_ms = time_left.tv_sec * 1000 + time_left.tv_usec / 1000;
+	_chi_stringbuf_append(sb, " btime ");
+	_chi_stringbuf_append_unsigned(sb, time_left_ms, 10);
+
+}
+
 static void
 game_terminate(Game *self)
 {
