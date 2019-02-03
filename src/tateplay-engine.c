@@ -433,7 +433,7 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 	}
 
 	if (self->protocol == xboard) {
-		if (!self->tc.fixed_time)
+		if (!self->tc.fixed_time && self->xboard_time)
 			game_xboard_time_control(self->game, sb);
 
 		if (move) {
@@ -787,6 +787,22 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 				self->san = chi_true;
 			}
 			engine_spool_output(self, "accepted usermove\n", NULL);
+		} else if (strcmp("ping", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted ping\n", NULL);
+		} else if (strcmp("setboard", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted setboard\n", NULL);
+		} else if (strcmp("playother", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted playother\n", NULL);
+		} else if (strcmp("time", feature->name) == 0) {
+			if (strcmp("0", feature->value) == 0) {
+				self->xboard_time = chi_false;
+			} else {
+				self->xboard_time = chi_true;
+			}
+			engine_spool_output(self, "accepted time\n", NULL);
 		} else {
 			engine_spool_output(self, "rejected ", NULL);
 			engine_spool_output(self, feature->name, NULL);

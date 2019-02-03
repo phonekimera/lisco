@@ -117,6 +117,7 @@ typedef struct Engine {
 	/* Negotiatable xboard features.  */
 	chi_bool xboard_name;
 	chi_bool xboard_usermove;
+	chi_bool xboard_time;
 
 	/* Engine options.  */
 	Option **options;
