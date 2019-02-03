@@ -57,8 +57,7 @@ extern void time_control_start_thinking(TimeControl *tc,
                                         const struct timeval *now);
 extern chi_bool time_control_stop_thinking(TimeControl *tc,
                                            const struct timeval *now);
-extern void time_control_time_left(TimeControl *tc, struct timeval *result,
-                                   const struct timeval *now);
+extern void time_control_time_left(TimeControl *tc, struct timeval *result);
 
 #ifdef __cplusplus
 }

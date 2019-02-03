@@ -412,12 +412,12 @@ game_uci_time_control(Game *self, chi_stringbuf *sb)
 
 	gettimeofday(&now, NULL);
 
-	time_control_time_left(&self->white->tc, &time_left, &now);
+	time_control_time_left(&self->white->tc, &time_left);
 	time_left_ms = time_left.tv_sec * 1000 + time_left.tv_usec / 1000;
 	_chi_stringbuf_append(sb, " wtime ");
 	_chi_stringbuf_append_unsigned(sb, time_left_ms, 10);
 
-	time_control_time_left(&self->black->tc, &time_left, &now);
+	time_control_time_left(&self->black->tc, &time_left);
 	time_left_ms = time_left.tv_sec * 1000 + time_left.tv_usec / 1000;
 	_chi_stringbuf_append(sb, " btime ");
 	_chi_stringbuf_append_unsigned(sb, time_left_ms, 10);
@@ -463,18 +463,18 @@ game_xboard_time_control(Game *self, chi_stringbuf *sb)
 	gettimeofday(&now, NULL);
 
 	if (chi_on_move(&self->pos) == chi_white)
-		time_control_time_left(&self->white->tc, &time_left, &now);
+		time_control_time_left(&self->white->tc, &time_left);
 	else
-		time_control_time_left(&self->black->tc, &time_left, &now);
+		time_control_time_left(&self->black->tc, &time_left);
 	time_left_cs = time_left.tv_sec * 100 + time_left.tv_usec / 10000;
 	_chi_stringbuf_append(sb, "time ");
 	_chi_stringbuf_append_unsigned(sb, time_left_cs, 10);
 	_chi_stringbuf_append_char(sb, '\n');
 
 	if (chi_on_move(&self->pos) == chi_white)
-		time_control_time_left(&self->black->tc, &time_left, &now);
+		time_control_time_left(&self->black->tc, &time_left);
 	else
-		time_control_time_left(&self->white->tc, &time_left, &now);
+		time_control_time_left(&self->white->tc, &time_left);
 	time_left_cs = time_left.tv_sec * 100 + time_left.tv_usec / 10000;
 	_chi_stringbuf_append(sb, "otim ");
 	_chi_stringbuf_append_unsigned(sb, time_left_cs, 10);

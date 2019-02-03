@@ -173,7 +173,7 @@ time_control_start_thinking(TimeControl *self, const struct timeval *now)
 				+ self->seconds_per_move;
 		self->flag.tv_usec = self->started_thinking.tv_usec;
 	} else {
-		time_control_time_left(self, &self->flag, now);
+		time_control_time_left(self, &self->flag);
 		time_add(&self->flag, now);
 	}
 }
@@ -192,8 +192,7 @@ time_control_stop_thinking(TimeControl *self, const struct timeval *now)
 }
 
 void
-time_control_time_left(TimeControl *self, struct timeval *result,
-                       const struct timeval *now)
+time_control_time_left(TimeControl *self, struct timeval *result)
 {
 	size_t num_time_controls;
 
@@ -204,6 +203,7 @@ time_control_time_left(TimeControl *self, struct timeval *result,
 
 	result->tv_sec = num_time_controls * self->seconds_per_time_control;
 	result->tv_sec += self->num_moves * self->increment;
+	result->tv_usec = 0;
 
 	time_subtract(result, &self->thinking_time);
 }
