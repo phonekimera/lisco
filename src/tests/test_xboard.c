@@ -69,17 +69,26 @@ START_TEST(test_xboard_feature)
 	xboard_feature_destroy(feature);
 END_TEST
 
+START_TEST(test_xboard_option_button)
+	ck_assert_int_eq(0, 0);
+END_TEST
+
 Suite *
 xboard_suite(void)
 {
 	Suite *suite;
 	TCase *tc_feature;
+	TCase *tc_option;
 
 	suite = suite_create("Xboard Functions");
 
 	tc_feature = tcase_create("Features");
 	tcase_add_test(tc_feature, test_xboard_feature);
 	suite_add_tcase(suite, tc_feature);
+
+	tc_option = tcase_create("Options");
+	tcase_add_test(tc_option, test_xboard_option_button);
+	suite_add_tcase(suite, tc_option);
 
 	return suite;
 }
