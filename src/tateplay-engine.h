@@ -115,9 +115,11 @@ typedef struct Engine {
 	size_t num_user_options;
 
 	/* Negotiatable xboard features.  */
-	chi_bool xboard_name;
 	chi_bool xboard_usermove;
 	chi_bool xboard_time;
+	chi_bool xboard_memory;
+	chi_bool xboard_smp;
+	/* FIXME! EGT formats! */
 
 	/* Engine options.  */
 	Option **options;

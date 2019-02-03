@@ -654,11 +654,6 @@ engine_process_input_negotiating(Engine *self, const char *cmd)
 	if (self->protocol == xboard) {
 		if (strncmp("feature", cmd, 7) == 0 && isspace(cmd[7])) {
 				self->state = acknowledged;
-			/* We consider ourselves a server and set the default
-			 * to true.
-			 */
-			self->xboard_name = chi_true;
-
 			return engine_process_input_acknowledged(self, cmd);
 		}
 	}
@@ -803,6 +798,68 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 				self->xboard_time = chi_true;
 			}
 			engine_spool_output(self, "accepted time\n", NULL);
+		} else if (strcmp("draw", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted draw\n", NULL);
+		} else if (strcmp("sigint", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted sigint\n", NULL);
+		} else if (strcmp("sigterm", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted sigterm\n", NULL);
+		} else if (strcmp("reuse", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted reuse\n", NULL);
+		} else if (strcmp("analyze", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted analyze\n", NULL);
+		} else if (strcmp("variants", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted variants\n", NULL);
+		} else if (strcmp("colors", feature->name) == 0) {
+			engine_spool_output(self, "rejected colors\n", NULL);
+		} else if (strcmp("ics", feature->name) == 0) {
+			engine_spool_output(self, "rejected ics\n", NULL);
+		} else if (strcmp("name", feature->name) == 0) {
+			engine_spool_output(self, "rejected name\n", NULL);
+		} else if (strcmp("pause", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted pause\n", NULL);
+		} else if (strcmp("nps", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted nps\n", NULL);
+		} else if (strcmp("debug", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted debug\n", NULL);
+		} else if (strcmp("memory", feature->name) == 0) {
+			if (strcmp("0", feature->value) == 0) {
+				self->xboard_memory = chi_false;
+			} else {
+				self->xboard_memory = chi_true;
+			}
+			engine_spool_output(self, "accepted memory\n", NULL);
+		} else if (strcmp("smp", feature->name) == 0) {
+			if (strcmp("0", feature->value) == 0) {
+				self->xboard_smp = chi_false;
+			} else {
+				self->xboard_smp = chi_true;
+			}
+			engine_spool_output(self, "accepted smp\n", NULL);
+		} else if (strcmp("egt", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted egt\n", NULL);
+		} else if (strcmp("option", feature->name) == 0) {
+			/* TODO!  */
+			engine_spool_output(self, "accepted option\n", NULL);
+		} else if (strcmp("exclude", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted exclude\n", NULL);
+		} else if (strcmp("setscore", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted setscore\n", NULL);
+		} else if (strcmp("highlight", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted highlight\n", NULL);
 		} else {
 			engine_spool_output(self, "rejected ", NULL);
 			engine_spool_output(self, feature->name, NULL);

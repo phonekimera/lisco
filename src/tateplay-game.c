@@ -329,7 +329,9 @@ game_ping(Game *self)
 	/* FIXME! Check engine timeout! */
 
 	if (!self->started
-	    && self->white->state == ready && self->black->state == ready) {
+	    && self->white->state == ready && self->black->state == ready
+		&& !self->white->outbuf_length
+		&& !self->black->outbuf_length) {
 		game_start(self);
 	}
 
