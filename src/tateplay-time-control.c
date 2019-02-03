@@ -202,7 +202,7 @@ time_control_time_left(TimeControl *self, struct timeval *result,
 		num_time_controls += self->num_moves / self->moves_per_time_control;
 	}
 
-	result->tv_sec += num_time_controls * self->seconds_per_time_control;
+	result->tv_sec = num_time_controls * self->seconds_per_time_control;
 	result->tv_sec += self->num_moves * self->increment;
 
 	time_subtract(result, &self->thinking_time);
