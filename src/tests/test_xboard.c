@@ -108,7 +108,7 @@ START_TEST(test_xboard_option_reset)
 	const char *input;
 	Option *option;
 
-	input = "   Reset 	 -save	 	 	";
+	input = "   Reset 	 -reset	 	 	";
 
 	option = option_xboard_new(input);
 	ck_assert_ptr_ne(NULL, option);
@@ -119,6 +119,46 @@ START_TEST(test_xboard_option_reset)
 	ck_assert_int_eq(option_type_button, option->type);
 
 	option_destroy(option);
+END_TEST
+
+START_TEST(test_xboard_option_check)
+	const char *input;
+	Option *option;
+
+	input = "Nullmove -check 0";
+
+	option = option_xboard_new(input);
+	ck_assert_ptr_ne(NULL, option);
+
+	ck_assert_ptr_ne(NULL, option->name);
+	ck_assert_str_eq("Nullmove", option->name);
+	
+	ck_assert_int_eq(option_type_check, option->type);
+
+	ck_assert_ptr_ne(NULL, option->default_value);
+	ck_assert_str_eq("0", option->default_value);
+
+	option_destroy(option);
+
+	input = "Nullmove -check 1";
+
+	option = option_xboard_new(input);
+	ck_assert_ptr_ne(NULL, option);
+
+	ck_assert_ptr_ne(NULL, option->name);
+	ck_assert_str_eq("Nullmove", option->name);
+	
+	ck_assert_int_eq(option_type_check, option->type);
+
+	ck_assert_ptr_ne(NULL, option->default_value);
+	ck_assert_str_eq("1", option->default_value);
+
+	option_destroy(option);
+
+	input = "Nullmove -check yes";
+
+	option = option_xboard_new(input);
+	ck_assert_ptr_eq(NULL, option);
 END_TEST
 
 Suite *
@@ -138,6 +178,7 @@ xboard_suite(void)
 	tcase_add_test(tc_option, test_xboard_option_button);
 	tcase_add_test(tc_option, test_xboard_option_save);
 	tcase_add_test(tc_option, test_xboard_option_reset);
+	tcase_add_test(tc_option, test_xboard_option_check);
 	suite_add_tcase(suite, tc_option);
 
 	return suite;

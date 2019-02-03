@@ -157,6 +157,25 @@ option_xboard_new(const char *input)
 				*end = '\0';
 				self->name = xstrdup(trim(start));
 				break;
+			} else if (strcmp("-reset", end + 1) == 0) {
+				self->type = option_type_button;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+				break;
+			} else if (strncmp("-check", end + 1, 6) == 0
+			           && isspace(end[7])) {
+				self->type = option_type_check;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+				end += 8;
+				while (isspace(*end)) { end++; }
+				if (end[0] == '0')
+					self->default_value = xstrdup("0");
+				else if (end[0] == '1')
+					self->default_value = xstrdup("1");
+				if (end[1] != '\0')
+					goto bail_out;
+				break;
 			}
 		}
 		++end;
