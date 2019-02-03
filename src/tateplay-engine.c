@@ -950,6 +950,7 @@ engine_configure(Engine *self)
 	const Option *option;
 	UserOption user_option;
 	chi_stringbuf *num_buf;
+	int seconds;
 
 	log_realm(self->nick, "starting configuration");
 	self->state = configuring;
@@ -986,6 +987,25 @@ engine_configure(Engine *self)
 			_chi_stringbuf_append(sb, "sd ");
 			_chi_stringbuf_append_unsigned(sb, self->depth, 10);
 			_chi_stringbuf_append_char(sb, '\n');
+		} else {
+			_chi_stringbuf_append(sb, "level ");
+			_chi_stringbuf_append_unsigned(sb, self->tc.moves_per_time_control,
+			                               10);
+			_chi_stringbuf_append_char(sb, ' ');
+			_chi_stringbuf_append_unsigned(sb,
+			                               self->tc.seconds_per_time_control
+			                               / 60, 10);
+			seconds = self->tc.seconds_per_time_control % 60;
+			if (seconds) {
+				if (seconds < 10)
+					_chi_stringbuf_append(sb, ":0");
+				else
+					_chi_stringbuf_append_char(sb, ':');
+				_chi_stringbuf_append_unsigned(sb, seconds, 10);
+			}
+			_chi_stringbuf_append_char(sb, ' ');
+			_chi_stringbuf_append_unsigned(sb, self->tc.increment, 10);
+			_chi_stringbuf_append_char(sb, '\n');
 		}
 
 		for (i = 0; self->user_options && i < self->num_user_options; ++i) {
@@ -1012,7 +1032,7 @@ engine_configure(Engine *self)
 			                 "engine does not support option 'Hash', cannot set memory usage");
 		} else {
 			engine_check_spin_option(self, option, &user_option);
-			_chi_stringbuf_append(sb, "setoption Hash");
+			_chi_stringbuf_append(sb, "setoption name Hash value ");
 			_chi_stringbuf_append_unsigned(sb, self->mem_usage, 10);
 			_chi_stringbuf_append_char(sb, '\n');
 		}
@@ -1040,7 +1060,7 @@ engine_configure(Engine *self)
 				}
 
 				engine_check_spin_option(self, option, &user_option);
-				_chi_stringbuf_append(sb, "setoption Threads ");
+				_chi_stringbuf_append(sb, "setoption name Threads value ");
 				_chi_stringbuf_append_unsigned(sb, self->num_cpus, 10);
 				_chi_stringbuf_append_char(sb, '\n');
 			}
