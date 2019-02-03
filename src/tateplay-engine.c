@@ -533,11 +533,8 @@ engine_spool_output(Engine *self, const char *cmd,
 	size_t len = strlen(cmd);
 	size_t required = self->outbuf_length + 1 + len;
 
-	if (self->outbuf_length) {
-		assure(self->state == acknowledged);
-	}
-
-	assure(self->outbuf == NULL || !(*self->outbuf));
+	if (self->state != acknowledged && self->state != configuring)
+		assure(self->outbuf == NULL || !(*self->outbuf));
 
 	if (required > self->outbuf_size) {
 		self->outbuf_size = required;
@@ -762,6 +759,7 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 			          feature->value);
 			free(self->nick);
 			self->nick = xstrdup(feature->value);
+			engine_spool_output(self, "accepted myname\n", NULL);
 		} else if (strcmp("done", feature->name) == 0) {
 			if (strcmp("0", feature->value) == 0) {
 				gettimeofday(&self->waiting_since, NULL);
@@ -774,12 +772,18 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 				engine_configure(self);
 				return true;
 			}
+			engine_spool_output(self, "accepted done\n", NULL);
 		} else if (strcmp("usermove", feature->name) == 0) {
 			if (strcmp("0", feature->value) == 0) {
 				self->xboard_usermove = chi_false;
 			} else {
 				self->xboard_usermove = chi_true;
 			}
+			engine_spool_output(self, "accepted usermove\n", NULL);
+		} else {
+			engine_spool_output(self, "rejected ", NULL);
+			engine_spool_output(self, feature->name, NULL);
+			engine_spool_output(self, "\n", NULL);
 		}
 
 		xboard_feature_destroy(feature);
