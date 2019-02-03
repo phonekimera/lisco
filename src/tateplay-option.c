@@ -152,6 +152,11 @@ option_xboard_new(const char *input)
 				*end = '\0';
 				self->name = xstrdup(trim(start));
 				break;
+			} else if (strcmp("-save", end + 1) == 0) {
+				self->type = option_type_button;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+				break;
 			}
 		}
 		++end;
