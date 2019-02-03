@@ -214,6 +214,37 @@ option_xboard_new(const char *input)
 					goto bail_out;
 
 				break;
+			} else if (strncmp("-combo", end + 1, 6) == 0
+			           && isspace(end[7])) {
+				self->type = option_type_combo;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+
+				end = end + 7;
+				while (1) {
+					start = (char *) ltrim(end + 1);
+					end = start + 1;
+					while (*end && strncmp(end, "///", 3) != 0) {
+						++end;
+					}
+					
+					if (*end) {
+						*end = '\0';
+						end += 3;
+					}
+					if (*start == '*') {
+						++start;
+						if (self->default_value)
+							free(self->default_value);
+						self->default_value = xstrdup(trim(start));
+					}
+					option_add_var(self, trim(start));
+
+					if (!*end)
+						break;
+				}
+
+				break;
 			}
 		}
 		++end;
