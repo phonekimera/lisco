@@ -26,6 +26,11 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#ifdef _WIN32
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+#endif
 
 #include "util.h"
 
@@ -140,4 +145,23 @@ chi_bool
 time_is_left(const struct timeval *deadline, const struct timeval *now)
 {
 	return now->tv_sec < deadline->tv_sec || now->tv_usec < deadline->tv_usec;
+}
+
+long
+num_cpus(void)
+{
+#ifdef _WIN32
+# ifndef _SC_NPROCESSORS_ONLN
+SYSTEM_INFO info;
+GetSystemInfo(&info);
+#  define sysconf(a) info.dwNumberOfProcessors
+#  define _SC_NPROCESSORS_ONLN
+# endif
+#endif
+
+#ifdef _SC_NPROCESSORS_ONLN
+	return sysconf(_SC_NPROCESSORS_ONLN);
+#else
+# error "don't know how to determine number of CPUs"
+#endif
 }

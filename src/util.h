@@ -39,6 +39,7 @@ extern void time_add(struct timeval *total, const struct timeval *elapsed);
 extern void time_subtract(struct timeval *total, const struct timeval *elapsed);
 extern chi_bool time_is_left(const struct timeval *deadline,
                              const struct timeval *now);
+extern long num_cpus(void);
 
 #ifdef __cplusplus
 }
