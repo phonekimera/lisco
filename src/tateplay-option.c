@@ -275,6 +275,15 @@ option_xboard_new(const char *input)
 					goto bail_out;
 
 				break;
+			} else if ((strncmp("-file", end + 1, 5) == 0
+			            || strncmp("-path", end + 1, 5) == 0)
+			           && isspace(end[6])) {
+				self->type = option_type_string;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+				start = end + 7;
+				self->default_value = xstrdup(trim(start));
+				break;
 			}
 		}
 		++end;

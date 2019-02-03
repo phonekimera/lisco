@@ -313,6 +313,46 @@ START_TEST(test_xboard_option_slider)
 	option_destroy(option);
 END_TEST
 
+START_TEST(test_xboard_option_file)
+	const char *input;
+	Option *option;
+
+	input = "Foobar -file /path/to/file";
+
+	option = option_xboard_new(input);
+	ck_assert_ptr_ne(NULL, option);
+
+	ck_assert_ptr_ne(NULL, option->name);
+	ck_assert_str_eq("Foobar", option->name);
+	
+	ck_assert_int_eq(option_type_string, option->type);
+
+	ck_assert_ptr_ne(NULL, option->default_value);
+	ck_assert_str_eq("/path/to/file", option->default_value);
+
+	option_destroy(option);
+END_TEST
+
+START_TEST(test_xboard_option_path)
+	const char *input;
+	Option *option;
+
+	input = "Foobar -path /path/to/file";
+
+	option = option_xboard_new(input);
+	ck_assert_ptr_ne(NULL, option);
+
+	ck_assert_ptr_ne(NULL, option->name);
+	ck_assert_str_eq("Foobar", option->name);
+	
+	ck_assert_int_eq(option_type_string, option->type);
+
+	ck_assert_ptr_ne(NULL, option->default_value);
+	ck_assert_str_eq("/path/to/file", option->default_value);
+
+	option_destroy(option);
+END_TEST
+
 Suite *
 xboard_suite(void)
 {
@@ -335,6 +375,8 @@ xboard_suite(void)
 	tcase_add_test(tc_option, test_xboard_option_spin);
 	tcase_add_test(tc_option, test_xboard_option_combo);
 	tcase_add_test(tc_option, test_xboard_option_slider);
+	tcase_add_test(tc_option, test_xboard_option_file);
+	tcase_add_test(tc_option, test_xboard_option_path);
 	suite_add_tcase(suite, tc_option);
 
 	return suite;
