@@ -104,6 +104,23 @@ START_TEST(test_xboard_option_save)
 	option_destroy(option);
 END_TEST
 
+START_TEST(test_xboard_option_reset)
+	const char *input;
+	Option *option;
+
+	input = "   Reset 	 -save	 	 	";
+
+	option = option_xboard_new(input);
+	ck_assert_ptr_ne(NULL, option);
+
+	ck_assert_ptr_ne(NULL, option->name);
+	ck_assert_str_eq("Reset", option->name);
+	
+	ck_assert_int_eq(option_type_button, option->type);
+
+	option_destroy(option);
+END_TEST
+
 Suite *
 xboard_suite(void)
 {
@@ -120,6 +137,7 @@ xboard_suite(void)
 	tc_option = tcase_create("Options");
 	tcase_add_test(tc_option, test_xboard_option_button);
 	tcase_add_test(tc_option, test_xboard_option_save);
+	tcase_add_test(tc_option, test_xboard_option_reset);
 	suite_add_tcase(suite, tc_option);
 
 	return suite;
