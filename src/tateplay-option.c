@@ -176,6 +176,14 @@ option_xboard_new(const char *input)
 				if (end[1] != '\0')
 					goto bail_out;
 				break;
+			} else if (strncmp("-string", end + 1, 7) == 0
+			           && isspace(end[8])) {
+				self->type = option_type_string;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+				start = end + 9;
+				self->default_value = xstrdup(trim(start));
+				break;
 			}
 		}
 		++end;
