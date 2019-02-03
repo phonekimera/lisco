@@ -121,6 +121,23 @@ START_TEST(test_uci_combo_option)
 	option_destroy(option);
 END_TEST
 
+START_TEST(test_uci_button_option)
+	const char *input;
+	Option *option;
+
+	input = " name Clear Hash type button";
+
+	option = option_uci_new(input);
+	ck_assert_ptr_ne(NULL, option);
+
+	ck_assert_ptr_ne(NULL, option->name);
+	ck_assert_str_eq("Clear Hash", option->name);
+	
+	ck_assert_int_eq(option_type_button, option->type);
+
+	option_destroy(option);
+END_TEST
+
 START_TEST(test_stockfish_logfile_option)
 	const char *input;
 	Option *option;
@@ -153,6 +170,7 @@ uci_suite(void)
 	tcase_add_test(tc_option, test_uci_spin_option);
 	tcase_add_test(tc_option, test_uci_check_option);
 	tcase_add_test(tc_option, test_uci_combo_option);
+	tcase_add_test(tc_option, test_uci_button_option);
 	tcase_add_test(tc_option, test_stockfish_logfile_option);
 	suite_add_tcase(suite, tc_option);
 
