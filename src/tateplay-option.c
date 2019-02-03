@@ -132,6 +132,12 @@ bail_out:
 	return NULL;
 }
 
+Option *
+option_xboard_new(const char *input)
+{
+	return NULL;
+}
+
 void
 option_destroy(Option *self)
 {
