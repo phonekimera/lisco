@@ -181,6 +181,32 @@ START_TEST(test_xboard_option_string)
 	option_destroy(option);
 END_TEST
 
+START_TEST(test_xboard_option_spin)
+	const char *input;
+	Option *option;
+
+	input = "Foobar -spin 0 -2304 2304 ";
+
+	option = option_xboard_new(input);
+	ck_assert_ptr_ne(NULL, option);
+
+	ck_assert_ptr_ne(NULL, option->name);
+	ck_assert_str_eq("Foobar", option->name);
+	
+	ck_assert_int_eq(option_type_spin, option->type);
+
+	ck_assert_ptr_ne(NULL, option->default_value);
+	ck_assert_str_eq("0", option->default_value);
+
+	ck_assert_ptr_ne(NULL, option->min);
+	ck_assert_str_eq("-2304", option->min);
+
+	ck_assert_ptr_ne(NULL, option->min);
+	ck_assert_str_eq("2304", option->max);
+
+	option_destroy(option);
+END_TEST
+
 Suite *
 xboard_suite(void)
 {
@@ -200,6 +226,7 @@ xboard_suite(void)
 	tcase_add_test(tc_option, test_xboard_option_reset);
 	tcase_add_test(tc_option, test_xboard_option_check);
 	tcase_add_test(tc_option, test_xboard_option_string);
+	tcase_add_test(tc_option, test_xboard_option_spin);
 	suite_add_tcase(suite, tc_option);
 
 	return suite;
