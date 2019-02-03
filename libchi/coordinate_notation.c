@@ -47,39 +47,21 @@ chi_coordinate_notation(chi_move move, chi_color_t on_move,
 		*bufsize = 6;
 	}
 
-	if (chi_move_attacker(move) == king 
-	    && from == chi_coords2shift(4, 0)
-            && to == from - 2) {
-		strcpy(*buf, "O-O");
-	} else if (chi_move_attacker(move) == king 
-	    && from == chi_coords2shift(4, 0)
-            && to == from + 2) {
-		strcpy(*buf, "O-O-O");
-	} else if (chi_move_attacker(move) == king 
-	    && from == chi_coords2shift(4, 7)
-            && to == from - 2) {
-		strcpy(*buf, "O-O");
-	} else if (chi_move_attacker(move) == king 
-	    && from == chi_coords2shift(4, 7)
-            && to == from + 2) {
-		strcpy(*buf, "O-O-O");
+	label = chi_shift2label(from);
+	(*buf)[0] = label[0];
+	(*buf)[1] = label[1];
+
+	label = chi_shift2label(to);
+	(*buf)[2] = label[0];
+	(*buf)[3] = label[1];
+
+	promotion = chi_move_promote(move);
+
+	if (promotion) {
+		(*buf)[4] = tolower(chi_piece2char(promotion));
+		(*buf)[5] = '\0';
 	} else {
-		label = chi_shift2label(from);
-		(*buf)[0] = label[0];
-		(*buf)[1] = label[1];
-
-		label = chi_shift2label(to);
-		(*buf)[2] = label[0];
-		(*buf)[3] = label[1];
-
-		promotion = chi_move_promote(move);
-
-		if (promotion) {
-			(*buf)[4] = tolower(chi_piece2char(promotion));
-			(*buf)[5] = '\0';
-		} else {
-			(*buf)[4] = '\0';
-		}
+		(*buf)[4] = '\0';
 	}
 
 	return 0;
