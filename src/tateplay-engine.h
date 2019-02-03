@@ -104,6 +104,12 @@ typedef struct Engine {
 	 */
 	chi_bool san;
 
+	/* Number of cpus to use.  O means maximum.  */
+	size_t num_cpus;
+
+	/* Memory usage (hash size).  Defaults to 1 GB.  */
+	size_t mem_usage;
+
 	/* Maximum search depth in plies.  0 means, search to infinite depth.  */
 	unsigned long depth;
 

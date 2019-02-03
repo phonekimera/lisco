@@ -58,16 +58,17 @@ static bool engine_process_xboard_features(Engine *self, const char *line);
 static bool engine_process_uci_option(Engine *self, const char *line);
 static bool engine_process_uci_id(Engine *self, const char *line);
 static bool engine_configure(Engine *self);
+static const Option *engine_get_option(const Engine *self, const char *name);
 static void engine_configure_option(Engine *self, chi_stringbuf *sb,
                                     const UserOption *option);
 
-static void engine_check_string_option(Engine *self, Option *option,
+static void engine_check_string_option(Engine *self, const Option *option,
                                        const UserOption *user_option);
-static void engine_check_spin_option(Engine *self, Option *option,
+static void engine_check_spin_option(Engine *self, const Option *option,
                                      const UserOption *user_option);
-static void engine_check_check_option(Engine *self, Option *option,
+static void engine_check_check_option(Engine *self, const Option *option,
                                       const UserOption *user_option);
-static void engine_check_combo_option(Engine *self, Option *option,
+static void engine_check_combo_option(Engine *self, const Option *option,
                                       const UserOption *user_option);
 
 /* Callbacks.  */
@@ -84,6 +85,8 @@ engine_new(Game *game)
 	self->_argv_size = 1;
 	self->argv = xmalloc(sizeof self->argv[0]);
 	self->argv[0] = NULL;
+
+	self->mem_usage = 1024;
 
 	self->tc.moves_per_time_control = 40;
 	self->tc.seconds_per_time_control = 15 * 60;
@@ -943,11 +946,42 @@ engine_configure(Engine *self)
 	chi_stringbuf *sb = _chi_stringbuf_new(128);
 	const char *commands;
 	size_t i;
+	long ncpus;
+	const Option *option;
+	UserOption user_option;
+	chi_stringbuf *num_buf;
 
 	log_realm(self->nick, "starting configuration");
 	self->state = configuring;
 
 	if (self->protocol == xboard) {
+		if (self->xboard_memory) {
+			_chi_stringbuf_append(sb, "memory ");
+			_chi_stringbuf_append_unsigned(sb, self->mem_usage, 10);
+			_chi_stringbuf_append_char(sb, '\n');
+		}
+
+		if (self->xboard_smp) {
+			ncpus = num_cpus();
+			if (ncpus < 0) {
+				log_engine_error(self->nick, "cannot determine number of cpus: %s",
+				                 strerror(errno));
+			} else if (ncpus == 0) {
+				log_engine_error(self->nick, "cannot determine number of cpus:");
+			} else {
+				if (!self->num_cpus) {
+					self->num_cpus = ncpus;
+				} else if (self->num_cpus > ncpus) {
+					log_engine_error(self->nick, "machine has only %ld cpu(s)",
+					                 ncpus);
+					self->num_cpus = ncpus;
+				}
+				_chi_stringbuf_append(sb, "cores ");
+				_chi_stringbuf_append_unsigned(sb, self->num_cpus, 10);
+				_chi_stringbuf_append_char(sb, '\n');
+			}
+		}
+
 		if (self->depth) {
 			_chi_stringbuf_append(sb, "sd ");
 			_chi_stringbuf_append_unsigned(sb, self->depth, 10);
@@ -967,6 +1001,52 @@ engine_configure(Engine *self)
 		}
 		_chi_stringbuf_destroy(sb);
 	} else if (self->protocol == uci) {
+		option = engine_get_option(self, "Hash");
+		user_option.name = "Hash";
+		num_buf = _chi_stringbuf_new(10);
+		_chi_stringbuf_append_unsigned(num_buf, self->mem_usage, 10);
+		user_option.value = (char *) _chi_stringbuf_get_string(num_buf);
+
+		if (!option || option->type != option_type_spin) {
+			log_engine_error(self->nick,
+			                 "engine does not support option 'Hash', cannot set memory usage");
+		} else {
+			engine_check_spin_option(self, option, &user_option);
+			_chi_stringbuf_append(sb, "setoption Hash");
+			_chi_stringbuf_append_unsigned(sb, self->mem_usage, 10);
+			_chi_stringbuf_append_char(sb, '\n');
+		}
+		_chi_stringbuf_destroy(num_buf);
+
+		option = engine_get_option(self, "Threads");
+		user_option.name = "Threads";
+		if (option && option->type == option_type_spin) {
+			num_buf = _chi_stringbuf_new(10);
+			ncpus = num_cpus();
+			_chi_stringbuf_append_unsigned(num_buf, ncpus, 10);
+			user_option.value = (char *) _chi_stringbuf_get_string(num_buf);
+			if (ncpus < 0) {
+				log_engine_error(self->nick, "cannot determine number of cpus: %s",
+				                 strerror(errno));
+			} else if (ncpus == 0) {
+				log_engine_error(self->nick, "cannot determine number of cpus:");
+			} else {
+				if (!self->num_cpus) {
+					self->num_cpus = ncpus;
+				} else if (self->num_cpus > ncpus) {
+					log_engine_error(self->nick, "machine has only %ld cpu(s)",
+					                 ncpus);
+					self->num_cpus = ncpus;
+				}
+
+				engine_check_spin_option(self, option, &user_option);
+				_chi_stringbuf_append(sb, "setoption Threads ");
+				_chi_stringbuf_append_unsigned(sb, self->num_cpus, 10);
+				_chi_stringbuf_append_char(sb, '\n');
+			}
+			_chi_stringbuf_destroy(num_buf);
+		}
+
 		for (i = 0; self->user_options && i < self->num_user_options; ++i) {
 			engine_configure_option(self, sb, self->user_options + i);
 		}
@@ -1072,7 +1152,7 @@ engine_configure_option(Engine *self, chi_stringbuf *sb,
 }
 
 static void
-engine_check_string_option(Engine *self, Option *option,
+engine_check_string_option(Engine *self, const Option *option,
                            const UserOption *user_option)
 {
 	double value, min, max;
@@ -1114,7 +1194,7 @@ engine_check_string_option(Engine *self, Option *option,
 }
 
 static void
-engine_check_spin_option(Engine *self, Option *option,
+engine_check_spin_option(Engine *self, const Option *option,
                          const UserOption *user_option)
 {
 	long value, min, max;
@@ -1156,7 +1236,7 @@ engine_check_spin_option(Engine *self, Option *option,
 }
 
 static void
-engine_check_check_option(Engine *self, Option *option,
+engine_check_check_option(Engine *self, const Option *option,
                           const UserOption *user_option)
 {
 	if (strcmp(user_option->value, "true") == 0
@@ -1168,7 +1248,7 @@ engine_check_check_option(Engine *self, Option *option,
 }
 
 static void
-engine_check_combo_option(Engine *self, Option *option,
+engine_check_combo_option(Engine *self, const Option *option,
                           const UserOption *user_option)
 {
 	size_t i;
@@ -1186,4 +1266,17 @@ engine_check_combo_option(Engine *self, Option *option,
 	}
 
 	exit(EXIT_FAILURE);
+}
+
+static const Option *
+engine_get_option(const Engine *self, const char *name)
+{
+	size_t i;
+
+	for (i = 0; i < self->num_options; ++i) {
+		if (strcmp(self->options[i]->name, name) == 0)
+			return self->options[i];
+	}
+
+	return NULL;
 }
