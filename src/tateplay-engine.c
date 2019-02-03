@@ -780,6 +780,13 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 				self->xboard_usermove = chi_true;
 			}
 			engine_spool_output(self, "accepted usermove\n", NULL);
+		} else if (strcmp("san", feature->name) == 0) {
+			if (strcmp("0", feature->value) == 0) {
+				self->san = chi_false;
+			} else {
+				self->san = chi_true;
+			}
+			engine_spool_output(self, "accepted usermove\n", NULL);
 		} else {
 			engine_spool_output(self, "rejected ", NULL);
 			engine_spool_output(self, feature->name, NULL);
