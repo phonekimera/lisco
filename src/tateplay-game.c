@@ -564,6 +564,7 @@ game_start(Game *self)
 
 	chi_copy_pos(&copy, &self->pos);
 	engine_think(self->white, &self->pos, (chi_move) 0);
+	gettimeofday(&self->start, NULL);
 	engine_ponder(self->black, &self->pos);
 }
 
