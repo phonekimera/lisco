@@ -77,7 +77,6 @@ START_TEST(test_xboard_option_button)
 	input = "Clear Hash -button";
 
 	option = option_xboard_new(input);
-return;
 	ck_assert_ptr_ne(NULL, option);
 
 	ck_assert_ptr_ne(NULL, option->name);

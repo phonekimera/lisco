@@ -135,6 +135,40 @@ bail_out:
 Option *
 option_xboard_new(const char *input)
 {
+	Option *self = xmalloc(sizeof *self);
+	const char *original = ltrim(input);
+	char *copy = xstrdup(original);
+	char *start = copy;
+	char *end;
+
+	memset(self, 0, sizeof *self);
+
+	start = trim(start);
+	end = start + 1;
+	while (*end) {
+		if (isspace(*end)) {
+			if (strcmp("-button", end + 1) == 0) {
+				self->type = option_type_button;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+				break;
+			}
+		}
+		++end;
+	}
+
+	if (!self->name || !*self->name)
+		goto bail_out;
+
+	free(copy);
+
+	return self;
+
+bail_out:
+	free(copy);
+
+	option_destroy(self);
+
 	return NULL;
 }
 
@@ -164,16 +198,6 @@ option_consume_tokens(Option *self, char **tokens, const char *original)
 	size_t i, j;
 
 	for (i = 0; tokens[i] != NULL; ++i) {
-		// if (tokens[i][0] == '\0') {
-		// 	/* Restore the original character overwriting the
-		// 	 * terminating NIL.  This will extend the value.
-		// 	 */
-		// 	assure(&tokens[i][-1] >= original);
-		// 	tokens[i][-1] = original[&tokens[i][-1] - &tokens[0][0]];
-		// 	tokens[i][0]  = original[&tokens[i][0] - &tokens[0][0]];
-		// 	continue;
-		// } else
-
 		if (strcmp("name", tokens[i]) == 0) {
 			break;
 		} else if (strcmp("type", tokens[i]) == 0) {
