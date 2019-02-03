@@ -245,6 +245,36 @@ option_xboard_new(const char *input)
 				}
 
 				break;
+			} else if (strncmp("-slider", end + 1, 7) == 0
+			           && isspace(end[8])) {
+				self->type = option_type_spin;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+
+				start = (char *) ltrim(end + 9);
+				end = start + 1;
+				if (*end == '\0')
+					goto bail_out;
+				while (*end && !isspace(*end)) { ++end; }
+				*end = '\0';
+				self->default_value = xstrdup(start);
+
+				start = (char *) ltrim(end + 1);
+				end = start + 1;
+				while (*end && !isspace(*end)) { ++end; }
+				*end = '\0';
+				self->min = xstrdup(start);
+
+				start = (char *) ltrim(end + 1);
+				end = start + 1;
+				while (*end && !isspace(*end)) { ++end; }
+				*end = '\0';
+				self->max = xstrdup(start);
+
+				if (!*self->default_value || !*self->min || !*self->max)
+					goto bail_out;
+
+				break;
 			}
 		}
 		++end;
