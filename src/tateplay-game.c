@@ -449,6 +449,34 @@ game_uci_time_control(Game *self, chi_stringbuf *sb)
 	}
 }
 
+void
+game_xboard_time_control(Game *self, chi_stringbuf *sb)
+{
+	struct timeval time_left;
+	struct timeval now;
+	unsigned long time_left_cs;
+
+	gettimeofday(&now, NULL);
+
+	if (chi_on_move(&self->pos) == chi_white)
+		time_control_time_left(&self->white->tc, &time_left, &now);
+	else
+		time_control_time_left(&self->black->tc, &time_left, &now);
+	time_left_cs = time_left.tv_sec * 100 + time_left.tv_usec / 10000;
+	_chi_stringbuf_append(sb, "time ");
+	_chi_stringbuf_append_unsigned(sb, time_left_cs, 10);
+	_chi_stringbuf_append_char(sb, '\n');
+
+	if (chi_on_move(&self->pos) == chi_white)
+		time_control_time_left(&self->black->tc, &time_left, &now);
+	else
+		time_control_time_left(&self->white->tc, &time_left, &now);
+	time_left_cs = time_left.tv_sec * 100 + time_left.tv_usec / 10000;
+	_chi_stringbuf_append(sb, "otim ");
+	_chi_stringbuf_append_unsigned(sb, time_left_cs, 10);
+	_chi_stringbuf_append_char(sb, '\n');
+}
+
 static void
 game_terminate(Game *self)
 {

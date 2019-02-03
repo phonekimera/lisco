@@ -431,12 +431,15 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 	}
 
 	if (self->protocol == xboard) {
+		if (!self->tc.fixed_time)
+			game_xboard_time_control(self->game, sb);
+
 		if (move) {
 			if (self->san) {
 				errnum = chi_print_move(pos, move, &movestr, &buflen, 1);
 			} else {
 				errnum = chi_coordinate_notation(move, chi_on_move(pos),
-												&movestr, &buflen);
+				                                 &movestr, &buflen);
 			}
 			if (errnum) {
 				log_engine_fatal(self->nick, 
