@@ -954,9 +954,8 @@ engine_configure(Engine *self)
 			_chi_stringbuf_append_char(sb, '\n');
 		}
 
-		if (self->user_options) {
-			error(EXIT_FAILURE, 0, "%s: xboard engines do not support\
-  options.  Use --config-COLOR instead?\n", self->nick);
+		for (i = 0; self->user_options && i < self->num_user_options; ++i) {
+			engine_configure_option(self, sb, self->user_options + i);
 		}
 
 		commands = _chi_stringbuf_get_string(sb);
@@ -1000,40 +999,73 @@ engine_configure_option(Engine *self, chi_stringbuf *sb,
 
 	switch(option->type) {
 		case option_type_button:
-			_chi_stringbuf_append(sb, "setoption name ");
-			_chi_stringbuf_append(sb, option->name);
+			if (self->protocol == xboard) {
+				_chi_stringbuf_append(sb, "option ");
+				_chi_stringbuf_append(sb, option->name);
+			} else {
+				_chi_stringbuf_append(sb, "setoption name ");
+				_chi_stringbuf_append(sb, option->name);
+			}
 			_chi_stringbuf_append_char(sb, '\n');
 			break;
 		case option_type_string:
 			engine_check_string_option(self, option, user_option);
-			_chi_stringbuf_append(sb, "setoption name ");
-			_chi_stringbuf_append(sb, user_option->name);
-			_chi_stringbuf_append_char(sb, ' ');
-			_chi_stringbuf_append(sb, user_option->value);
+			if (self->protocol == xboard) {
+				_chi_stringbuf_append(sb, "option ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, '=');
+				_chi_stringbuf_append(sb, user_option->value);
+			} else {
+				_chi_stringbuf_append(sb, "setoption name ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, ' ');
+				_chi_stringbuf_append(sb, user_option->value);
+			}
 			_chi_stringbuf_append_char(sb, '\n');
 			break;
 		case option_type_spin:
 			engine_check_spin_option(self, option, user_option);
-			_chi_stringbuf_append(sb, "setoption name ");
-			_chi_stringbuf_append(sb, user_option->name);
-			_chi_stringbuf_append_char(sb, ' ');
-			_chi_stringbuf_append(sb, user_option->value);
+			if (self->protocol == xboard) {
+				_chi_stringbuf_append(sb, "option ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, '=');
+				_chi_stringbuf_append(sb, user_option->value);
+			} else {
+				_chi_stringbuf_append(sb, "setoption name ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, ' ');
+				_chi_stringbuf_append(sb, user_option->value);
+			}
 			_chi_stringbuf_append_char(sb, '\n');
 			break;
 		case option_type_check:
 			engine_check_check_option(self, option, user_option);
-			_chi_stringbuf_append(sb, "setoption name ");
-			_chi_stringbuf_append(sb, user_option->name);
-			_chi_stringbuf_append_char(sb, ' ');
-			_chi_stringbuf_append(sb, user_option->value);
+			if (self->protocol == xboard) {
+				_chi_stringbuf_append(sb, "option ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, '=');
+				_chi_stringbuf_append(sb, user_option->value);
+			} else {
+				_chi_stringbuf_append(sb, "setoption name ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, ' ');
+				_chi_stringbuf_append(sb, user_option->value);
+			}
 			_chi_stringbuf_append_char(sb, '\n');
 			break;
 		case option_type_combo:
 			engine_check_combo_option(self, option, user_option);
-			_chi_stringbuf_append(sb, "setoption name ");
-			_chi_stringbuf_append(sb, user_option->name);
-			_chi_stringbuf_append_char(sb, ' ');
-			_chi_stringbuf_append(sb, user_option->value);
+			if (self->protocol == xboard) {
+				_chi_stringbuf_append(sb, "option ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, '=');
+				_chi_stringbuf_append(sb, user_option->value);
+			} else {
+				_chi_stringbuf_append(sb, "setoption name ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, ' ');
+				_chi_stringbuf_append(sb, user_option->value);
+			}
 			_chi_stringbuf_append_char(sb, '\n');
 			break;
 	}
