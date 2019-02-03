@@ -434,7 +434,8 @@ game_uci_time_control(Game *self, chi_stringbuf *sb)
 		                               10);
 	}
 
-	if (self->white->tc.moves_per_time_control) {
+	if (chi_on_move(&self->pos) == chi_white
+	    && self->white->tc.moves_per_time_control) {
 		_chi_stringbuf_append(sb, " movestogo ");
 		moves_to_go = self->white->tc.moves_per_time_control
 		              - self->white->tc.num_moves 
@@ -442,7 +443,8 @@ game_uci_time_control(Game *self, chi_stringbuf *sb)
 		_chi_stringbuf_append_unsigned(sb, moves_to_go, 10);
 	}
 
-	if (self->black->tc.moves_per_time_control) {
+	if (chi_on_move(&self->pos) == chi_black
+	    && self->black->tc.moves_per_time_control) {
 		_chi_stringbuf_append(sb, " movestogo ");
 		moves_to_go = self->black->tc.moves_per_time_control
 		              - self->black->tc.num_moves 
