@@ -235,6 +235,56 @@ START_TEST(test_xboard_option_combo)
 	ck_assert_str_eq("Risky", option->vars[2]);
 	
 	option_destroy(option);
+
+	input = "Style -combo 	Solid /// *Normal /// Risky   ///";
+
+	option = option_xboard_new(input);
+	ck_assert_ptr_ne(NULL, option);
+
+	ck_assert_ptr_ne(NULL, option->name);
+	ck_assert_str_eq("Style", option->name);
+	
+	ck_assert_int_eq(option_type_combo, option->type);
+
+	ck_assert_ptr_ne(NULL, option->default_value);
+	ck_assert_str_eq("Normal", option->default_value);
+
+	ck_assert_int_eq(3, option->num_vars);
+	ck_assert_ptr_ne(NULL, option->vars);
+
+	ck_assert_ptr_ne(NULL, option->vars[0]);
+	ck_assert_str_eq("Solid", option->vars[0]);
+	ck_assert_ptr_ne(NULL, option->vars[1]);
+	ck_assert_str_eq("Normal", option->vars[1]);
+	ck_assert_ptr_ne(NULL, option->vars[2]);
+	ck_assert_str_eq("Risky", option->vars[2]);
+	
+	option_destroy(option);
+
+	input = "Style -combo 	Solid /// *Normal /// Risky   ///	  ";
+
+	option = option_xboard_new(input);
+	ck_assert_ptr_ne(NULL, option);
+
+	ck_assert_ptr_ne(NULL, option->name);
+	ck_assert_str_eq("Style", option->name);
+	
+	ck_assert_int_eq(option_type_combo, option->type);
+
+	ck_assert_ptr_ne(NULL, option->default_value);
+	ck_assert_str_eq("Normal", option->default_value);
+
+	ck_assert_int_eq(3, option->num_vars);
+	ck_assert_ptr_ne(NULL, option->vars);
+
+	ck_assert_ptr_ne(NULL, option->vars[0]);
+	ck_assert_str_eq("Solid", option->vars[0]);
+	ck_assert_ptr_ne(NULL, option->vars[1]);
+	ck_assert_str_eq("Normal", option->vars[1]);
+	ck_assert_ptr_ne(NULL, option->vars[2]);
+	ck_assert_str_eq("Risky", option->vars[2]);
+	
+	option_destroy(option);
 END_TEST
 
 Suite *
