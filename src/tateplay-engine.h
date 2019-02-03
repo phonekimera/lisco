@@ -86,6 +86,8 @@ typedef struct Engine {
 
 	char *outbuf;
 	size_t outbuf_size;
+	size_t outbuf_length;
+
 	char *inbuf;
 	size_t inbuf_size;
 	size_t inbuf_length;

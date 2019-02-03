@@ -364,7 +364,7 @@ engine_write_stdin(Engine *self)
 	char *start;
 	char *end;
 
-	ssize_t nbytes = write(self->in, self->outbuf, strlen(self->outbuf));
+	ssize_t nbytes = write(self->in, self->outbuf, self->outbuf_length);
 	if (nbytes < 0) {
 		error(EXIT_SUCCESS, errno,
 		      "error writing to stdin of engine '%s'",
@@ -401,8 +401,10 @@ engine_write_stdin(Engine *self)
 
 	if (*start) {
 		memmove(self->outbuf, start, strlen(start));
+		self->outbuf_length -= nbytes;
 	} else {
 		self->outbuf[0] = '\0';
+		self->outbuf_length = 0;
 		if (self->out_callback) {
 			self->out_callback(self);
 			self->out_callback = NULL;
@@ -529,7 +531,11 @@ engine_spool_output(Engine *self, const char *cmd,
                     void (*callback)(Engine * self))
 {
 	size_t len = strlen(cmd);
-	size_t required = 1 + len;
+	size_t required = self->outbuf_length + 1 + len;
+
+	if (self->outbuf_length) {
+		assure(self->state == acknowledged);
+	}
 
 	assure(self->outbuf == NULL || !(*self->outbuf));
 
@@ -538,7 +544,8 @@ engine_spool_output(Engine *self, const char *cmd,
 		self->outbuf = xrealloc(self->outbuf, self->outbuf_size);
 	}
 	
-	strcpy(self->outbuf, cmd);
+	strcpy(self->outbuf + self->outbuf_length, cmd);
+	self->outbuf_length += len;
 
 	self->out_callback = callback;
 }
