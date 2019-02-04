@@ -93,8 +93,8 @@ engine_new(Game *game)
 
 	self->game = game;
 
-	/* As an exception, this feature can be turned off, not on.  */
 	self->xboard_time = chi_true;
+	self->xboard_colors = chi_true;
 
 	return self;
 }
@@ -462,12 +462,23 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 								"error generating move string: %s",
 								chi_strerror(errnum));
 			}
+
 			if (self->xboard_usermove)
 				_chi_stringbuf_append(sb, "usermove ");
-			
+				
 			_chi_stringbuf_append(sb, movestr);
 			_chi_stringbuf_append_char(sb, '\n');
+
+			if (self->game->pos.half_moves == 1)
+				if (self->xboard_colors) {
+					_chi_stringbuf_append(sb, "black\n");
+				_chi_stringbuf_append(sb, "go\n");
+			}
+
 		} else {
+			if (self->xboard_colors) {
+				_chi_stringbuf_append(sb, "white\n");
+			}
 			_chi_stringbuf_append(sb, "go\n");
 		}
 	} else {
@@ -829,7 +840,12 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 			/* Ignored.  */
 			engine_spool_output(self, "accepted variants\n", NULL);
 		} else if (strcmp("colors", feature->name) == 0) {
-			engine_spool_output(self, "rejected colors\n", NULL);
+			if (strcmp("0", feature->value) == 0) {
+				self->xboard_colors = chi_false;
+			} else {
+				self->xboard_colors = chi_true;
+			}
+			engine_spool_output(self, "accepted colors\n", NULL);
 		} else if (strcmp("ics", feature->name) == 0) {
 			engine_spool_output(self, "rejected ics\n", NULL);
 		} else if (strcmp("name", feature->name) == 0) {
@@ -965,6 +981,7 @@ engine_configure(Engine *self)
 	self->state = configuring;
 
 	if (self->protocol == xboard) {
+		_chi_stringbuf_append(sb, "new\n");
 		if (self->xboard_memory) {
 			_chi_stringbuf_append(sb, "memory ");
 			_chi_stringbuf_append_unsigned(sb, self->mem_usage, 10);
@@ -1023,6 +1040,8 @@ engine_configure(Engine *self)
 		for (i = 0; self->user_options && i < self->num_user_options; ++i) {
 			engine_configure_option(self, sb, self->user_options + i);
 		}
+
+		_chi_stringbuf_append(sb, "force\n");
 
 		commands = _chi_stringbuf_get_string(sb);
 		if (*commands) {

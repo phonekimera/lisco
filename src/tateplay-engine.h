@@ -127,6 +127,7 @@ typedef struct Engine {
 	chi_bool xboard_time;
 	chi_bool xboard_memory;
 	chi_bool xboard_smp;
+	chi_bool xboard_colors;
 	/* FIXME! EGT formats! */
 
 	/* Engine options.  */
