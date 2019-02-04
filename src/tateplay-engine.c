@@ -441,7 +441,7 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 
 	if (verbose && !move) {
 		fen = chi_fen(pos);
-		log_engine_error(self->nick, "FEN: %s\n", fen);
+		log_realm(self->nick, "FEN: %s\n", fen);
 		display_board(stderr, pos);
 		chi_free(fen);
 	}
@@ -1035,6 +1035,7 @@ engine_configure(Engine *self)
 		}
 
 		_chi_stringbuf_append(sb, "random\n");
+		_chi_stringbuf_append(sb, "easy\n");
 		_chi_stringbuf_append(sb, "computer\n");
 
 		for (i = 0; self->user_options && i < self->num_user_options; ++i) {
