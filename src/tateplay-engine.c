@@ -469,8 +469,8 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 			_chi_stringbuf_append(sb, movestr);
 			_chi_stringbuf_append_char(sb, '\n');
 
-			if (self->game->pos.half_moves == 1)
-				if (self->xboard_colors) {
+			if (self->game->pos.half_moves == 1) {
+				if (self->xboard_colors)
 					_chi_stringbuf_append(sb, "black\n");
 				_chi_stringbuf_append(sb, "go\n");
 			}
