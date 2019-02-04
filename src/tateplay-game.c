@@ -326,7 +326,23 @@ legal_tag_value(const char *value)
 chi_bool
 game_ping(Game *self)
 {
-	/* FIXME! Check engine timeout! */
+	struct timeval now;
+
+	if (self->white->state < ready) {
+		/* Check timeout.  */
+		gettimeofday(&now, NULL);
+		if (!time_is_left(&self->white->ready, &now)) {
+			engine_configure(self->white);
+		}
+	}
+
+	if (self->black->state < ready) {
+		/* Check timeout.  */
+		gettimeofday(&now, NULL);
+		if (!time_is_left(&self->black->ready, &now)) {
+			engine_configure(self->black);
+		}
+	}
 
 	if (!self->started
 	    && self->white->state == ready && self->black->state == ready

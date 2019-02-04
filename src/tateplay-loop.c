@@ -28,6 +28,7 @@
 
 #include "log.h"
 #include "tateplay-loop.h"
+#include "util.h"
 
 int child_exited = 0;
 
@@ -42,6 +43,7 @@ tateplay_loop(Game *game)
 	Engine *black = game->black;
 	int i;
 	struct timeval timeout;
+	struct timeval now;
 
 	log_realm("info", "starting white engine");
 	if (!engine_start(game->white))
@@ -64,10 +66,13 @@ tateplay_loop(Game *game)
 	for ever {
 		/* Multiplex input and output.  */
 		FD_ZERO(&write_fd_set);
-		if (white->outbuf && white->outbuf[0] != '\0') {
+		gettimeofday(&now, NULL);
+		if (white->outbuf && white->outbuf[0] != '\0'
+		    && !time_is_left(&white->start_output, &now)) {
 			FD_SET(white->in, &write_fd_set);
 		}
-		if (black->outbuf && black->outbuf[0] != '\0') {
+		if (black->outbuf && black->outbuf[0] != '\0'
+		    && !time_is_left(&black->start_output, &now)) {
 			FD_SET(black->in, &write_fd_set);
 		}
 		

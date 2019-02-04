@@ -84,6 +84,9 @@ typedef struct Engine {
 	EngineProtocol protocol;
 	EngineState state;
 
+	long delay;
+	struct timeval start_output;
+
 	char *outbuf;
 	size_t outbuf_size;
 	size_t outbuf_length;
@@ -94,8 +97,7 @@ typedef struct Engine {
 
 	void (*out_callback)(struct Engine *self);
 
-	struct timeval waiting_since;
-	unsigned long max_waiting_time;
+	struct timeval ready;
 
 	/* Common negotiable features.  */
 	
@@ -158,6 +160,9 @@ extern bool engine_read_stderr(Engine *self);
 
 /* Write commands to the engine's standard input.  */
 extern bool engine_write_stdin(Engine *self);
+
+/* Send configuration commands to the engine.  */
+extern bool engine_configure(Engine *self);
 
 /* Find the post move for pos, after move has been made.  If move is 0,
  * pos is the starting position.

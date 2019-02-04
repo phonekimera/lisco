@@ -57,7 +57,6 @@ static bool engine_process_input_pondering(Engine *self, const char *line);
 static bool engine_process_xboard_features(Engine *self, const char *line);
 static bool engine_process_uci_option(Engine *self, const char *line);
 static bool engine_process_uci_id(Engine *self, const char *line);
-static bool engine_configure(Engine *self);
 static const Option *engine_get_option(const Engine *self, const char *name);
 static void engine_configure_option(Engine *self, chi_stringbuf *sb,
                                     const UserOption *option);
@@ -86,13 +85,16 @@ engine_new(Game *game)
 	self->argv = xmalloc(sizeof self->argv[0]);
 	self->argv[0] = NULL;
 
-	self->mem_usage = 1024;
+	self->mem_usage = 256;
 
 	self->tc.moves_per_time_control = 40;
 	self->tc.seconds_per_time_control = 15 * 60;
 	self->tc.increment = 0;
 
 	self->game = game;
+
+	/* As an exception, this feature can be turned off, not on.  */
+	self->xboard_time = chi_true;
 
 	return self;
 }
@@ -185,6 +187,7 @@ engine_start(Engine *self)
 	pid_t pid;
 	int in[2], out[2], err[2];
 	int flags;
+	struct timeval delay;
 
 	assure(self);
 	assure(!self->state);
@@ -215,6 +218,13 @@ engine_start(Engine *self)
 		fcntl(self->err, F_SETFL, flags | O_NONBLOCK);
 
 		self->state = started;
+
+		gettimeofday(&self->start_output, NULL);
+		if (self->delay) {
+			delay.tv_sec = self->delay / 1000;
+			delay.tv_usec = 1000 * (self->delay % 1000);
+			time_add(&self->start_output, &delay);
+		}
 
 		return true;
 	}
@@ -272,7 +282,8 @@ engine_negotiate(Engine *self)
 			/* Xboard waits for one hour for the done=0 feature.  Do the same
 			 * for UCI.
 			 */
-			self->max_waiting_time = 3600UL * 1000000UL;
+			gettimeofday(&self->ready, NULL);
+			self->ready.tv_sec += 3600;
 			self->state = acknowledged;
 			break;
 	}
@@ -680,7 +691,6 @@ engine_process_input_acknowledged(Engine *self, const char *cmd)
 			return engine_process_uci_id(self, cmd + 2);
 		} else if (strncmp("uciok", cmd, 5) == 0
 		           && ('\0' == cmd[5] || isspace(cmd[5]))) {
-			self->max_waiting_time = 0UL;
 			engine_configure(self);
 			return true;
 		}
@@ -760,13 +770,12 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 			engine_spool_output(self, "accepted myname\n", NULL);
 		} else if (strcmp("done", feature->name) == 0) {
 			if (strcmp("0", feature->value) == 0) {
-				gettimeofday(&self->waiting_since, NULL);
+				gettimeofday(&self->ready, NULL);
 				log_realm(self->nick, "now waiting up to one"
 				                      " one hour for engine"
 				                      " to be ready");
-				self->max_waiting_time = 3600UL * 1000000UL;
+				self->ready.tv_sec += 3600;
 			} else {
-				self->max_waiting_time = 0UL;
 				engine_configure(self);
 				return true;
 			}
@@ -917,8 +926,8 @@ engine_process_uci_id(Engine *self, const char *line)
 static void
 engine_start_initial_timeout(Engine *self)
 {
-	gettimeofday(&self->waiting_since, NULL);
-	self->max_waiting_time = 2UL * 1000000;
+	gettimeofday(&self->ready, NULL);
+	self->ready.tv_sec += 2;
 
 	log_realm(self->nick,
 	          "wait at most two seconds for engine being ready.");
@@ -940,7 +949,7 @@ engine_state_ready(Engine *self)
 	self->state = ready;
 }
 
-static bool
+bool
 engine_configure(Engine *self)
 {
 	chi_stringbuf *sb = _chi_stringbuf_new(128);
@@ -1007,6 +1016,8 @@ engine_configure(Engine *self)
 			_chi_stringbuf_append_unsigned(sb, self->tc.increment, 10);
 			_chi_stringbuf_append_char(sb, '\n');
 		}
+
+		_chi_stringbuf_append(sb, "random\n");
 
 		for (i = 0; self->user_options && i < self->num_user_options; ++i) {
 			engine_configure_option(self, sb, self->user_options + i);
