@@ -1037,6 +1037,7 @@ engine_configure(Engine *self)
 
 		_chi_stringbuf_append(sb, "random\n");
 		_chi_stringbuf_append(sb, "easy\n");
+		_chi_stringbuf_append(sb, "post\n");
 		_chi_stringbuf_append(sb, "computer\n");
 
 		for (i = 0; self->user_options && i < self->num_user_options; ++i) {
