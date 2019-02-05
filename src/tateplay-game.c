@@ -561,7 +561,7 @@ game_check_over(Game *self)
 		            relevant_fen_length) == 0)
 			++seen;
 		if (seen >= 3) {
-			self->result = chi_result_draw_by_50_moves_rule;
+			self->result = chi_result_draw_by_repetition;
 			self->white->state = finished;
 			self->black->state = finished;
 			return true;
