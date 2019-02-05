@@ -533,7 +533,7 @@ parse_san_move (chi_pos *pos, chi_move *move, const char *movestr)
 static void
 fill_move (chi_pos *pos, chi_move *move)
 {
-	chi_piece_t attacker = ~empty & 0x7;
+	chi_piece_t attacker = empty;
 	chi_piece_t victim = empty;
 	chi_piece_t promote = chi_move_promote (*move);
 	int is_ep = 0;
@@ -545,7 +545,7 @@ fill_move (chi_pos *pos, chi_move *move)
 
 	if (chi_on_move (pos) == chi_white) {
 		if (pos->w_pawns & from_mask) {
-			attacker = ~pawn & 0x7;
+			attacker = pawn;
 			if (chi_ep (pos)
 			    && (to_mask & CHI_6_MASK)
 			    && (!(to_mask & pos->b_pieces))
@@ -567,16 +567,16 @@ fill_move (chi_pos *pos, chi_move *move)
 				}
 			}
 		} else if (pos->w_knights & from_mask) {
-			attacker = ~knight & 0x7;
+			attacker = knight;
 		} else if (pos->w_bishops & from_mask) {
 			if (pos->w_rooks & from_mask)
-			attacker = ~queen & 0x7;
+			attacker = queen;
 			else 
-			attacker = ~bishop & 0x7;  
+			attacker = bishop;
 		} else if (pos->w_rooks & from_mask) {
-			attacker = ~rook & 0x7;
+			attacker = rook;
 		} else if (pos->w_kings & from_mask) {
-			attacker = ~king & 0x7;
+			attacker = king;
 		}
 
 		if (pos->b_pieces & to_mask) {
@@ -601,7 +601,7 @@ fill_move (chi_pos *pos, chi_move *move)
 		}
 	} else {
 		if (pos->b_pawns & from_mask) {
-			attacker = ~pawn & 0x7;
+			attacker = pawn;
 			if (chi_ep (pos) &&
 			(to_mask & CHI_3_MASK) &&
 			(!(to_mask & pos->w_pieces)) &&
@@ -623,16 +623,16 @@ fill_move (chi_pos *pos, chi_move *move)
 			}
 		}
 	} else if (pos->b_knights & from_mask) {
-		attacker = ~knight & 0x7;
+		attacker = knight;
 	} else if (pos->b_bishops & from_mask) {
 		if (pos->b_rooks & from_mask)
-		attacker = ~queen & 0x7;
+		attacker = queen;
 		else 
-		attacker = ~bishop & 0x7;  
+		attacker = bishop;
 	} else if (pos->b_rooks & from_mask) {
-		attacker = ~rook & 0x7;
+		attacker = rook;
 	} else if (pos->b_kings & from_mask) {
-		attacker = ~king & 0x7;
+		attacker = king;
 	}
 
 	if (pos->w_pieces & to_mask) {
@@ -657,8 +657,8 @@ fill_move (chi_pos *pos, chi_move *move)
 		}
 	}
 
-	*move |= (material << 22) | (is_ep << 12) | 
-	(victim << 16) | (attacker << 13);
+	*move |= (material << 24) | (is_ep << 21) |
+	(victim << 15) | (attacker << 12);
 }
 
 /*
