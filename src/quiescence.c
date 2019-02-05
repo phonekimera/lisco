@@ -26,7 +26,6 @@
 
 #include "brain.h"
 #include "time_ctrl.h"
-#include "three-fold.h"
 
 int
 quiescence (TREE *tree, int ply, int alpha, int beta)
@@ -41,9 +40,6 @@ quiescence (TREE *tree, int ply, int alpha, int beta)
 	int material;
 	int num_moves;
 	int original_alpha = alpha;
-	int unquiet = 0;
-	int* game_hist_hash;
-	int depth = 0;
 
 	chi_copy_pos (&saved_pos, pos);
 
@@ -54,7 +50,6 @@ quiescence (TREE *tree, int ply, int alpha, int beta)
 	tree->pv[ply].length = 0;
 	tree->pv[ply].moves[0] = 0;
 
-	// FIXME! Are they used?
 	tree->cv.moves[ply] = 0;
 	tree->cv.length = ply;
 
@@ -71,7 +66,6 @@ quiescence (TREE *tree, int ply, int alpha, int beta)
 
 		if (rdifftime (rtime (), start_time) >= tree->time_for_move) {
 			tree->status = EVENT_MOVE_NOW;
-
 			return beta;
 		}
 		next_time_control = 0x2000;
@@ -88,7 +82,7 @@ quiescence (TREE *tree, int ply, int alpha, int beta)
 	switch (probe_qtt (pos, tree->signatures[ply], &alpha, &beta)) {	
 		case HASH_EXACT:
 			++tree->qtt_exact_hits;
-			++tree->qtt_hits;
+			++tree->qtt_hits;		
 			return alpha;
 
 		case HASH_BETA:
@@ -100,13 +94,11 @@ quiescence (TREE *tree, int ply, int alpha, int beta)
 			++tree->qtt_alpha_hits;
 			++tree->qtt_hits;
 			return alpha;
-	}
+    }
 
-	tree->in_check[ply + 1] = chi_check_check (pos);
-	if (tree->in_check[ply + 1]) {
-		unquiet = 1;
-		depth = 128;
-	}
+	// FIXME: This does not really help.
+	if (tree->in_check[ply])
+		return search (tree, ONEPLY, ply, alpha, beta, 1);
 
 	best_score = standing_pat = evaluate (tree, ply, alpha, beta);
 #if DEBUG_BRAIN
@@ -142,62 +134,44 @@ quiescence (TREE *tree, int ply, int alpha, int beta)
 #endif
 	}
 
-	material = 100 * (chi_on_move (pos) == chi_white ? 
-				chi_material (pos) : -chi_material (pos));
-
-	num_moves = 0;
-
 	tree->move_stack[ply] = moves;
 	tree->move_states[ply] = move_state_init;
 
-	tree->cv.moves[ply] = 0;
-	tree->cv.length = ply + 1;
+	material = 100 * (chi_on_move (pos) == chi_white ? 
+				chi_material (pos) : -chi_material (pos));
 
-	while (0 != (move = next_move (tree, ply, depth))) {
+    num_moves = 0;
+
+    tree->cv.length = ply + 1;
+
+    while (0 != (move = next_move (tree, ply, 0))) {
 		int score;
+
+		/* Refute moves that will not bring the material balance close
+		   to alpha.  */
+		int min_material = alpha - material - MAX_POS_SCORE;
+		int this_material = 100 * chi_move_material (move);
+
 		/* FIXME! We need a special version of next_move for the quiescent
 		   search.  It should only return captures and promotions, and only
 		   check escapes for check.  */
-		if (!unquiet) {
-			if (!(chi_move_victim (move)) && !(chi_move_promote (move))) {
-				chi_copy_pos(pos, &saved_pos)
-				continue;
-			}
-
-			int min_material = alpha - material - MAX_POS_SCORE;
-			int this_material = 100 * chi_move_material (move);
+		if (!(chi_move_victim (move)) && !(chi_move_promote (move)))
+			continue;
 
 #if DEBUG_BRAIN
-			fprintf (stderr, "move: %s-%s, alpha: %d, material: %d, min_material: %d, move material: %d\n",
-			         chi_shift2label (chi_move_from (move)),
-			         chi_shift2label (chi_move_to (move)),
-			         alpha, material, min_material, 100 * chi_move_material (move));
+		fprintf (stderr, "move: %s-%s, alpha: %d, material: %d, min_material: %d, move material: %d\n", 
+		         chi_shift2label (chi_move_from (move)),
+		         chi_shift2label (chi_move_to (move)),
+		         alpha, material, min_material, 100 * chi_move_material (move));
 #endif
 
-			/* Refute moves that will not bring the material balance close
-			   to alpha.  */
-			if (this_material < min_material) {
-				++tree->refuted_quiescences;
-				chi_copy_pos(pos, &saved_pos)
-				continue;
-			}
-		} else {
-			/* Check for 3-fold repetition.  Otherwise we may run into an
-			   endless loop.  */
-			if (chi_on_move(pos) == chi_white) {
-				game_hist_hash = tree->white_game_hist;
-			} else {
-				game_hist_hash = tree->black_game_hist;
-			}
-
-			if (three_fold_repetition(tree, ply, game_hist_hash))
-				return DRAW;
-		}
-
-		if (chi_illegal_move (pos, move, 0)) {
-			chi_copy_pos(pos, &saved_pos);
+		if (this_material < min_material) {
+			++tree->refuted_quiescences;
 			continue;
 		}
+
+		if (chi_illegal_move (pos, move, 0))
+			continue;
 
 		tree->signatures[ply + 1] = 
 			chi_zk_update_signature (zk_handle, tree->signatures[ply],
@@ -205,6 +179,7 @@ quiescence (TREE *tree, int ply, int alpha, int beta)
 
 		++num_moves;
 		tree->cv.moves[ply] = move;
+		tree->in_check[ply + 1] = chi_check_check (pos);
 
 #if DEBUG_BRAIN
 		chi_on_move (pos) = !chi_on_move (pos);
