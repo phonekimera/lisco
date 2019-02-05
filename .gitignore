@@ -9,6 +9,7 @@ Makefile.in
 .deps/
 /libtool
 /stamp-h1
+/stamp-h.in
 *.o
 *.lo
 /autom4te.cache
