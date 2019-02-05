@@ -37,7 +37,7 @@ int child_exited = 0;
 bool
 tateplay_loop(Game *game)
 {
-	fd_set active_read_fd_set, read_fd_set;
+	fd_set read_fd_set;
 	fd_set write_fd_set;
 	Engine *white = game->white;
 	Engine *black = game->black;
@@ -57,12 +57,6 @@ tateplay_loop(Game *game)
 		      game->black->nick);
 	engine_negotiate(game->black);
 
-	FD_ZERO(&active_read_fd_set);
-	FD_SET(white->out, &active_read_fd_set);
-	FD_SET(white->err, &active_read_fd_set);
-	FD_SET(black->out, &active_read_fd_set);
-	FD_SET(black->err, &active_read_fd_set);
-
 	for ever {
 		/* Multiplex input and output.  */
 		FD_ZERO(&write_fd_set);
@@ -76,7 +70,14 @@ tateplay_loop(Game *game)
 			FD_SET(black->in, &write_fd_set);
 		}
 		
-		read_fd_set = active_read_fd_set;
+		FD_ZERO(&read_fd_set);
+		FD_SET(white->out, &read_fd_set);
+		if (white->err >= 0)
+			FD_SET(white->err, &read_fd_set);
+		FD_SET(black->out, &read_fd_set);
+		if (black->err >= 0)
+			FD_SET(black->err, &read_fd_set);
+
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 100000;
 		if (select(FD_SETSIZE, &read_fd_set, &write_fd_set, NULL,

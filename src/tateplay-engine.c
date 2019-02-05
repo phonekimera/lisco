@@ -329,12 +329,13 @@ engine_read_stderr(Engine *self)
 		error(EXIT_SUCCESS, errno,
 		      "error reading stderr from engine '%s'",
 		      self->nick);
-		return false;
+		return true;
 	} else if (nbytes == 0) {
 		error(EXIT_SUCCESS, 0,
 		      "unexpected end of file reading stderr from engine '%s'",
 			  self->nick);
-		return false;
+		self->err = -1;
+		return true;
 	}
 
 	/* Make sure that buf is null-terminated!  */
