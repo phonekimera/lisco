@@ -174,7 +174,7 @@ game_print_pgn(const Game *self)
 	printf("[Event \"%s\"]\012", self->event ? self->event : "?");
 
 	tm = localtime(&self->start.tv_sec);
-	printf("[Date \"%04u.%02u.%02u]\"\n",
+	printf("[Date \"%04u.%02u.%02u\"]\n",
 	       tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
 
 	printf("[Event \"%s\"]\012", self->event ? self->event : "?");
