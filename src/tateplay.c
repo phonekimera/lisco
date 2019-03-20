@@ -70,6 +70,7 @@ static const struct option long_options[] = {
 	{ "player-black", required_argument, NULL, CHAR_MAX + 2 },
 	{ "option-white", required_argument, NULL, CHAR_MAX + 3 },
 	{ "option-black", required_argument, NULL, CHAR_MAX + 4 },
+	{ "ponder", no_argument, NULL, CHAR_MAX + 6 },
 	{ "help", no_argument, NULL, 'h' },
 	{ "version", no_argument, NULL, 'V' },
 	{ "verbose", no_argument, NULL, 'v' },
@@ -170,6 +171,10 @@ main(int argc, char *argv[])
 				game_set_option_black(game, optarg);
 				break;
 
+            case CHAR_MAX + 6:
+				//game_set_option_ponder(game);
+				break;
+
 			case 'h':
 				do_help = true;
 				break;
@@ -245,6 +250,7 @@ for black):\n\
       --seconds-per-move=SEC  set time control to fixed SEC seconds per move\n\
   -t, --time-control=NUM MINUTES INCREMENT  set time control to NUM moves\n\
                               in MINUTES minutes with INCREMENT seconds\n\
+      --ponder                turn on pondering\n\
 ");
 		printf("\n");
 		printf("\
