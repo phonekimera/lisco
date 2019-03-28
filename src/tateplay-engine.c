@@ -482,6 +482,11 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 	_chi_stringbuf_destroy(sb);
 }
 
+void engine_turn_on_ponder(Engine *self)
+{
+    // TODO
+}
+
 void
 engine_ponder(Engine *self, chi_pos *pos)
 {

@@ -153,6 +153,9 @@ extern bool engine_write_stdin(Engine *self);
  */
 extern void engine_think(Engine *self, chi_pos *pos, chi_move move);
 
+/* Try to turn on ponder aka hard mode.  */
+extern void engine_turn_on_ponder(Engine *self);
+
 /* Ponder on position if pondering is enabled.  */
 extern void engine_ponder(Engine *self, chi_pos *pos);
 

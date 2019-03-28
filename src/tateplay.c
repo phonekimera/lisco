@@ -70,7 +70,8 @@ static const struct option long_options[] = {
 	{ "player-black", required_argument, NULL, CHAR_MAX + 2 },
 	{ "option-white", required_argument, NULL, CHAR_MAX + 3 },
 	{ "option-black", required_argument, NULL, CHAR_MAX + 4 },
-	{ "ponder", no_argument, NULL, CHAR_MAX + 6 },
+	{ "ponder-white", no_argument, NULL, CHAR_MAX + 6 },
+	{ "ponder-black", no_argument, NULL, CHAR_MAX + 7 },
 	{ "help", no_argument, NULL, 'h' },
 	{ "version", no_argument, NULL, 'V' },
 	{ "verbose", no_argument, NULL, 'v' },
@@ -172,7 +173,11 @@ main(int argc, char *argv[])
 				break;
 
             case CHAR_MAX + 6:
-				//game_set_option_ponder(game);
+				engine_turn_on_ponder(game->white);
+				break;
+
+            case CHAR_MAX + 7:
+				engine_turn_on_ponder(game->black);
 				break;
 
 			case 'h':
