@@ -245,11 +245,15 @@ for black):\n\
 ");
 		printf("\
   -p, --protocol=PROTOCOL     one of 'uci' (default), 'xboard', or 'cecp'\n\
-                              (an alias for 'xboard'\n\
-  -d, --depth=PLIES           search at most to depth PLIES\n\
-      --seconds-per-move=SEC  set time control to fixed SEC seconds per move\n\
+                              (an alias for 'xboard'\n");
+        printf("\
+  -d, --depth=PLIES           search at most to depth PLIES\n");
+        printf("\
+      --seconds-per-move=SEC  set time control to fixed SEC seconds per move\n");
+        printf("\
   -t, --time-control=NUM MINUTES INCREMENT  set time control to NUM moves\n\
-                              in MINUTES minutes with INCREMENT seconds\n\
+                              in MINUTES minutes with INCREMENT seconds\n");
+        printf("\
       --ponder                turn on pondering\n\
 ");
 		printf("\n");
@@ -268,13 +272,14 @@ General engine options\n");
 		printf ("\
 Game information:\n");
 		printf ("\
-  -e, --event=EVENT           the name of the event\n\
-  -s, --site=SITE             the name of the site\n\
-  -r, --round=ROUND           the round of the match\n\
+  -e, --event=EVENT           the name of the event\n");
+        printf ("\
+  -s, --site=SITE             the name of the site\n");
+        printf ("\
+  -r, --round=ROUND           the round of the match\n");
+        printf ("\
   -f, --fen=FEN               the starting position in Forsyth-Edwards\n\
-                              Notation (FEN)\n\
-");
-		printf("\n");
+                              Notation (FEN)\n");
 		printf("\
 Informative output:\n");
 		printf ("\
