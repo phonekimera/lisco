@@ -484,7 +484,7 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 
 void engine_turn_on_ponder(Engine *self)
 {
-    // TODO
+    self->ponder = true;
 }
 
 void

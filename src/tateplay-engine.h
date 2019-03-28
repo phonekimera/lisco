@@ -108,6 +108,9 @@ typedef struct Engine {
 	/* Time control.  */
 	TimeControl tc;
 
+    /* Turn on pondering.  */
+    chi_bool ponder;
+
 	/* Options set by the user via CLI --option-COLOR.  */
 	UserOption *user_options;
 	size_t num_user_options;
