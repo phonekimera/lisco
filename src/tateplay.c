@@ -258,9 +258,7 @@ for black):\n\
         printf("\
   -t, --time-control=NUM MINUTES INCREMENT  set time control to NUM moves\n\
                               in MINUTES minutes with INCREMENT seconds\n");
-        printf("\
-      --ponder                turn on pondering\n\
-");
+
 		printf("\n");
 		printf("\
 You can specify fractions of a minute for the time control, for example 0:30.\n\
@@ -271,8 +269,10 @@ or a colon (':').  The default is '40 15:00 0'.\n\
 		printf("\
 General engine options\n");
 		printf("\
+      --ponder-white            turn on pondering for white engine\n\
+      --ponder-black            turn on pondering for black engine\n\
       --option-white=KEY=VALUE  set option KEY for white engine to VALUE\n\
-      --option-black=KEY=VALUE  set option KEY for white engine to VALUE\n");
+      --option-black=KEY=VALUE  set option KEY for black engine to VALUE\n");
 		printf("\n");
 		printf ("\
 Game information:\n");
