@@ -120,6 +120,12 @@ time_control_init_level(TimeControl *self, const char *_input)
 	}
 	self->seconds_per_time_control = 60 * minutes + seconds;
 
+	if (!self->seconds_per_time_control) {
+		/* That would mean that the flag would immediately fall.  */
+		free(input);
+		return chi_false;
+	}
+
 	if (!parse_integer(&self->increment, increment_str)) {
 		free(input);
 		return chi_false;
@@ -154,4 +160,50 @@ time_control_init_st(TimeControl *self, const char *_input)
 	self->fixed_time = chi_true;
 
 	return chi_true;
+}
+
+void
+time_control_start_thinking(TimeControl *self, const struct timeval *now)
+{
+	self->started_thinking.tv_sec = now->tv_sec;
+	self->started_thinking.tv_usec = now->tv_usec;
+
+	if (self->fixed_time) {
+		self->flag.tv_sec = self->started_thinking.tv_sec
+				+ self->seconds_per_move;
+		self->flag.tv_usec = self->started_thinking.tv_usec;
+	} else {
+		time_control_time_left(self, &self->flag);
+		time_add(&self->flag, now);
+	}
+}
+
+chi_bool
+time_control_stop_thinking(TimeControl *self, const struct timeval *now)
+{
+	struct timeval thinking_time;
+
+	++self->num_moves;
+
+	time_diff(&thinking_time, &self->started_thinking, now);
+	time_add(&self->thinking_time, &thinking_time);
+
+	return time_is_left(&self->flag, now);
+}
+
+void
+time_control_time_left(TimeControl *self, struct timeval *result)
+{
+	size_t num_time_controls;
+
+	num_time_controls = 1;
+	if (self->moves_per_time_control) {
+		num_time_controls += self->num_moves / self->moves_per_time_control;
+	}
+
+	result->tv_sec = num_time_controls * self->seconds_per_time_control;
+	result->tv_sec += self->num_moves * self->increment;
+	result->tv_usec = 0;
+
+	time_subtract(result, &self->thinking_time);
 }

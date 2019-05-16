@@ -64,11 +64,16 @@ START_TEST(test_ltrim)
 	ck_assert_ptr_eq(got, string + 3);
 END_TEST
 
+START_TEST(test_num_cpus)
+	ck_assert_int_gt(num_cpus(), 0);
+END_TEST
+
 Suite *
 util_suite(void)
 {
 	Suite *suite;
 	TCase *tc_trim;
+	TCase *tc_os;
 
 	suite = suite_create("Utility Functions");
 
@@ -76,6 +81,10 @@ util_suite(void)
 	tcase_add_test(tc_trim, test_trim);
 	tcase_add_test(tc_trim, test_ltrim);
 	suite_add_tcase(suite, tc_trim);
+
+	tc_os = tcase_create("OS Features");
+	tcase_add_test(tc_os, test_num_cpus);
+	suite_add_tcase(suite, tc_os);
 
 	return suite;
 }

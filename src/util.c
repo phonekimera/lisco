@@ -26,6 +26,11 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#ifdef _WIN32
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+#endif
 
 #include "util.h"
 
@@ -98,4 +103,65 @@ parse_double(double *result, const char *string)
 	}
 
 	return chi_false;
+}
+
+void
+time_diff(struct timeval *result,
+          const struct timeval *start, const struct timeval *end)
+{
+	result->tv_sec = end->tv_sec - start->tv_sec;
+	if (end->tv_usec >= start->tv_usec) {
+		result->tv_usec = end->tv_usec - start->tv_usec;
+	} else {
+		--result->tv_sec;
+		result->tv_usec = 1000000 + end->tv_usec - start->tv_usec;
+	}
+}
+
+void
+time_add(struct timeval *total, const struct timeval *elapsed)
+{
+	total->tv_sec += elapsed->tv_sec;
+	total->tv_usec += elapsed->tv_usec;
+	if (total->tv_usec >= 1000000) {
+		++total->tv_sec;
+		total->tv_usec -= 1000000;
+	}
+}
+
+void
+time_subtract(struct timeval *total, const struct timeval *elapsed)
+{
+	total->tv_sec -= elapsed->tv_sec;
+	if (total->tv_usec >= elapsed->tv_usec) {
+		total->tv_usec -= elapsed->tv_usec;
+	} else {
+		--total->tv_sec;
+		total->tv_usec = 1000000 + total->tv_usec - elapsed->tv_usec;
+	}
+}
+
+chi_bool
+time_is_left(const struct timeval *deadline, const struct timeval *now)
+{
+	return now->tv_sec < deadline->tv_sec || now->tv_usec < deadline->tv_usec;
+}
+
+long
+num_cpus(void)
+{
+#ifdef _WIN32
+# ifndef _SC_NPROCESSORS_ONLN
+SYSTEM_INFO info;
+GetSystemInfo(&info);
+#  define sysconf(a) info.dwNumberOfProcessors
+#  define _SC_NPROCESSORS_ONLN
+# endif
+#endif
+
+#ifdef _SC_NPROCESSORS_ONLN
+	return sysconf(_SC_NPROCESSORS_ONLN);
+#else
+# error "don't know how to determine number of CPUs"
+#endif
 }

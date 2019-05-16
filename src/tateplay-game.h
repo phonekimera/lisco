@@ -26,6 +26,7 @@
 #include <sys/time.h>
 
 #include "libchi.h"
+#include "stringbuf.h"
 #include "tateplay-engine.h"
 
 #ifdef __cplusplus
@@ -75,6 +76,8 @@ extern void game_set_option_black(Game *game, char *optspec);
 
 extern chi_bool game_ping(Game *game);
 extern chi_bool game_do_move(Game *game, const char *movestr);
+extern void game_uci_time_control(Game *game, chi_stringbuf *sb);
+extern void game_xboard_time_control(Game *game, chi_stringbuf *sb);
 
 extern void game_print_pgn(const Game *game);
 

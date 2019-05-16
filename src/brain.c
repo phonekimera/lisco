@@ -325,13 +325,13 @@ think (mv, epd)
 	current_score = - current_score;
 #endif
 	fprintf (stdout, "Current score is: %d\n", current_score);
-		if (num_moves == 0) {
-			if (chi_check_check (&current)) {
-	    		if (chi_on_move (&current) == chi_white) {
-					fprintf (stdout, "0-1 {Black mates}\n");
-				} else {
-					fprintf (stdout, "1-0 {White mates}\n");
-				}
+	if (num_moves == 0) {
+		if (chi_check_check (&current)) {
+			if (chi_on_move (&current) == chi_white) {
+				fprintf (stdout, "0-1 {Black mates}\n");
+			} else {
+				fprintf (stdout, "1-0 {White mates}\n");
+			}
 		} else {
 			fprintf (stdout, "1/2-1/2 {Stalemate}\n");
 		}

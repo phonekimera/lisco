@@ -69,7 +69,7 @@ START_TEST(test_castling)
 	errnum = chi_coordinate_notation(move, chi_white, &buf, &bufsize);
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_ptr_ne(buf, NULL);
-	ck_assert_str_eq(buf, "O-O");
+	ck_assert_str_eq(buf, "e1g1");
 	ck_assert_int_ge(bufsize, 5);
 
 	move = chi_coords2shift(4, 0)
@@ -78,7 +78,7 @@ START_TEST(test_castling)
 	errnum = chi_coordinate_notation(move, chi_white, &buf, &bufsize);
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_ptr_ne(buf, NULL);
-	ck_assert_str_eq(buf, "O-O-O");
+	ck_assert_str_eq(buf, "e1c1");
 	ck_assert_int_ge(bufsize, 5);
 
 	move = chi_coords2shift(4, 7)
@@ -87,7 +87,7 @@ START_TEST(test_castling)
 	errnum = chi_coordinate_notation(move, chi_black, &buf, &bufsize);
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_ptr_ne(buf, NULL);
-	ck_assert_str_eq(buf, "O-O");
+	ck_assert_str_eq(buf, "e8g8");
 	ck_assert_int_ge(bufsize, 5);
 
 	move = chi_coords2shift(4, 7)
@@ -96,7 +96,7 @@ START_TEST(test_castling)
 	errnum = chi_coordinate_notation(move, chi_black, &buf, &bufsize);
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_ptr_ne(buf, NULL);
-	ck_assert_str_eq(buf, "O-O-O");
+	ck_assert_str_eq(buf, "e8c8");
 	ck_assert_int_ge(bufsize, 5);
 
 	free(buf);

@@ -137,19 +137,19 @@ START_TEST(test_king_king)
 /*
      a   b   c   d   e   f   g   h
    +---+---+---+---+---+---+---+---+
- 8 |   |   |   |   |   |   |   |   | En passant not possible.
+ 8 | k |   |   |   |   |   |   |   | En passant not possible.
    +---+---+---+---+---+---+---+---+ White king castle: no.
  7 |   |   |   |   |   |   |   |   | White queen castle: no.
    +---+---+---+---+---+---+---+---+ Black king castle: no.
  6 |   |   |   |   |   |   |   |   | Black queen castle: no.
-   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
- 5 |   |   |   |   |   |   |   |   | Half moves: 0.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 10.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 38.
    +---+---+---+---+---+---+---+---+ Next move: white.
- 4 |   |   |   |   |   |   |   |   | Material: -9.
+ 4 |   |   |   |   |   |   |   |   | Material: +0.
    +---+---+---+---+---+---+---+---+ Black has castled: no.
- 3 |   |   |   |   |   |   | k |   | White has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
    +---+---+---+---+---+---+---+---+
- 2 |   |   |   |   |   |   | q |   |
+ 2 |   |   |   |   |   |   |   |   |
    +---+---+---+---+---+---+---+---+
  1 |   |   |   |   |   |   |   | K |
    +---+---+---+---+---+---+---+---+

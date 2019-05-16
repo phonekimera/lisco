@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 
 #include "basename.h"
 #include "closeout.h"
@@ -45,6 +46,7 @@ static void version(void);
 static void set_protocol(const char *name);
 static void set_depth(const char *depth);
 static void set_seconds_per_move(const char *depth);
+static void set_delay(const char *delay);
 static void set_time_control(const char *depth);
 static void handle_sigchld(int signo);
 static void reap_children(void);
@@ -55,6 +57,7 @@ static int opt_protocol_seen = 0;
 static int opt_depth_seen = 0;
 static int opt_seconds_per_move_seen = 0;
 static int opt_time_control_seen = 0;
+static int opt_delay_seen = 0;
 
 static const struct option long_options[] = {
 	{ "white", required_argument, NULL, 'w' },
@@ -63,6 +66,7 @@ static const struct option long_options[] = {
 	{ "depth", required_argument, NULL, 'd' },
 	{ "seconds-per-move", required_argument, NULL, CHAR_MAX + 5 },
 	{ "time-control", required_argument, NULL, 't' },
+	{ "delay", required_argument, NULL, CHAR_MAX + 8 },
 	{ "event", required_argument, NULL, 'e' },
 	{ "site", required_argument, NULL, 's' },
 	{ "round", required_argument, NULL, 'r' },
@@ -136,10 +140,6 @@ main(int argc, char *argv[])
 				set_depth(optarg);
 				break;
 
-			case CHAR_MAX + 5:
-				set_seconds_per_move(optarg);
-				break;
-
 			case 't':
 				set_time_control(optarg);
 				break;
@@ -172,12 +172,20 @@ main(int argc, char *argv[])
 				game_set_option_black(game, optarg);
 				break;
 
-            case CHAR_MAX + 6:
+			case CHAR_MAX + 5:
+				set_seconds_per_move(optarg);
+				break;
+
+                        case CHAR_MAX + 6:
 				engine_turn_on_ponder(game->white);
 				break;
 
-            case CHAR_MAX + 7:
+                        case CHAR_MAX + 7:
 				engine_turn_on_ponder(game->black);
+                                break;
+
+			case CHAR_MAX + 8:
+				set_delay(optarg);
 				break;
 
 			case 'h':
@@ -257,8 +265,8 @@ for black):\n\
       --seconds-per-move=SEC  set time control to fixed SEC seconds per move\n");
         printf("\
   -t, --time-control=NUM MINUTES INCREMENT  set time control to NUM moves\n\
-                              in MINUTES minutes with INCREMENT seconds\n");
-
+      --delay=MS              start sending commands to the engine after MS ms\n\
+");
 		printf("\n");
 		printf("\
 You can specify fractions of a minute for the time control, for example 0:30.\n\
@@ -457,6 +465,29 @@ mutually exclusive");
 			/* FALLTHRU */
 		case 2:
 			game->black->tc = tc;
+			break;
+		default:
+			error(EXIT_SUCCESS, 0,
+			      "option --seconds-per-move can be given at most twice.");
+			usage(EXIT_FAILURE);
+	}
+}
+
+static void
+set_delay(const char *delay)
+{
+	long ms;
+
+	if (!parse_integer(&ms, delay) || delay < 0) {
+		error(EXIT_FAILURE, errno, "invalid delay '%s'", delay);
+	}
+
+	switch(++opt_delay_seen) {
+		case 1:
+			game->white->delay = ms;
+			/* FALLTHRU */
+		case 2:
+			game->black->delay = ms;
 			break;
 		default:
 			error(EXIT_SUCCESS, 0,

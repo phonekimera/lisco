@@ -40,6 +40,7 @@ static void game_start(Game *game);
 static chi_bool game_check_over(Game *game);
 static void game_set_engine_option(Game *game, Engine *engine,
                                    char *optspec);
+static void game_terminate(Game *game);
 
 Game *
 game_new(const char *fen)
@@ -173,7 +174,7 @@ game_print_pgn(const Game *self)
 	printf("[Event \"%s\"]\012", self->event ? self->event : "?");
 
 	tm = localtime(&self->start.tv_sec);
-	printf("[Date \"%04u.%02u.%02u]\"\n",
+	printf("[Date \"%04u.%02u.%02u\"]\n",
 	       tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
 
 	printf("[Event \"%s\"]\012", self->event ? self->event : "?");
@@ -325,10 +326,28 @@ legal_tag_value(const char *value)
 chi_bool
 game_ping(Game *self)
 {
-	/* FIXME! Check engine timeout! */
+	struct timeval now;
+
+	if (self->white->state < ready) {
+		/* Check timeout.  */
+		gettimeofday(&now, NULL);
+		if (!time_is_left(&self->white->ready, &now)) {
+			engine_configure(self->white);
+		}
+	}
+
+	if (self->black->state < ready) {
+		/* Check timeout.  */
+		gettimeofday(&now, NULL);
+		if (!time_is_left(&self->black->ready, &now)) {
+			engine_configure(self->black);
+		}
+	}
 
 	if (!self->started
-	    && self->white->state == ready && self->black->state == ready) {
+	    && self->white->state == ready && self->black->state == ready
+		&& !self->white->outbuf_length
+		&& !self->black->outbuf_length) {
 		game_start(self);
 	}
 
@@ -346,6 +365,15 @@ game_do_move(Game *self, const char *movestr)
 		self->black : self->white;
 	chi_pos old_pos;
 	char *fen;
+
+	if (!engine_stop_clock(mover)) {
+		if (chi_on_move(&self->pos) == chi_white)
+			self->result = chi_result_black_wins_on_time;
+		else
+			self->result = chi_result_white_wins_on_time;		
+		game_terminate(self);
+	}
+	/* FIXME! Check time control!  */
 
 	errnum = chi_parse_move(&self->pos, &move, movestr);
 	if (errnum) {
@@ -380,7 +408,7 @@ game_do_move(Game *self, const char *movestr)
 	self->fen[self->num_moves] = chi_fen(&self->pos);
 
 	if (game_check_over(self)) {
-		/* FIXME! Tell engines to quit! */
+		game_terminate(self);
 		return false;
 	}
 
@@ -388,6 +416,108 @@ game_do_move(Game *self, const char *movestr)
 	engine_think(waiter, &old_pos, move);
 
 	return true;
+}
+
+void
+game_uci_time_control(Game *self, chi_stringbuf *sb)
+{
+	struct timeval time_left;
+	struct timeval now;
+	unsigned long time_left_ms;
+	size_t moves_to_go;
+
+	gettimeofday(&now, NULL);
+
+	time_control_time_left(&self->white->tc, &time_left);
+	time_left_ms = time_left.tv_sec * 1000 + time_left.tv_usec / 1000;
+	_chi_stringbuf_append(sb, " wtime ");
+	_chi_stringbuf_append_unsigned(sb, time_left_ms, 10);
+
+	time_control_time_left(&self->black->tc, &time_left);
+	time_left_ms = time_left.tv_sec * 1000 + time_left.tv_usec / 1000;
+	_chi_stringbuf_append(sb, " btime ");
+	_chi_stringbuf_append_unsigned(sb, time_left_ms, 10);
+
+	if (self->white->tc.increment) {
+		_chi_stringbuf_append(sb, " winc ");
+		_chi_stringbuf_append_unsigned(sb, self->white->tc.increment * 1000,
+		                               10);
+	}
+
+	if (self->black->tc.increment) {
+		_chi_stringbuf_append(sb, " binc ");
+		_chi_stringbuf_append_unsigned(sb, self->black->tc.increment * 1000,
+		                               10);
+	}
+
+	if (chi_on_move(&self->pos) == chi_white
+	    && self->white->tc.moves_per_time_control) {
+		_chi_stringbuf_append(sb, " movestogo ");
+		moves_to_go = self->white->tc.moves_per_time_control
+		              - self->white->tc.num_moves 
+		                % self->white->tc.moves_per_time_control;
+		_chi_stringbuf_append_unsigned(sb, moves_to_go, 10);
+	}
+
+	if (chi_on_move(&self->pos) == chi_black
+	    && self->black->tc.moves_per_time_control) {
+		_chi_stringbuf_append(sb, " movestogo ");
+		moves_to_go = self->black->tc.moves_per_time_control
+		              - self->black->tc.num_moves 
+		                % self->black->tc.moves_per_time_control;
+		_chi_stringbuf_append_unsigned(sb, moves_to_go, 10);
+	}
+}
+
+void
+game_xboard_time_control(Game *self, chi_stringbuf *sb)
+{
+	struct timeval time_left;
+	struct timeval now;
+	unsigned long time_left_cs;
+
+	gettimeofday(&now, NULL);
+
+	if (chi_on_move(&self->pos) == chi_white)
+		time_control_time_left(&self->white->tc, &time_left);
+	else
+		time_control_time_left(&self->black->tc, &time_left);
+	time_left_cs = time_left.tv_sec * 100 + time_left.tv_usec / 10000;
+	_chi_stringbuf_append(sb, "time ");
+	_chi_stringbuf_append_unsigned(sb, time_left_cs, 10);
+	_chi_stringbuf_append_char(sb, '\n');
+
+	if (chi_on_move(&self->pos) == chi_white)
+		time_control_time_left(&self->black->tc, &time_left);
+	else
+		time_control_time_left(&self->white->tc, &time_left);
+	time_left_cs = time_left.tv_sec * 100 + time_left.tv_usec / 10000;
+	_chi_stringbuf_append(sb, "otim ");
+	_chi_stringbuf_append_unsigned(sb, time_left_cs, 10);
+	_chi_stringbuf_append_char(sb, '\n');
+}
+
+static void
+game_terminate(Game *self)
+{
+	double thinking_time, seconds_per_move;
+	unsigned int moves_played;
+
+	/* FIXME! Tell engines to quit! */
+	moves_played = (self->num_moves + 1) >> 1;
+	thinking_time = (double) self->white->tc.thinking_time.tv_sec
+	                + ((double) self->white->tc.thinking_time.tv_usec
+	                   / (double) 1000000);
+	seconds_per_move = thinking_time / (double) moves_played;
+	info_realm(self->white->nick, "%lu moves played in %g s (%g s/move)",
+	           moves_played, thinking_time, seconds_per_move);
+
+	thinking_time = (double) self->black->tc.thinking_time.tv_sec
+	                + ((double) self->black->tc.thinking_time.tv_usec
+	                   / (double) 1000000);
+	seconds_per_move = thinking_time / (double) moves_played;
+	info_realm(self->black->nick, "%lu moves played in %g s (%g s/move)",
+	           moves_played, thinking_time, seconds_per_move);
 }
 
 static chi_bool
@@ -431,7 +561,7 @@ game_check_over(Game *self)
 		            relevant_fen_length) == 0)
 			++seen;
 		if (seen >= 3) {
-			self->result = chi_result_draw_by_50_moves_rule;
+			self->result = chi_result_draw_by_repetition;
 			self->white->state = finished;
 			self->black->state = finished;
 			return true;
@@ -450,6 +580,7 @@ game_start(Game *self)
 
 	chi_copy_pos(&copy, &self->pos);
 	engine_think(self->white, &self->pos, (chi_move) 0);
+	gettimeofday(&self->start, NULL);
 	engine_ponder(self->black, &self->pos);
 }
 

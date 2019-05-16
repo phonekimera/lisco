@@ -30,6 +30,7 @@ extern "C" {
 extern int verbose;
 
 extern void log_realm(const char *realm, const char *message, ...);
+extern void info_realm(const char *realm, const char *message, ...);
 extern void log_engine_in(const char *realm, const char *message, ...);
 extern void log_engine_out(const char *realm, const char *message, ...);
 extern void log_engine_error(const char *realm, const char *message, ...);

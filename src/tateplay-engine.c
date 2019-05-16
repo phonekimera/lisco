@@ -57,17 +57,17 @@ static bool engine_process_input_pondering(Engine *self, const char *line);
 static bool engine_process_xboard_features(Engine *self, const char *line);
 static bool engine_process_uci_option(Engine *self, const char *line);
 static bool engine_process_uci_id(Engine *self, const char *line);
-static bool engine_configure(Engine *self);
+static const Option *engine_get_option(const Engine *self, const char *name);
 static void engine_configure_option(Engine *self, chi_stringbuf *sb,
                                     const UserOption *option);
 
-static void engine_check_string_option(Engine *self, Option *option,
+static void engine_check_string_option(Engine *self, const Option *option,
                                        const UserOption *user_option);
-static void engine_check_spin_option(Engine *self, Option *option,
+static void engine_check_spin_option(Engine *self, const Option *option,
                                      const UserOption *user_option);
-static void engine_check_check_option(Engine *self, Option *option,
+static void engine_check_check_option(Engine *self, const Option *option,
                                       const UserOption *user_option);
-static void engine_check_combo_option(Engine *self, Option *option,
+static void engine_check_combo_option(Engine *self, const Option *option,
                                       const UserOption *user_option);
 
 /* Callbacks.  */
@@ -85,11 +85,16 @@ engine_new(Game *game)
 	self->argv = xmalloc(sizeof self->argv[0]);
 	self->argv[0] = NULL;
 
+	self->mem_usage = 256;
+
 	self->tc.moves_per_time_control = 40;
 	self->tc.seconds_per_time_control = 15 * 60;
 	self->tc.increment = 0;
 
 	self->game = game;
+
+	self->xboard_time = chi_true;
+	self->xboard_colors = chi_true;
 
 	return self;
 }
@@ -182,6 +187,7 @@ engine_start(Engine *self)
 	pid_t pid;
 	int in[2], out[2], err[2];
 	int flags;
+	struct timeval delay;
 
 	assure(self);
 	assure(!self->state);
@@ -212,6 +218,13 @@ engine_start(Engine *self)
 		fcntl(self->err, F_SETFL, flags | O_NONBLOCK);
 
 		self->state = started;
+
+		gettimeofday(&self->start_output, NULL);
+		if (self->delay) {
+			delay.tv_sec = self->delay / 1000;
+			delay.tv_usec = 1000 * (self->delay % 1000);
+			time_add(&self->start_output, &delay);
+		}
 
 		return true;
 	}
@@ -269,7 +282,8 @@ engine_negotiate(Engine *self)
 			/* Xboard waits for one hour for the done=0 feature.  Do the same
 			 * for UCI.
 			 */
-			self->max_waiting_time = 3600UL * 1000000UL;
+			gettimeofday(&self->ready, NULL);
+			self->ready.tv_sec += 3600;
 			self->state = acknowledged;
 			break;
 	}
@@ -315,12 +329,13 @@ engine_read_stderr(Engine *self)
 		error(EXIT_SUCCESS, errno,
 		      "error reading stderr from engine '%s'",
 		      self->nick);
-		return false;
+		return true;
 	} else if (nbytes == 0) {
 		error(EXIT_SUCCESS, 0,
 		      "unexpected end of file reading stderr from engine '%s'",
 			  self->nick);
-		return false;
+		self->err = -1;
+		return true;
 	}
 
 	/* Make sure that buf is null-terminated!  */
@@ -364,7 +379,7 @@ engine_write_stdin(Engine *self)
 	char *start;
 	char *end;
 
-	ssize_t nbytes = write(self->in, self->outbuf, strlen(self->outbuf));
+	ssize_t nbytes = write(self->in, self->outbuf, self->outbuf_length);
 	if (nbytes < 0) {
 		error(EXIT_SUCCESS, errno,
 		      "error writing to stdin of engine '%s'",
@@ -401,8 +416,10 @@ engine_write_stdin(Engine *self)
 
 	if (*start) {
 		memmove(self->outbuf, start, strlen(start));
+		self->outbuf_length -= nbytes;
 	} else {
 		self->outbuf[0] = '\0';
+		self->outbuf_length = 0;
 		if (self->out_callback) {
 			self->out_callback(self);
 			self->out_callback = NULL;
@@ -419,36 +436,50 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 	unsigned int buflen;
 	int errnum;
 	char *fen;
-	chi_stringbuf* sb = _chi_stringbuf_new(200);
+	chi_stringbuf *sb = _chi_stringbuf_new(200);
 
 	self->state = thinking;
 
 	if (verbose && !move) {
 		fen = chi_fen(pos);
-		log_engine_error(self->nick, "FEN: %s\n", fen);
+		log_realm(self->nick, "FEN: %s\n", fen);
 		display_board(stderr, pos);
 		chi_free(fen);
 	}
 
 	if (self->protocol == xboard) {
+		if (!self->tc.fixed_time && self->xboard_time)
+			game_xboard_time_control(self->game, sb);
+
 		if (move) {
 			if (self->san) {
 				errnum = chi_print_move(pos, move, &movestr, &buflen, 1);
 			} else {
 				errnum = chi_coordinate_notation(move, chi_on_move(pos),
-												&movestr, &buflen);
+				                                 &movestr, &buflen);
 			}
 			if (errnum) {
 				log_engine_fatal(self->nick, 
 								"error generating move string: %s",
 								chi_strerror(errnum));
 			}
+
 			if (self->xboard_usermove)
 				_chi_stringbuf_append(sb, "usermove ");
-			
+				
 			_chi_stringbuf_append(sb, movestr);
 			_chi_stringbuf_append_char(sb, '\n');
+
+			if (self->game->pos.half_moves == 1) {
+				if (self->xboard_colors)
+					_chi_stringbuf_append(sb, "black\n");
+				_chi_stringbuf_append(sb, "go\n");
+			}
+
 		} else {
+			if (self->xboard_colors) {
+				_chi_stringbuf_append(sb, "white\n");
+			}
 			_chi_stringbuf_append(sb, "go\n");
 		}
 	} else {
@@ -471,6 +502,16 @@ engine_think(Engine *self, chi_pos *pos, chi_move move)
 			_chi_stringbuf_append(sb, " depth ");
 			_chi_stringbuf_append_unsigned(sb, self->depth, 10);
 			_chi_stringbuf_append_char(sb, '\n');
+		}
+
+		if (self->tc.fixed_time) {
+			_chi_stringbuf_append(sb, " movetime ");
+			_chi_stringbuf_append_unsigned(sb,
+			                               self->tc.seconds_per_move * 1000,
+										   10);
+			_chi_stringbuf_append_char(sb, '\n');
+		} else {
+			game_uci_time_control(self->game, sb);
 		}
 
 		_chi_stringbuf_append_char(sb, '\n');
@@ -507,21 +548,32 @@ engine_set_option(Engine *self, char *name, char *value)
 	self->user_options[self->num_user_options - 1] = option;
 }
 
+chi_bool
+engine_stop_clock(Engine *self)
+{
+	struct timeval now;
+
+	gettimeofday(&now, NULL);
+	return time_control_stop_thinking(&self->tc, &now);
+}
+
 static void
 engine_spool_output(Engine *self, const char *cmd,
                     void (*callback)(Engine * self))
 {
 	size_t len = strlen(cmd);
-	size_t required = 1 + len;
+	size_t required = self->outbuf_length + 1 + len;
 
-	assure(self->outbuf == NULL || !(*self->outbuf));
+	if (self->state != acknowledged && self->state != configuring)
+		assure(self->outbuf == NULL || !(*self->outbuf));
 
 	if (required > self->outbuf_size) {
 		self->outbuf_size = required;
 		self->outbuf = xrealloc(self->outbuf, self->outbuf_size);
 	}
 	
-	strcpy(self->outbuf, cmd);
+	strcpy(self->outbuf + self->outbuf_length, cmd);
+	self->outbuf_length += len;
 
 	self->out_callback = callback;
 }
@@ -633,11 +685,6 @@ engine_process_input_negotiating(Engine *self, const char *cmd)
 	if (self->protocol == xboard) {
 		if (strncmp("feature", cmd, 7) == 0 && isspace(cmd[7])) {
 				self->state = acknowledged;
-			/* We consider ourselves a server and set the default
-			 * to true.
-			 */
-			self->xboard_name = chi_true;
-
 			return engine_process_input_acknowledged(self, cmd);
 		}
 	}
@@ -661,7 +708,6 @@ engine_process_input_acknowledged(Engine *self, const char *cmd)
 			return engine_process_uci_id(self, cmd + 2);
 		} else if (strncmp("uciok", cmd, 5) == 0
 		           && ('\0' == cmd[5] || isspace(cmd[5]))) {
-			self->max_waiting_time = 0UL;
 			engine_configure(self);
 			return true;
 		}
@@ -738,24 +784,120 @@ engine_process_xboard_features(Engine *self, const char *cmd)
 			          feature->value);
 			free(self->nick);
 			self->nick = xstrdup(feature->value);
+			engine_spool_output(self, "accepted myname\n", NULL);
 		} else if (strcmp("done", feature->name) == 0) {
 			if (strcmp("0", feature->value) == 0) {
-				gettimeofday(&self->waiting_since, NULL);
+				gettimeofday(&self->ready, NULL);
 				log_realm(self->nick, "now waiting up to one"
 				                      " one hour for engine"
 				                      " to be ready");
-				self->max_waiting_time = 3600UL * 1000000UL;
+				self->ready.tv_sec += 3600;
 			} else {
-				self->max_waiting_time = 0UL;
 				engine_configure(self);
 				return true;
 			}
+			engine_spool_output(self, "accepted done\n", NULL);
 		} else if (strcmp("usermove", feature->name) == 0) {
 			if (strcmp("0", feature->value) == 0) {
 				self->xboard_usermove = chi_false;
 			} else {
 				self->xboard_usermove = chi_true;
 			}
+			engine_spool_output(self, "accepted usermove\n", NULL);
+		} else if (strcmp("san", feature->name) == 0) {
+			if (strcmp("0", feature->value) == 0) {
+				self->san = chi_false;
+			} else {
+				self->san = chi_true;
+			}
+			engine_spool_output(self, "accepted usermove\n", NULL);
+		} else if (strcmp("ping", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted ping\n", NULL);
+		} else if (strcmp("setboard", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted setboard\n", NULL);
+		} else if (strcmp("playother", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted playother\n", NULL);
+		} else if (strcmp("time", feature->name) == 0) {
+			if (strcmp("0", feature->value) == 0) {
+				self->xboard_time = chi_false;
+			} else {
+				self->xboard_time = chi_true;
+			}
+			engine_spool_output(self, "accepted time\n", NULL);
+		} else if (strcmp("draw", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted draw\n", NULL);
+		} else if (strcmp("sigint", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted sigint\n", NULL);
+		} else if (strcmp("sigterm", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted sigterm\n", NULL);
+		} else if (strcmp("reuse", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted reuse\n", NULL);
+		} else if (strcmp("analyze", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted analyze\n", NULL);
+		} else if (strcmp("variants", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted variants\n", NULL);
+		} else if (strcmp("colors", feature->name) == 0) {
+			if (strcmp("0", feature->value) == 0) {
+				self->xboard_colors = chi_false;
+			} else {
+				self->xboard_colors = chi_true;
+			}
+			engine_spool_output(self, "accepted colors\n", NULL);
+		} else if (strcmp("ics", feature->name) == 0) {
+			engine_spool_output(self, "rejected ics\n", NULL);
+		} else if (strcmp("name", feature->name) == 0) {
+			engine_spool_output(self, "rejected name\n", NULL);
+		} else if (strcmp("pause", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted pause\n", NULL);
+		} else if (strcmp("nps", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted nps\n", NULL);
+		} else if (strcmp("debug", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted debug\n", NULL);
+		} else if (strcmp("memory", feature->name) == 0) {
+			if (strcmp("0", feature->value) == 0) {
+				self->xboard_memory = chi_false;
+			} else {
+				self->xboard_memory = chi_true;
+			}
+			engine_spool_output(self, "accepted memory\n", NULL);
+		} else if (strcmp("smp", feature->name) == 0) {
+			if (strcmp("0", feature->value) == 0) {
+				self->xboard_smp = chi_false;
+			} else {
+				self->xboard_smp = chi_true;
+			}
+			engine_spool_output(self, "accepted smp\n", NULL);
+		} else if (strcmp("egt", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted egt\n", NULL);
+		} else if (strcmp("option", feature->name) == 0) {
+			/* TODO!  */
+			engine_spool_output(self, "accepted option\n", NULL);
+		} else if (strcmp("exclude", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted exclude\n", NULL);
+		} else if (strcmp("setscore", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted setscore\n", NULL);
+		} else if (strcmp("highlight", feature->name) == 0) {
+			/* Ignored.  */
+			engine_spool_output(self, "accepted highlight\n", NULL);
+		} else {
+			engine_spool_output(self, "rejected ", NULL);
+			engine_spool_output(self, feature->name, NULL);
+			engine_spool_output(self, "\n", NULL);
 		}
 
 		xboard_feature_destroy(feature);
@@ -806,8 +948,8 @@ engine_process_uci_id(Engine *self, const char *line)
 static void
 engine_start_initial_timeout(Engine *self)
 {
-	gettimeofday(&self->waiting_since, NULL);
-	self->max_waiting_time = 2UL * 1000000;
+	gettimeofday(&self->ready, NULL);
+	self->ready.tv_sec += 2;
 
 	log_realm(self->nick,
 	          "wait at most two seconds for engine being ready.");
@@ -816,7 +958,11 @@ engine_start_initial_timeout(Engine *self)
 static void
 engine_start_clock(Engine *self)
 {
-	log_realm(self->nick, "FIXME! Start clock!");
+	struct timeval now;
+
+	gettimeofday(&now, NULL);
+
+	time_control_start_thinking(&self->tc, &now);
 }
 
 static void
@@ -825,27 +971,85 @@ engine_state_ready(Engine *self)
 	self->state = ready;
 }
 
-static bool
+bool
 engine_configure(Engine *self)
 {
 	chi_stringbuf *sb = _chi_stringbuf_new(128);
 	const char *commands;
 	size_t i;
+	long ncpus;
+	const Option *option;
+	UserOption user_option;
+	chi_stringbuf *num_buf;
+	int seconds;
 
 	log_realm(self->nick, "starting configuration");
 	self->state = configuring;
 
 	if (self->protocol == xboard) {
+		_chi_stringbuf_append(sb, "new\n");
+		if (self->xboard_memory) {
+			_chi_stringbuf_append(sb, "memory ");
+			_chi_stringbuf_append_unsigned(sb, self->mem_usage, 10);
+			_chi_stringbuf_append_char(sb, '\n');
+		}
+
+		if (self->xboard_smp) {
+			ncpus = num_cpus();
+			if (ncpus < 0) {
+				log_engine_error(self->nick, "cannot determine number of cpus: %s",
+				                 strerror(errno));
+			} else if (ncpus == 0) {
+				log_engine_error(self->nick, "cannot determine number of cpus:");
+			} else {
+				if (!self->num_cpus) {
+					self->num_cpus = ncpus;
+				} else if (self->num_cpus > ncpus) {
+					log_engine_error(self->nick, "machine has only %ld cpu(s)",
+					                 ncpus);
+					self->num_cpus = ncpus;
+				}
+				_chi_stringbuf_append(sb, "cores ");
+				_chi_stringbuf_append_unsigned(sb, self->num_cpus, 10);
+				_chi_stringbuf_append_char(sb, '\n');
+			}
+		}
+
 		if (self->depth) {
 			_chi_stringbuf_append(sb, "sd ");
 			_chi_stringbuf_append_unsigned(sb, self->depth, 10);
 			_chi_stringbuf_append_char(sb, '\n');
+		} else {
+			_chi_stringbuf_append(sb, "level ");
+			_chi_stringbuf_append_unsigned(sb, self->tc.moves_per_time_control,
+			                               10);
+			_chi_stringbuf_append_char(sb, ' ');
+			_chi_stringbuf_append_unsigned(sb,
+			                               self->tc.seconds_per_time_control
+			                               / 60, 10);
+			seconds = self->tc.seconds_per_time_control % 60;
+			if (seconds) {
+				if (seconds < 10)
+					_chi_stringbuf_append(sb, ":0");
+				else
+					_chi_stringbuf_append_char(sb, ':');
+				_chi_stringbuf_append_unsigned(sb, seconds, 10);
+			}
+			_chi_stringbuf_append_char(sb, ' ');
+			_chi_stringbuf_append_unsigned(sb, self->tc.increment, 10);
+			_chi_stringbuf_append_char(sb, '\n');
 		}
 
-		if (self->user_options) {
-			error(EXIT_FAILURE, 0, "%s: xboard engines do not support\
-  options.  Use --config-COLOR instead?\n", self->nick);
+		_chi_stringbuf_append(sb, "random\n");
+		_chi_stringbuf_append(sb, "easy\n");
+		_chi_stringbuf_append(sb, "post\n");
+		_chi_stringbuf_append(sb, "computer\n");
+
+		for (i = 0; self->user_options && i < self->num_user_options; ++i) {
+			engine_configure_option(self, sb, self->user_options + i);
 		}
+
+		_chi_stringbuf_append(sb, "force\n");
 
 		commands = _chi_stringbuf_get_string(sb);
 		if (*commands) {
@@ -856,6 +1060,52 @@ engine_configure(Engine *self)
 		}
 		_chi_stringbuf_destroy(sb);
 	} else if (self->protocol == uci) {
+		option = engine_get_option(self, "Hash");
+		user_option.name = "Hash";
+		num_buf = _chi_stringbuf_new(10);
+		_chi_stringbuf_append_unsigned(num_buf, self->mem_usage, 10);
+		user_option.value = (char *) _chi_stringbuf_get_string(num_buf);
+
+		if (!option || option->type != option_type_spin) {
+			log_engine_error(self->nick,
+			                 "engine does not support option 'Hash', cannot set memory usage");
+		} else {
+			engine_check_spin_option(self, option, &user_option);
+			_chi_stringbuf_append(sb, "setoption name Hash value ");
+			_chi_stringbuf_append_unsigned(sb, self->mem_usage, 10);
+			_chi_stringbuf_append_char(sb, '\n');
+		}
+		_chi_stringbuf_destroy(num_buf);
+
+		option = engine_get_option(self, "Threads");
+		user_option.name = "Threads";
+		if (option && option->type == option_type_spin) {
+			num_buf = _chi_stringbuf_new(10);
+			ncpus = num_cpus();
+			_chi_stringbuf_append_unsigned(num_buf, ncpus, 10);
+			user_option.value = (char *) _chi_stringbuf_get_string(num_buf);
+			if (ncpus < 0) {
+				log_engine_error(self->nick, "cannot determine number of cpus: %s",
+				                 strerror(errno));
+			} else if (ncpus == 0) {
+				log_engine_error(self->nick, "cannot determine number of cpus:");
+			} else {
+				if (!self->num_cpus) {
+					self->num_cpus = ncpus;
+				} else if (self->num_cpus > ncpus) {
+					log_engine_error(self->nick, "machine has only %ld cpu(s)",
+					                 ncpus);
+					self->num_cpus = ncpus;
+				}
+
+				engine_check_spin_option(self, option, &user_option);
+				_chi_stringbuf_append(sb, "setoption name Threads value ");
+				_chi_stringbuf_append_unsigned(sb, self->num_cpus, 10);
+				_chi_stringbuf_append_char(sb, '\n');
+			}
+			_chi_stringbuf_destroy(num_buf);
+		}
+
 		for (i = 0; self->user_options && i < self->num_user_options; ++i) {
 			engine_configure_option(self, sb, self->user_options + i);
 		}
@@ -888,47 +1138,80 @@ engine_configure_option(Engine *self, chi_stringbuf *sb,
 
 	switch(option->type) {
 		case option_type_button:
-			_chi_stringbuf_append(sb, "setoption name ");
-			_chi_stringbuf_append(sb, option->name);
+			if (self->protocol == xboard) {
+				_chi_stringbuf_append(sb, "option ");
+				_chi_stringbuf_append(sb, option->name);
+			} else {
+				_chi_stringbuf_append(sb, "setoption name ");
+				_chi_stringbuf_append(sb, option->name);
+			}
 			_chi_stringbuf_append_char(sb, '\n');
 			break;
 		case option_type_string:
 			engine_check_string_option(self, option, user_option);
-			_chi_stringbuf_append(sb, "setoption name ");
-			_chi_stringbuf_append(sb, user_option->name);
-			_chi_stringbuf_append_char(sb, ' ');
-			_chi_stringbuf_append(sb, user_option->value);
+			if (self->protocol == xboard) {
+				_chi_stringbuf_append(sb, "option ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, '=');
+				_chi_stringbuf_append(sb, user_option->value);
+			} else {
+				_chi_stringbuf_append(sb, "setoption name ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, ' ');
+				_chi_stringbuf_append(sb, user_option->value);
+			}
 			_chi_stringbuf_append_char(sb, '\n');
 			break;
 		case option_type_spin:
 			engine_check_spin_option(self, option, user_option);
-			_chi_stringbuf_append(sb, "setoption name ");
-			_chi_stringbuf_append(sb, user_option->name);
-			_chi_stringbuf_append_char(sb, ' ');
-			_chi_stringbuf_append(sb, user_option->value);
+			if (self->protocol == xboard) {
+				_chi_stringbuf_append(sb, "option ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, '=');
+				_chi_stringbuf_append(sb, user_option->value);
+			} else {
+				_chi_stringbuf_append(sb, "setoption name ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, ' ');
+				_chi_stringbuf_append(sb, user_option->value);
+			}
 			_chi_stringbuf_append_char(sb, '\n');
 			break;
 		case option_type_check:
 			engine_check_check_option(self, option, user_option);
-			_chi_stringbuf_append(sb, "setoption name ");
-			_chi_stringbuf_append(sb, user_option->name);
-			_chi_stringbuf_append_char(sb, ' ');
-			_chi_stringbuf_append(sb, user_option->value);
+			if (self->protocol == xboard) {
+				_chi_stringbuf_append(sb, "option ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, '=');
+				_chi_stringbuf_append(sb, user_option->value);
+			} else {
+				_chi_stringbuf_append(sb, "setoption name ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, ' ');
+				_chi_stringbuf_append(sb, user_option->value);
+			}
 			_chi_stringbuf_append_char(sb, '\n');
 			break;
 		case option_type_combo:
 			engine_check_combo_option(self, option, user_option);
-			_chi_stringbuf_append(sb, "setoption name ");
-			_chi_stringbuf_append(sb, user_option->name);
-			_chi_stringbuf_append_char(sb, ' ');
-			_chi_stringbuf_append(sb, user_option->value);
+			if (self->protocol == xboard) {
+				_chi_stringbuf_append(sb, "option ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, '=');
+				_chi_stringbuf_append(sb, user_option->value);
+			} else {
+				_chi_stringbuf_append(sb, "setoption name ");
+				_chi_stringbuf_append(sb, user_option->name);
+				_chi_stringbuf_append_char(sb, ' ');
+				_chi_stringbuf_append(sb, user_option->value);
+			}
 			_chi_stringbuf_append_char(sb, '\n');
 			break;
 	}
 }
 
 static void
-engine_check_string_option(Engine *self, Option *option,
+engine_check_string_option(Engine *self, const Option *option,
                            const UserOption *user_option)
 {
 	double value, min, max;
@@ -970,7 +1253,7 @@ engine_check_string_option(Engine *self, Option *option,
 }
 
 static void
-engine_check_spin_option(Engine *self, Option *option,
+engine_check_spin_option(Engine *self, const Option *option,
                          const UserOption *user_option)
 {
 	long value, min, max;
@@ -1012,7 +1295,7 @@ engine_check_spin_option(Engine *self, Option *option,
 }
 
 static void
-engine_check_check_option(Engine *self, Option *option,
+engine_check_check_option(Engine *self, const Option *option,
                           const UserOption *user_option)
 {
 	if (strcmp(user_option->value, "true") == 0
@@ -1024,7 +1307,7 @@ engine_check_check_option(Engine *self, Option *option,
 }
 
 static void
-engine_check_combo_option(Engine *self, Option *option,
+engine_check_combo_option(Engine *self, const Option *option,
                           const UserOption *user_option)
 {
 	size_t i;
@@ -1042,4 +1325,17 @@ engine_check_combo_option(Engine *self, Option *option,
 	}
 
 	exit(EXIT_FAILURE);
+}
+
+static const Option *
+engine_get_option(const Engine *self, const char *name)
+{
+	size_t i;
+
+	for (i = 0; i < self->num_options; ++i) {
+		if (strcmp(self->options[i]->name, name) == 0)
+			return self->options[i];
+	}
+
+	return NULL;
 }

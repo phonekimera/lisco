@@ -18,8 +18,8 @@ all kinds of functions needed for chess engines in general. The actual program
 ## Strength
 
 Tate probably plays on the level of FruityMax. Note that the last versions are
-actually weaker than previous ones. I will investigate into it, when I have
-time.
+actually weaker than previous ones. The strongest one seems to be version 0.3.2.
+Check out the branch `branch-v0.3.2` for it.
 
 ## History
 

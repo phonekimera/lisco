@@ -132,6 +132,178 @@ bail_out:
 	return NULL;
 }
 
+Option *
+option_xboard_new(const char *input)
+{
+	Option *self = xmalloc(sizeof *self);
+	const char *original = ltrim(input);
+	char *copy = xstrdup(original);
+	char *start = copy;
+	char *end;
+
+	memset(self, 0, sizeof *self);
+
+	start = trim(start);
+	end = start + 1;
+	while (*end) {
+		if (isspace(*end)) {
+			if (strcmp("-button", end + 1) == 0) {
+				self->type = option_type_button;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+				break;
+			} else if (strcmp("-save", end + 1) == 0) {
+				self->type = option_type_button;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+				break;
+			} else if (strcmp("-reset", end + 1) == 0) {
+				self->type = option_type_button;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+				break;
+			} else if (strncmp("-check", end + 1, 6) == 0
+			           && isspace(end[7])) {
+				self->type = option_type_check;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+				end += 8;
+				while (isspace(*end)) { end++; }
+				if (end[0] == '0')
+					self->default_value = xstrdup("0");
+				else if (end[0] == '1')
+					self->default_value = xstrdup("1");
+				if (end[1] != '\0')
+					goto bail_out;
+				break;
+			} else if (strncmp("-string", end + 1, 7) == 0
+			           && isspace(end[8])) {
+				self->type = option_type_string;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+				start = end + 9;
+				self->default_value = xstrdup(trim(start));
+				break;
+			} else if (strncmp("-spin", end + 1, 5) == 0
+			           && isspace(end[6])) {
+				self->type = option_type_spin;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+
+				start = (char *) ltrim(end + 7);
+				end = start + 1;
+				if (*end == '\0')
+					goto bail_out;
+				while (*end && !isspace(*end)) { ++end; }
+				*end = '\0';
+				self->default_value = xstrdup(start);
+
+				start = (char *) ltrim(end + 1);
+				end = start + 1;
+				while (*end && !isspace(*end)) { ++end; }
+				*end = '\0';
+				self->min = xstrdup(start);
+
+				start = (char *) ltrim(end + 1);
+				end = start + 1;
+				while (*end && !isspace(*end)) { ++end; }
+				*end = '\0';
+				self->max = xstrdup(start);
+
+				if (!*self->default_value || !*self->min || !*self->max)
+					goto bail_out;
+
+				break;
+			} else if (strncmp("-combo", end + 1, 6) == 0
+			           && isspace(end[7])) {
+				self->type = option_type_combo;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+
+				end = end + 7;
+				while (1) {
+					start = (char *) ltrim(end + 1);
+					end = start + 1;
+					while (*end && strncmp(end, "///", 3) != 0) {
+						++end;
+					}
+					
+					if (*end) {
+						*end = '\0';
+						end += 3;
+					}
+					if (*start == '*') {
+						++start;
+						if (self->default_value)
+							free(self->default_value);
+						self->default_value = xstrdup(trim(start));
+					}
+					option_add_var(self, trim(start));
+
+					if (!*end)
+						break;
+				}
+
+				break;
+			} else if (strncmp("-slider", end + 1, 7) == 0
+			           && isspace(end[8])) {
+				self->type = option_type_spin;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+
+				start = (char *) ltrim(end + 9);
+				end = start + 1;
+				if (*end == '\0')
+					goto bail_out;
+				while (*end && !isspace(*end)) { ++end; }
+				*end = '\0';
+				self->default_value = xstrdup(start);
+
+				start = (char *) ltrim(end + 1);
+				end = start + 1;
+				while (*end && !isspace(*end)) { ++end; }
+				*end = '\0';
+				self->min = xstrdup(start);
+
+				start = (char *) ltrim(end + 1);
+				end = start + 1;
+				while (*end && !isspace(*end)) { ++end; }
+				*end = '\0';
+				self->max = xstrdup(start);
+
+				if (!*self->default_value || !*self->min || !*self->max)
+					goto bail_out;
+
+				break;
+			} else if ((strncmp("-file", end + 1, 5) == 0
+			            || strncmp("-path", end + 1, 5) == 0)
+			           && isspace(end[6])) {
+				self->type = option_type_string;
+				*end = '\0';
+				self->name = xstrdup(trim(start));
+				start = end + 7;
+				self->default_value = xstrdup(trim(start));
+				break;
+			}
+		}
+		++end;
+	}
+
+	if (!self->name || !*self->name)
+		goto bail_out;
+
+	free(copy);
+
+	return self;
+
+bail_out:
+	free(copy);
+
+	option_destroy(self);
+
+	return NULL;
+}
+
 void
 option_destroy(Option *self)
 {
@@ -158,16 +330,6 @@ option_consume_tokens(Option *self, char **tokens, const char *original)
 	size_t i, j;
 
 	for (i = 0; tokens[i] != NULL; ++i) {
-		// if (tokens[i][0] == '\0') {
-		// 	/* Restore the original character overwriting the
-		// 	 * terminating NIL.  This will extend the value.
-		// 	 */
-		// 	assure(&tokens[i][-1] >= original);
-		// 	tokens[i][-1] = original[&tokens[i][-1] - &tokens[0][0]];
-		// 	tokens[i][0]  = original[&tokens[i][0] - &tokens[0][0]];
-		// 	continue;
-		// } else
-
 		if (strcmp("name", tokens[i]) == 0) {
 			break;
 		} else if (strcmp("type", tokens[i]) == 0) {

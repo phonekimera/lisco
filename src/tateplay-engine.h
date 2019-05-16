@@ -84,16 +84,20 @@ typedef struct Engine {
 	EngineProtocol protocol;
 	EngineState state;
 
+	long delay;
+	struct timeval start_output;
+
 	char *outbuf;
 	size_t outbuf_size;
+	size_t outbuf_length;
+
 	char *inbuf;
 	size_t inbuf_size;
 	size_t inbuf_length;
 
 	void (*out_callback)(struct Engine *self);
 
-	struct timeval waiting_since;
-	unsigned long max_waiting_time;
+	struct timeval ready;
 
 	/* Common negotiable features.  */
 	
@@ -101,6 +105,12 @@ typedef struct Engine {
 	 * coordinate notation.  Actually only possible for xboard.
 	 */
 	chi_bool san;
+
+	/* Number of cpus to use.  O means maximum.  */
+	size_t num_cpus;
+
+	/* Memory usage (hash size).  Defaults to 1 GB.  */
+	size_t mem_usage;
 
 	/* Maximum search depth in plies.  0 means, search to infinite depth.  */
 	unsigned long depth;
@@ -116,8 +126,12 @@ typedef struct Engine {
 	size_t num_user_options;
 
 	/* Negotiatable xboard features.  */
-	chi_bool xboard_name;
 	chi_bool xboard_usermove;
+	chi_bool xboard_time;
+	chi_bool xboard_memory;
+	chi_bool xboard_smp;
+	chi_bool xboard_colors;
+	/* FIXME! EGT formats! */
 
 	/* Engine options.  */
 	Option **options;
@@ -151,6 +165,9 @@ extern bool engine_read_stderr(Engine *self);
 /* Write commands to the engine's standard input.  */
 extern bool engine_write_stdin(Engine *self);
 
+/* Send configuration commands to the engine.  */
+extern bool engine_configure(Engine *self);
+
 /* Find the post move for pos, after move has been made.  If move is 0,
  * pos is the starting position.
  */
@@ -161,6 +178,11 @@ extern void engine_turn_on_ponder(Engine *self);
 
 /* Ponder on position if pondering is enabled.  */
 extern void engine_ponder(Engine *self, chi_pos *pos);
+
+/* Stop the clocks engine.  Starting the clock is done, after a move has been
+ * successfully sent.  Returns false, if the engine's flag had fallen.
+ */
+extern chi_bool engine_stop_clock(Engine *self);
 
 #ifdef __cplusplus
 }

@@ -49,6 +49,7 @@ typedef struct Option {
 } Option;
 
 extern Option *option_uci_new(const char *input);
+extern Option *option_xboard_new(const char *input);
 extern void option_destroy(Option *option);
 
 #ifdef __cplusplus

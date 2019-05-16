@@ -23,6 +23,8 @@
 # include <config.h>
 #endif
 
+#include <time.h>
+
 #include "libchi.h"
 
 #ifdef __cplusplus
@@ -36,10 +38,26 @@ typedef struct TimeControl {
 	long moves_per_time_control;
 	long seconds_per_time_control;
 	long increment;
+
+	size_t num_moves;
+
+	/* When did the engine start thinking? */
+	struct timeval started_thinking;
+
+	/* Total time spent thinking. */
+	struct timeval thinking_time;
+
+	/* When will the flag fall? */
+	struct timeval flag;
 } TimeControl;
 
 extern chi_bool time_control_init_st(TimeControl *tc, const char *input);
 extern chi_bool time_control_init_level(TimeControl *tc, const char *input);
+extern void time_control_start_thinking(TimeControl *tc,
+                                        const struct timeval *now);
+extern chi_bool time_control_stop_thinking(TimeControl *tc,
+                                           const struct timeval *now);
+extern void time_control_time_left(TimeControl *tc, struct timeval *result);
 
 #ifdef __cplusplus
 }
