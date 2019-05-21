@@ -98,6 +98,11 @@ think(chi_move* mv, chi_epd_pos *epd)
 #endif
 
     // TODO: Find a move.
+    // foreach try (moves) {
+        // make move
+        // update tree->in_check[ply + 1]
+        // update tree->signatures[ply + 1]
+    //}
 
 	return EVENT_CONTINUE;
 }
@@ -175,4 +180,6 @@ init_tree(TREE *tree)
     tree->in_check[0] = chi_check_check(&tree->pos);
     tree->w_castled = chi_w_castled(&tree->pos);
     tree->b_castled = chi_b_castled(&tree->pos);
+
+    tree->signatures[0] = game_hist[game_hist_ply].signature;
 }

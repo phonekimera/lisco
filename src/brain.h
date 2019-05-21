@@ -91,36 +91,15 @@ enum move_state {
 };
 
 typedef struct tree {
-    // bitv64 signatures[MAX_PLY + 1];
+    bitv64 signatures[MAX_PLY + 1];
 
     chi_pos pos;
 
-    // PATH pv[MAX_PLY];
-    // PATH cv;
-
-    // enum move_state move_states[MAX_PLY];
-    // chi_move* move_stack[MAX_PLY];
-    // chi_move* move_ptr[MAX_PLY];
     int in_check[MAX_PLY];
-    // int moves_left[MAX_PLY];
-
-    /* Killer moves.  Naming them murder_1st_degree and murder_2nd_degree
-       would sound too morbid.  */
-    // chi_move bonny[MAX_PLY];
-    // chi_move clyde[MAX_PLY];
-
-    // chi_move pv_move[MAX_PLY];
 
     /* Initial castling state.  */
     chi_bool w_castled;
     chi_bool b_castled;
-
-    /* Small hash tables for recently seen positions.  */
-// #define HASH_HIST_SIZE (1023)
-//     int white_game_hist[HASH_HIST_SIZE];
-//     int black_game_hist[HASH_HIST_SIZE];
-//     int white_tree_hist[HASH_HIST_SIZE];
-//     int black_tree_hist[HASH_HIST_SIZE];
 
     // unsigned long nodes;
     // unsigned long qnodes;
@@ -153,9 +132,9 @@ typedef struct tree {
     // unsigned long fprunes;
     // unsigned long refuted_quiescences;
 
-    // unsigned long evals;
-    // unsigned long ev_hits;
-    // unsigned long lazy_evals;
+    unsigned long evals;
+    unsigned long ev_hits;
+    unsigned long lazy_evals;
 
     // int max_ply;
     // int status;
@@ -199,11 +178,9 @@ extern int search(TREE* tree, int depth, int ply,
 
 extern int quiescence(TREE* tree, int ply, int alpha, int beta);
 
-extern void print_pv(TREE* tree, int score, int whisper, int ply);
 extern void print_current_move(TREE* tree, chi_pos* pos,
 					           chi_move move, int count, 
 					           int num_moves, int alpha, int beta);
-extern void print_current_result(TREE* tree, int score, int type);
 					  
 extern void clean_current_move(TREE* tree);
 

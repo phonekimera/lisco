@@ -38,8 +38,8 @@ noinst_HEADERS = \
 	xmalloca-debug.h
 
 tate_SOURCES = tate.c board.c brain.c edit.c book.c time_ctrl.c \
-	evaluate.c search.c print_pv.c \
-	tt_hash.c epd.c ev_hash.c qtt_hash.c three-fold.c
+	evaluate.c search.c \
+	tt_hash.c epd.c ev_hash.c qtt_hash.c
 tateplay_SOURCES = tateplay.c tateplay-engine.c log.c tateplay-game.c \
 	tateplay-loop.c util.c tateplay-option.c xboard-feature.c display-board.c \
 	tateplay-time-control.c
