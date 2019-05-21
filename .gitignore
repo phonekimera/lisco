@@ -40,3 +40,5 @@ libchi/tests/check_libchi
 libchi/genmasks
 *.log
 *.trs
+
+.DS_STORE
