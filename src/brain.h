@@ -91,79 +91,79 @@ enum move_state {
 };
 
 typedef struct tree {
-    bitv64 signatures[MAX_PLY + 1];
+    // bitv64 signatures[MAX_PLY + 1];
 
     chi_pos pos;
 
-    PATH pv[MAX_PLY];
-    PATH cv;
+    // PATH pv[MAX_PLY];
+    // PATH cv;
 
-    enum move_state move_states[MAX_PLY];
-    chi_move* move_stack[MAX_PLY];
-    chi_move* move_ptr[MAX_PLY];
+    // enum move_state move_states[MAX_PLY];
+    // chi_move* move_stack[MAX_PLY];
+    // chi_move* move_ptr[MAX_PLY];
     int in_check[MAX_PLY];
-    int moves_left[MAX_PLY];
+    // int moves_left[MAX_PLY];
 
     /* Killer moves.  Naming them murder_1st_degree and murder_2nd_degree
        would sound too morbid.  */
-    chi_move bonny[MAX_PLY];
-    chi_move clyde[MAX_PLY];
+    // chi_move bonny[MAX_PLY];
+    // chi_move clyde[MAX_PLY];
 
-    chi_move pv_move[MAX_PLY];
+    // chi_move pv_move[MAX_PLY];
 
     /* Initial castling state.  */
-    int w_castled;
-    int b_castled;
+    chi_bool w_castled;
+    chi_bool b_castled;
 
     /* Small hash tables for recently seen positions.  */
-#define HASH_HIST_SIZE (1023)
-    int white_game_hist[HASH_HIST_SIZE];
-    int black_game_hist[HASH_HIST_SIZE];
-    int white_tree_hist[HASH_HIST_SIZE];
-    int black_tree_hist[HASH_HIST_SIZE];
+// #define HASH_HIST_SIZE (1023)
+//     int white_game_hist[HASH_HIST_SIZE];
+//     int black_game_hist[HASH_HIST_SIZE];
+//     int white_tree_hist[HASH_HIST_SIZE];
+//     int black_tree_hist[HASH_HIST_SIZE];
 
-    unsigned long nodes;
-    unsigned long qnodes;
-    unsigned long time_for_move;
+    // unsigned long nodes;
+    // unsigned long qnodes;
+    // unsigned long time_for_move;
 
-    unsigned long tt_probes;
-    unsigned long tt_hits;
-    unsigned long tt_moves;
-    unsigned long tt_exact_hits;
-    unsigned long tt_alpha_hits;
-    unsigned long tt_beta_hits;
+    // unsigned long tt_probes;
+    // unsigned long tt_hits;
+    // unsigned long tt_moves;
+    // unsigned long tt_exact_hits;
+    // unsigned long tt_alpha_hits;
+    // unsigned long tt_beta_hits;
 
-    unsigned long qtt_probes;
-    unsigned long qtt_hits;
-    unsigned long qtt_exact_hits;
-    unsigned long qtt_alpha_hits;
-    unsigned long qtt_beta_hits;
+    // unsigned long qtt_probes;
+    // unsigned long qtt_hits;
+    // unsigned long qtt_exact_hits;
+    // unsigned long qtt_alpha_hits;
+    // unsigned long qtt_beta_hits;
 
-    unsigned long killers;
+    // unsigned long killers;
 
-    unsigned long null_moves;
-    unsigned long null_fh;
-    unsigned long fh;
-    unsigned long ffh;
-    unsigned long fl;
-    unsigned long qfh;
-    unsigned long qffh;
-    unsigned long qfl;
+    // unsigned long null_moves;
+    // unsigned long null_fh;
+    // unsigned long fh;
+    // unsigned long ffh;
+    // unsigned long fl;
+    // unsigned long qfh;
+    // unsigned long qffh;
+    // unsigned long qfl;
 
-    unsigned long fprunes;
-    unsigned long refuted_quiescences;
+    // unsigned long fprunes;
+    // unsigned long refuted_quiescences;
 
-    unsigned long evals;
-    unsigned long ev_hits;
-    unsigned long lazy_evals;
+    // unsigned long evals;
+    // unsigned long ev_hits;
+    // unsigned long lazy_evals;
 
-    int max_ply;
-    int status;
-    int iteration_sdepth;
-    int pv_printed;
-    int pv_junk;
+    // int max_ply;
+    // int status;
+    // int iteration_sdepth;
+    // int pv_printed;
+    // int pv_junk;
 
-    chi_epd_pos* epd;
+    // chi_epd_pos* epd;
 } TREE;
 
 #define HASH_UNKNOWN ((unsigned int) 0)

@@ -37,6 +37,8 @@ bitv64 total_nodes = 0;
 bitv64 total_centiseconds = 0;
 bitv64 nps_peak = 0;
 
+static void init_tree(TREE *tree);
+
 void
 evaluate_move (chi_move move)
 {
@@ -44,10 +46,9 @@ evaluate_move (chi_move move)
 }
 
 int
-think (mv, epd)
-     chi_move* mv;
-     chi_epd_pos* epd;
+think(chi_move* mv, chi_epd_pos *epd)
 {
+    TREE tree;
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move* move_ptr;
 
@@ -89,6 +90,7 @@ think (mv, epd)
 		return EVENT_CONTINUE;
 	}
 
+    init_tree(&tree);
 
 #if DEBUG_BRAIN
 	max_ply = DEBUG_BRAIN;
@@ -163,4 +165,14 @@ my_print_move (chi_move mv)
 		fprintf (stderr, "=Q");
 		break;
 	}
+}
+
+static void
+init_tree(TREE *tree)
+{
+    memset(tree, 0, sizeof *tree);
+    tree->pos = current;
+    tree->in_check[0] = chi_check_check(&tree->pos);
+    tree->w_castled = chi_w_castled(&tree->pos);
+    tree->b_castled = chi_b_castled(&tree->pos);
 }
