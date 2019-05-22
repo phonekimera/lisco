@@ -101,7 +101,7 @@ typedef struct tree {
     chi_bool w_castled;
     chi_bool b_castled;
 
-    // unsigned long nodes;
+    unsigned long nodes;
     // unsigned long qnodes;
     // unsigned long time_for_move;
 

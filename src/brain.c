@@ -38,11 +38,26 @@ bitv64 total_centiseconds = 0;
 bitv64 nps_peak = 0;
 
 static void init_tree(TREE *tree);
+static int negamax(TREE *tree, int ply, int alpha, int beta);
 
 void
 evaluate_move (chi_move move)
 {
 	fprintf (stdout, "  todo\n");
+}
+
+static chi_move *
+legal_moves(chi_move *buffer)
+{
+        int found = 0;
+
+        for (int i = 0; i < CHI_MAX_MOVES; ++i) {
+                if (!(1 << i)) {
+                        buffer[found++] = i;
+                }
+        }
+
+        return &buffer[found];
 }
 
 int
@@ -51,12 +66,19 @@ think(chi_move* mv, chi_epd_pos *epd)
     TREE tree;
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move* move_ptr;
+    chi_move *end = legal_moves(moves);
+    
+    size_t i;
 
 	int num_moves;
+    int score;
+    int value;
 
 	move_ptr = chi_legal_moves(&current, moves);
 
 	num_moves = move_ptr - moves;
+
+    score = -INF;
 
 #if 0
 	current_score = chi_material (&current) * 100;
@@ -92,6 +114,18 @@ think(chi_move* mv, chi_epd_pos *epd)
 
     init_tree(&tree);
 
+     for (i = 0; i < num_moves; ++i) {
+                move_ptr = &moves[i];
+                //play_move(&move_ptr);
+                value = -negamax(&tree, 1, -INF, +INF);
+                if (value > score) {
+                        mv = move_ptr;
+                        score = value;
+                }
+                // unplay_move(&move_ptr);
+        }
+
+
 #if DEBUG_BRAIN
 	max_ply = DEBUG_BRAIN;
 	tree.time_for_move = 999999;
@@ -105,6 +139,43 @@ think(chi_move* mv, chi_epd_pos *epd)
     //}
 
 	return EVENT_CONTINUE;
+}
+
+
+// NEGAMAX
+static int
+negamax(TREE *tree, int ply, int alpha, int beta)
+{
+        chi_move moves[CHI_MAX_MOVES];
+        chi_move *end = legal_moves(moves);
+        size_t num_moves = end - moves;
+        size_t i;
+        int best_score;
+        ply = 5;
+
+        ++tree->nodes;
+
+        // if (game_over(&result)) 
+        //         return evaluate(ply);
+
+        best_score = -INF;
+        for (i = 0; i < num_moves; ++i) {
+            // chi_move *move = &moves[i];
+               // play_move(move);
+                int node_score = -negamax(tree, ply + 1, -beta, -alpha);
+               // unplay_move(move);
+                if (node_score > best_score) {
+                        best_score = node_score;
+                }
+                if (node_score > alpha) {
+                    alpha = node_score;
+                }
+                if (alpha >= beta) {
+                    break;
+                }
+        }
+        
+        return best_score;
 }
 
 #if DEBUG_BRAIN
