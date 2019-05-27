@@ -1,0 +1,44 @@
+
+Crafty v25.2
+
+machine has 8 processors
+
+White(1): xboard
+
+tellicsnoalias set 1 Crafty v25.2 (1 cpus)
+tellicsnoalias kibitz Hello from Crafty v25.2! (1 cpus)
+White(1): e2-e4
+              time used:  10.10
+        time surplus   0.00  time limit 30.00 (2:30)
+        depth     time       score   variation (1)
+         18->   1.09/31.50    0.33   1. ... Nc6 2. Nf3 e5 3. Bc4 Nf6 4. Nc3 Bc5
+                                     5. O-O O-O 6. d3 Na5 7. Nxe5 Bd4 8. Nxf7
+                                     Rxf7 9. Bxf7+ Kxf7 10. Bg5 d6
+         19     1.44/31.50    0.27   1. ... Nc6 2. Nf3 e5 3. Bc4 Nf6 4. Nc3 Bb4
+                                     5. Nd5 O-O 6. O-O d6 7. d4 Bg4 8. Nxb4
+                                     Nxb4 9. c3 Nc6 10. Bg5 Bxf3 11. gxf3
+         19->   1.57/28.20    0.27   1. ... Nc6 2. Nf3 e5 3. Bc4 Nf6 4. Nc3 Bb4
+                                     5. Nd5 O-O 6. O-O d6 7. d4 Bg4 8. Nxb4
+                                     Nxb4 9. c3 Nc6 10. Bg5 Bxf3 11. gxf3
+         20     2.32/28.20    0.34   1. ... Nc6 2. Nf3 e5 3. Bc4 d6 4. Nc3 Be7
+                                     5. O-O Nf6 6. d4 exd4 7. Nxd4 Ne5 8. Qe2
+                                     O-O 9. Be3 Nxc4 10. Qxc4 c5 11. Nf5 Bxf5
+                                     12. exf5
+         20     2.43/36.00      --   1. ... Nf6! (<+0.11)                   
+         20     3.53/42.00      ++   1. ... Nf6? (>+0.43)                   
+         20     4.45/42.00    0.34   1. ... Nc6 2. Nf3 e5 3. Bc4 d6 4. Nc3 Be7
+                                     5. O-O Nf6 6. d4 exd4 7. Nxd4 Ne5 8. Qe2
+                                     O-O 9. Be3 Nxc4 10. Qxc4 c5 11. Nf5 Bxf5
+                                     12. exf5
+ok.
+         20->   4.93/42.00    0.34   1. ... Nc6 2. Nf3 e5 3. Bc4 d6 4. Nc3 Be7
+                                     5. O-O Nf6 6. d4 exd4 7. Nxd4 Ne5 8. Qe2
+                                     O-O 9. Be3 Nxc4 10. Qxc4 c5 11. Nf5 Bxf5
+                                     12. exf5
+ok.
+         21     6.05/42.00    0.31   1. ... Nc6 2. Nf3 e5 3. Bc4 d6 4. Nc3 Be7
+                                     5. O-O Nf6 6. d4 exd4 7. Nxd4 O-O 8. Nxc6
+                                     bxc6 9. Qd3 Be6 10. Bf4 Bxc4 11. Qxc4 Rb8
+         21->   6.46/37.80    0.31   1. ... Nc6 2. Nf3 e5 3. Bc4 d6 4. Nc3 Be7
+                                     5. O-O Nf6 6. d4 exd4 7. Nxd4 O-O 8. Nxc6
+                                     bxc6 9. Qd3 Be6 10. Bf4 Bxc4 11. Qxc4 Rb8
