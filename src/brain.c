@@ -46,27 +46,12 @@ evaluate_move (chi_move move)
 	fprintf (stdout, "  todo\n");
 }
 
-static chi_move *
-legal_moves(chi_move *buffer)
-{
-        int found = 0;
-
-        for (int i = 0; i < CHI_MAX_MOVES; ++i) {
-                if (!(1 << i)) {
-                        buffer[found++] = i;
-                }
-        }
-
-        return &buffer[found];
-}
-
 int
 think(chi_move* mv, chi_epd_pos *epd)
 {
     TREE tree;
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move* move_ptr;
-    chi_move *end = legal_moves(moves);
     
     size_t i;
 
@@ -100,6 +85,9 @@ think(chi_move* mv, chi_epd_pos *epd)
         return EVENT_GAME_OVER;
     }
 
+display_board(stdout, &current);
+fflush(stdout);
+
 	if (current.half_move_clock >= 100) {
 		fprintf (stdout, "1/2-1/2 {Fifty-move rule}\n");
 		return EVENT_GAME_OVER;
@@ -114,16 +102,16 @@ think(chi_move* mv, chi_epd_pos *epd)
 
     init_tree(&tree);
 
-     for (i = 0; i < num_moves; ++i) {
-                move_ptr = &moves[i];
-                //play_move(&move_ptr);
-                value = -negamax(&tree, 1, -INF, +INF);
-                if (value > score) {
-                        mv = move_ptr;
-                        score = value;
-                }
-                // unplay_move(&move_ptr);
+    for (i = 0; i < num_moves; ++i) {
+        move_ptr = &moves[i];
+        chi_apply_move(&tree.pos, *move_ptr);
+        value = -negamax(&tree, 1, -INF, +INF);
+        if (value > score) {
+                mv = move_ptr;
+                score = value;
         }
+        chi_unapply_move(&tree.pos, *move_ptr);
+    }
 
 
 #if DEBUG_BRAIN
@@ -147,23 +135,22 @@ static int
 negamax(TREE *tree, int ply, int alpha, int beta)
 {
         chi_move moves[CHI_MAX_MOVES];
-        chi_move *end = legal_moves(moves);
+        chi_move *end = chi_legal_moves(&tree->pos, moves);
         size_t num_moves = end - moves;
         size_t i;
         int best_score;
-        ply = 5;
 
         ++tree->nodes;
 
-        // if (game_over(&result)) 
-        //         return evaluate(ply);
+        if (ply > 5 || num_moves == 0) 
+            return evaluate(tree, ply, alpha, beta);
 
         best_score = -INF;
         for (i = 0; i < num_moves; ++i) {
-            // chi_move *move = &moves[i];
-               // play_move(move);
+                chi_move *move = &moves[i];
+                chi_apply_move(&tree->pos, *move);
                 int node_score = -negamax(tree, ply + 1, -beta, -alpha);
-               // unplay_move(move);
+                chi_unapply_move(&tree->pos, *move);
                 if (node_score > best_score) {
                         best_score = node_score;
                 }
