@@ -85,9 +85,6 @@ think(chi_move* mv, chi_epd_pos *epd)
         return EVENT_GAME_OVER;
     }
 
-display_board(stdout, &current);
-fflush(stdout);
-
 	if (current.half_move_clock >= 100) {
 		fprintf (stdout, "1/2-1/2 {Fifty-move rule}\n");
 		return EVENT_GAME_OVER;
@@ -100,11 +97,20 @@ fflush(stdout);
 		return EVENT_CONTINUE;
 	}
 
-    init_tree(&tree);
+#if DEBUG_BRAIN
+	max_ply = DEBUG_BRAIN;
+	tree.time_for_move = 999999;
+#endif
 
+    init_tree(&tree);
     for (i = 0; i < num_moves; ++i) {
         move_ptr = &moves[i];
         chi_apply_move(&tree.pos, *move_ptr);
+        tree.in_check[0] = chi_check_check (&tree.pos);
+        tree.signatures[1] = chi_zk_update_signature(zk_handle, 
+                                                     tree.signatures[0],
+                                                     *move_ptr,
+                                                     chi_on_move(&tree.pos));
         value = -negamax(&tree, 1, -INF, +INF);
         if (value > score) {
                 mv = move_ptr;
@@ -112,19 +118,6 @@ fflush(stdout);
         }
         chi_unapply_move(&tree.pos, *move_ptr);
     }
-
-
-#if DEBUG_BRAIN
-	max_ply = DEBUG_BRAIN;
-	tree.time_for_move = 999999;
-#endif
-
-    // TODO: Find a move.
-    // foreach try (moves) {
-        // make move
-        // update tree->in_check[ply + 1]
-        // update tree->signatures[ply + 1]
-    //}
 
 	return EVENT_CONTINUE;
 }
