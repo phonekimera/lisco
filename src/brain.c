@@ -135,7 +135,7 @@ negamax(TREE *tree, int ply, int alpha, int beta)
 
         ++tree->nodes;
 
-        if (ply > 5 || num_moves == 0) 
+        if (ply >= max_ply || num_moves == 0) 
             return evaluate(tree, ply, alpha, beta);
 
         best_score = -INF;
@@ -174,11 +174,9 @@ indent_output (TREE* tree, int ply)
 
 	/* Assumed to be called *after* a move has been applied.  */
 	if (chi_on_move(&tree->pos) != chi_white)
-		fprintf(stderr, " [%s(%d)]: ", 
-		        ply < tree->iteration_sdepth ? "BLACK" : "black", ply);
+		fprintf(stderr, " [%s(%d)]: ", "black", ply);
 	else
-		fprintf(stderr, " [%s(%d)]: ", 
-		        ply < tree->iteration_sdepth ? "WHITE" : "white", ply);
+		fprintf(stderr, " [%s(%d)]: ", "white", ply);
 }
 #endif
 
@@ -233,4 +231,6 @@ init_tree(TREE *tree)
     tree->b_castled = chi_b_castled(&tree->pos);
 
     tree->signatures[0] = game_hist[game_hist_ply].signature;
+
+    // FIXME! Initialize time_for_move.
 }
