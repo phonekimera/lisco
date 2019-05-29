@@ -222,7 +222,6 @@ START_TEST(test_white_ep_capture)
 	free(got);
 END_TEST;
 
-
 START_TEST(test_black_ep_capture)
 	chi_pos pos;
 /*
@@ -577,6 +576,97 @@ START_TEST(test_qs_white_rook_capture)
 
 END_TEST;
 
+/*
+ * Check that after applying 1. e5 h5 2. Qxh5 and then unapplying the queen
+ * move the material count is reset to its previous value.
+ */
+START_TEST(test_white_material)
+	chi_pos pos;
+	int errnum;
+	chi_move move;
+
+	chi_init_position(&pos);
+
+	ck_assert_int_eq(0, chi_material(&pos));
+
+	errnum = chi_parse_move(&pos, &move, "e2-e4");
+	ck_assert_int_eq(errnum, 0);
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(0, chi_material(&pos));
+
+	errnum = chi_parse_move(&pos, &move, "h7-h5");
+	ck_assert_int_eq(errnum, 0);
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(0, chi_material(&pos));
+
+	errnum = chi_parse_move(&pos, &move, "Qxh5");
+	ck_assert_int_eq(errnum, 0);
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(1, chi_material(&pos));
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(0, chi_material(&pos));
+
+#if 0
+	wanted = "k7/8/8/8/8/5p2/8/K7 w - - 0 2";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = fen;
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+#endif
+END_TEST;
+
+/*
+ * Check that after applying 1. h4 e5 2. e4 Qxh4 and then unapplying the queen
+ * move the material count is reset to its previous value.
+ */
+START_TEST(test_black_material)
+	chi_pos pos;
+	int errnum;
+	chi_move move;
+
+	chi_init_position(&pos);
+
+	ck_assert_int_eq(0, chi_material(&pos));
+
+	errnum = chi_parse_move(&pos, &move, "h2-h4");
+	ck_assert_int_eq(errnum, 0);
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(0, chi_material(&pos));
+
+	errnum = chi_parse_move(&pos, &move, "e7-e5");
+	ck_assert_int_eq(errnum, 0);
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(0, chi_material(&pos));
+
+	errnum = chi_parse_move(&pos, &move, "e2-e4");
+	ck_assert_int_eq(errnum, 0);
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(0, chi_material(&pos));
+
+	errnum = chi_parse_move(&pos, &move, "Qxh4");
+	ck_assert_int_eq(errnum, 0);
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(-1, chi_material(&pos));
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(0, chi_material(&pos));
+END_TEST;
 
 Suite *
 move_making_suite(void)
@@ -584,6 +674,7 @@ move_making_suite(void)
 	Suite *suite;
 	TCase *tc_pawn;
     TCase *tc_rook;
+	TCase *tc_captures;
 	
 	suite = suite_create("Make/Unmake Moves");
 
@@ -602,8 +693,10 @@ move_making_suite(void)
     tcase_add_test(tc_rook, test_qs_white_rook_capture);
     suite_add_tcase(suite, tc_rook);
 
+	tc_captures = tcase_create("Material count");
+	tcase_add_test(tc_captures, test_white_material);
+	tcase_add_test(tc_captures, test_black_material);
+	suite_add_tcase(suite, tc_captures);
+
 	return suite;
 }
-
-
-
