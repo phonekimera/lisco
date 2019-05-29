@@ -106,6 +106,12 @@ think(chi_move* mv, chi_epd_pos *epd)
     for (i = 0; i < num_moves; ++i) {
         move_ptr = &moves[i];
         chi_apply_move(&tree.pos, *move_ptr);
+#if DEBUG_BRAIN
+        indent_output(&tree, 1);
+        my_print_move(*move_ptr);
+        fprintf(stderr, "\n");
+        fflush(stderr);
+#endif
         tree.in_check[0] = chi_check_check (&tree.pos);
         tree.signatures[1] = chi_zk_update_signature(zk_handle, 
                                                      tree.signatures[0],
@@ -142,6 +148,12 @@ negamax(TREE *tree, int ply, int alpha, int beta)
         for (i = 0; i < num_moves; ++i) {
                 chi_move *move = &moves[i];
                 chi_apply_move(&tree->pos, *move);
+#if DEBUG_BRAIN
+        indent_output(tree, ply + 1);
+        my_print_move(*move);
+        fprintf(stderr, "\n");
+        fflush(stderr);
+#endif
                 int node_score = -negamax(tree, ply + 1, -beta, -alpha);
                 chi_unapply_move(&tree->pos, *move);
                 if (node_score > best_score) {
@@ -174,9 +186,9 @@ indent_output (TREE* tree, int ply)
 
 	/* Assumed to be called *after* a move has been applied.  */
 	if (chi_on_move(&tree->pos) != chi_white)
-		fprintf(stderr, " [%s(%d)]: ", "black", ply);
-	else
 		fprintf(stderr, " [%s(%d)]: ", "white", ply);
+	else
+		fprintf(stderr, " [%s(%d)]: ", "black", ply);
 }
 #endif
 
