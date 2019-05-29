@@ -56,9 +56,9 @@ chi_unapply_move(chi_pos *pos, chi_move move)
 	chi_on_move(pos) = !chi_on_move(pos);
 
 	if (chi_on_move(pos) == chi_black) {
-		chi_material(pos) -= chi_move_material(move);
-	} else {
 		chi_material(pos) += chi_move_material(move);
+	} else {
+		chi_material(pos) -= chi_move_material(move);
 	}
 
 	if (pos->lost_wk_castle == pos->half_moves)
