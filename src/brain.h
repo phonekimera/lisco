@@ -103,7 +103,7 @@ typedef struct tree {
 
     unsigned long nodes;
     // unsigned long qnodes;
-    // unsigned long time_for_move;
+    unsigned long time_for_move;
 
     // unsigned long tt_probes;
     // unsigned long tt_hits;

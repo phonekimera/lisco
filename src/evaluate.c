@@ -241,8 +241,8 @@ evaluate(TREE *tree, int ply, int alpha, int beta)
 	    	return -score;
     } else if (total_white_pieces > 10 && total_black_pieces > 10) {
 		if (!(tree->w_castled && tree->b_castled)) {
-			score += evaluate_dev_white (tree, ply);
-			score += evaluate_dev_black (tree, ply);
+			score += evaluate_dev_white(tree, ply);
+			score += evaluate_dev_black(tree, ply);
 		}
 	}
 

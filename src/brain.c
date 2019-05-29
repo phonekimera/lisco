@@ -59,6 +59,10 @@ think(chi_move* mv, chi_epd_pos *epd)
     int score;
     int value;
 
+	// FIXME! Remove that, when we have time control.
+	if (max_ply > 5)
+		max_ply = 5;
+
 	move_ptr = chi_legal_moves(&current, moves);
 
 	num_moves = move_ptr - moves;
@@ -119,7 +123,7 @@ think(chi_move* mv, chi_epd_pos *epd)
                                                      chi_on_move(&tree.pos));
         value = -negamax(&tree, 1, -INF, +INF);
         if (value > score) {
-                mv = move_ptr;
+                *mv = *move_ptr;
                 score = value;
         }
         chi_unapply_move(&tree.pos, *move_ptr);
@@ -203,7 +207,7 @@ indent_output (TREE* tree, int ply)
 #endif
 
 void
-my_print_move (chi_move mv)
+my_print_move(chi_move mv)
 {
 	switch (chi_move_attacker (mv)) {
 	case knight:
