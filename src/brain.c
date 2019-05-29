@@ -141,13 +141,23 @@ negamax(TREE *tree, int ply, int alpha, int beta)
 
         ++tree->nodes;
 
-        if (ply >= max_ply || num_moves == 0) 
-            return evaluate(tree, ply, alpha, beta);
+        if (ply >= max_ply || num_moves == 0) {
+			int score = evaluate(tree, ply, alpha, beta);
+#if DEBUG_BRAIN
+			indent_output(tree, ply);
+			fprintf(stderr, "--> evaluation: %d\n", score);
+#endif
+            return score;
+		}
 
         best_score = -INF;
         for (i = 0; i < num_moves; ++i) {
                 chi_move *move = &moves[i];
                 chi_apply_move(&tree->pos, *move);
+                tree->in_check[ply] = chi_check_check (&tree->pos);
+                tree->signatures[ply + 1] = chi_zk_update_signature(
+                    zk_handle, tree->signatures[ply], *move,
+                    chi_on_move(&tree->pos));
 #if DEBUG_BRAIN
         indent_output(tree, ply + 1);
         my_print_move(*move);

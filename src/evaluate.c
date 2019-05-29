@@ -183,7 +183,7 @@ evaluate(TREE *tree, int ply, int alpha, int beta)
 	++tree->evals;
 
 	/* Check for a cache hit first.  */
-	if (probe_ev (pos, signature, &score)) {
+	if (probe_ev(pos, signature, &score)) {
 		++tree->ev_hits;
 		return score;
 	}
