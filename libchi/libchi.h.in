@@ -410,7 +410,8 @@ typedef struct {
         chi_pos_fill;
 } chi_pos;
 
-#define chi_copy_pos(d, s) memcpy(d, s, sizeof *d);
+#define chi_copy_pos(d, s) memcpy(d, s, sizeof *d)
+#define chi_cmp_pos(d, s) memcmp(d, s, sizeof *d)
 
 /* A move is represented by 32 bits in host order:
 
