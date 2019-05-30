@@ -17,7 +17,7 @@ $tate = "../tate.exe" unless -e $tate;
 
 open STDERR, ">&STDOUT";
 
-push @commands, "epdfile 1 $epdfile", "quit";
+push @commands, "epdfile $epdfile", "quit";
 
 my ($cout, $cin);
 my $pid = open2 $cout, $cin, $tate

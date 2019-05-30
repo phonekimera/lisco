@@ -37,7 +37,7 @@ bitv64 total_nodes = 0;
 bitv64 total_centiseconds = 0;
 bitv64 nps_peak = 0;
 
-static void init_tree(TREE *tree);
+static void init_tree(TREE *tree, chi_epd_pos *epd);
 static int negamax(TREE *tree, int ply, int alpha, int beta);
 
 void
@@ -107,7 +107,7 @@ think(chi_move* mv, chi_epd_pos *epd)
 	tree.time_for_move = 999999;
 #endif
 
-    init_tree(&tree);
+    init_tree(&tree, epd);
     for (i = 0; i < num_moves; ++i) {
         move_ptr = &moves[i];
         chi_apply_move(&tree.pos, *move_ptr);
@@ -126,6 +126,11 @@ think(chi_move* mv, chi_epd_pos *epd)
         if (value > score) {
                 *mv = *move_ptr;
                 score = value;
+				// FIXME! This has to be more sophisticated for correct
+				// timing.  But we need pv handling first.
+				if (tree.epd) {
+					tree.epd->suggestion = *mv;
+				}
         }
         chi_unapply_move(&tree.pos, *move_ptr);
     }
@@ -249,7 +254,7 @@ my_print_move(chi_move mv)
 }
 
 static void
-init_tree(TREE *tree)
+init_tree(TREE *tree, chi_epd_pos *epd)
 {
     memset(tree, 0, sizeof *tree);
     tree->pos = current;
@@ -258,6 +263,8 @@ init_tree(TREE *tree)
     tree->b_castled = chi_b_castled(&tree->pos);
 
     tree->signatures[0] = game_hist[game_hist_ply].signature;
+
+	tree->epd = epd;
 
     // FIXME! Initialize time_for_move.
 }

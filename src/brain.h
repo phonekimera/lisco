@@ -28,7 +28,7 @@
 #include "tate.h"
 
 // Set to the maximum depth to search.
-#define DEBUG_BRAIN 0
+#define DEBUG_BRAIN 2
 #if DEBUG_BRAIN
 # include <stdio.h>
 #endif
@@ -142,7 +142,7 @@ typedef struct tree {
     // int pv_printed;
     // int pv_junk;
 
-    // chi_epd_pos* epd;
+    chi_epd_pos* epd;
 } TREE;
 
 #define HASH_UNKNOWN ((unsigned int) 0)
