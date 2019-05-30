@@ -98,6 +98,7 @@ think(chi_move* mv, chi_epd_pos *epd)
 
 	/* Better than nothing ...  */
 	if (num_moves == 1) {
+		//current_score = evaluate(???);
 		return EVENT_CONTINUE;
 	}
 
