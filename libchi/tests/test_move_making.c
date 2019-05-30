@@ -678,7 +678,7 @@ START_TEST(test_undo_kcastle)
 	chi_move move;
 	const char *moves[] = {
 		"e2-e4", "e7-e5",
-		"Nf1-f3", "Ng8-f6",
+		"Ng1-f3", "Ng8-f6",
 		"Bf1-c4", "Bf8-c5",
 		"O-O", "O-O"
 	};
