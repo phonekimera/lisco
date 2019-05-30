@@ -285,50 +285,31 @@ get_event ()
 		   will only insert one single null-byte... */
 		char *epdstr = linebuf + 4;
 		chi_epd_pos epd;
-		char *end_ptr;
-		long int max_time = strtoul (epdstr, &end_ptr, 10);
 
-		if (max_time == 0 && end_ptr == epdstr) {
-			fprintf (stdout,
-			         "error (illegal time specification): %s\n",
-			         epdstr);
+		if (!epdstr) {
+			fprintf (stdout, "error (no epd string): %s\n",
+						cmd);
 		} else {
-			epdstr = end_ptr;
-			if (!epdstr) {
-				fprintf (stdout, "error (no epd string): %s\n",
-				         cmd);
-			} else {
-				retval = handle_epd (epdstr, max_time, &epd);
-				chi_free_epd (&epd);
-			}
+			retval = handle_epd (epdstr, &epd);
+			chi_free_epd (&epd);
 		}
 	} else if (strcasecmp (cmd, "epdfile") == 0) {
 		char *filename = linebuf + 8;
-		char *end_ptr;
-		long int max_time = strtoul (filename, &end_ptr, 10);
 
-		if (max_time == 0 && end_ptr == filename) {
+		if (!filename) {
 			fprintf (stdout,
-			         "error (illegal time specification): %s\n",
-			         cmd);
+						"error (no filename given): %s\n",
+						cmd);
 		} else {
-			filename = end_ptr;
-			if (!filename) {
+			while (*filename == ' ' || *filename == '\t')
+				++filename;
+			if (!*filename) {
 				fprintf (stdout,
-				         "error (no filename given): %s\n",
-				         cmd);
+							"error (no filename given): %s\n",
+							cmd);
 			} else {
-				while (*filename == ' ' || *filename == '\t')
-					++filename;
-				if (!*filename) {
-					fprintf (stdout,
-					         "error (no filename given): %s\n",
-					         cmd);
-				} else {
-					filename[strlen (filename) - 1] = '\0';
-					retval = handle_epdfile (filename,
-					                         max_time);
-				}
+				filename[strlen (filename) - 1] = '\0';
+				retval = handle_epdfile (filename);
 			}
 		}
 	} else if (strcasecmp (cmd, "force") == 0) {

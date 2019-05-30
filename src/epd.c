@@ -35,19 +35,18 @@
 #include "brain.h"
 
 int
-handle_epd (const char *epdstr, unsigned long max_time, chi_epd_pos *epd)
+handle_epd(const char *epdstr, chi_epd_pos *epd)
 {
 	int errnum;
 	int retval = 0;
 	static char *buf = NULL;
 	static unsigned int bufsize = 0;
 
-	errnum = chi_parse_epd (epd, epdstr);
-	epd->fixed_time = max_time;
+	errnum = chi_parse_epd(epd, epdstr);
 
 	if (errnum) {
-		fprintf (stdout, "Error (%s): %s\n",
-		         chi_strerror (errnum), epdstr);
+		fprintf(stdout, "Error(%s): %s\n",
+		        chi_strerror(errnum), epdstr);
 		return EVENT_CONTINUE;
 	}
 
@@ -56,45 +55,45 @@ handle_epd (const char *epdstr, unsigned long max_time, chi_epd_pos *epd)
 	mate_announce = 0;
 	game_over = 0;
 	force = 0;
-	engine_color = chi_on_move (&current);
+	engine_color = chi_on_move(&current);
 	game_hist_ply = 0;
 	game_hist[0].pos = current;
-	game_hist[0].signature = chi_zk_signature (zk_handle, &current);
+	game_hist[0].signature = chi_zk_signature(zk_handle, &current);
 
 	current_score = engine_color == chi_white
-	                ? chi_material (&current) * 100
-	                : chi_material (&current) * -100;
+	                ? chi_material(&current) * 100
+	                : chi_material(&current) * -100;
 
-	chi_print_move (&epd->pos, epd->solution, &buf, &bufsize, 1);
-	fprintf (stdout, "    Solving test '%s', solution: %s.\n",
-	         epd->id, buf);
-	clear_tt_hashs ();
-	clear_qtt_hashs ();
-	retval = handle_go (epd);
+	chi_print_move(&epd->pos, epd->solution, &buf, &bufsize, 1);
+	fprintf(stdout, "    Solving test '%s', solution: %s.\n",
+	        epd->id, buf);
+	clear_tt_hashs();
+	clear_qtt_hashs();
+	retval = handle_go(epd);
 
-	fprintf (stdout, "    Results for test '%s'.\n", epd->id);
-	fprintf (stdout, "        Solved: %s.\n",
-	         epd->solution == epd->suggestion ? "yes" : "no");
+	fprintf(stdout, "    Results for test '%s'.\n", epd->id);
+	fprintf(stdout, "        Solved: %s.\n",
+	        epd->solution == epd->suggestion ? "yes" : "no");
 	if (epd->depth_stable_solution) {
-		fprintf (stdout,
-		         "        Solution last found after %ld.%02ld s at depth %d.\n",
-		         epd->cs_stable_solution / 100,
-		         epd->cs_stable_solution % 100,
-		         epd->depth_stable_solution);
+		fprintf(stdout,
+		        "        Solution last found after %ld.%02ld s at depth %d.\n",
+		        epd->cs_stable_solution / 100,
+		        epd->cs_stable_solution % 100,
+		        epd->depth_stable_solution);
 	}
 	if (epd->depth_refuted_solution) {
-		fprintf (stdout,
-		         "        Solution last refuted after %ld.%02ld s at depth %d.\n",
-		         epd->cs_refuted_solution / 100,
-		         epd->cs_refuted_solution % 100,
-		         epd->depth_refuted_solution);
+		fprintf(stdout,
+		        "        Solution last refuted after %ld.%02ld s at depth %d.\n",
+		        epd->cs_refuted_solution / 100,
+		        epd->cs_refuted_solution % 100,
+		        epd->depth_refuted_solution);
 	}
 
 	return retval;
 }
 
 int
-handle_epdfile (const char *filename, unsigned long max_time)
+handle_epdfile(const char *filename)
 {
 	static char *buf = NULL;
 	static size_t bufsize = 0;
@@ -103,13 +102,13 @@ handle_epdfile (const char *filename, unsigned long max_time)
 	int num_epds = 0;
 	FILE *f;
 
-	f = fopen (filename, "r");
+	f = fopen(filename, "r");
 	if (!f) {
-		error (EXIT_SUCCESS, errno, "Error (%s)", filename);
+		error(EXIT_SUCCESS, errno, "Error(%s)", filename);
 		return EVENT_CONTINUE;
 	}
 
-	while (-1 != getline (&buf, &bufsize, f)) {
+	while (-1 != getline(&buf, &bufsize, f)) {
 		char *epd_str = buf;
 		chi_epd_pos epd;
 		int retval;
@@ -121,44 +120,44 @@ handle_epdfile (const char *filename, unsigned long max_time)
 		if (!*epd_str)
 			continue;
 
-		errnum = chi_parse_epd (&epd, buf);
+		errnum = chi_parse_epd(&epd, buf);
 		if (errnum) {
-			fprintf (stdout, "Error (%s): %s\n",
-			         chi_strerror (errnum), buf);
+			fprintf(stdout, "Error(%s): %s\n",
+			        chi_strerror(errnum), buf);
 			continue;
 		}
-		chi_free_epd (&epd);
+		chi_free_epd(&epd);
 
-		retval = handle_epd (buf, max_time, &epd);
+		retval = handle_epd(buf, &epd);
 		if (retval != EVENT_CONTINUE)
 			break;
 
 		while (num_epds >= epds_allocated) {
 			epds_allocated += 8;
-			epds = xrealloc (epds, epds_allocated * sizeof & epd);
+			epds = xrealloc(epds, epds_allocated * sizeof & epd);
 		}
 
-		epds[num_epds] = (chi_epd_pos *) xmalloc (sizeof epd);
+		epds[num_epds] = (chi_epd_pos *) xmalloc(sizeof epd);
 		*(epds[num_epds++]) = epd;
 	}
 
-	fclose (f);
+	fclose(f);
 
 	if (!num_epds) {
-		fprintf (stdout,
-		         "Error: file contains no valid EPD positions.\n");
+		fprintf(stdout,
+		        "Error: file contains no valid EPD positions.\n");
 	} else {
 		unsigned long total_time = 0;
 		int solved_epds = 0;
 		int i;
 		int l;
 
-		fprintf (stdout,
-		         "\n      Results for testsuite from file '%s':\n",
-		         filename);
+		fprintf(stdout,
+		        "\n      Results for testsuite from file '%s':\n",
+		        filename);
 
-		fprintf (stdout,
-		         "\
+		fprintf(stdout,
+		        "\
     +--------------------+--------------------+---+-----------------------+\n\
     | Solution           | Refuted            | R | Name                  |\n\
     +-------+------------+-------+------------+---+-----------------------+\n");
@@ -169,40 +168,33 @@ handle_epdfile (const char *filename, unsigned long max_time)
 
 			if (epd->solution == epd->suggestion) {
 				++solved_epds;
-				total_time += epd->cs_stable_solution;
 				solved = 1;
-			} else {
-				total_time += max_time;
 			}
 
-			fprintf (stdout,
-			         "    | %5d | %7lu.%02lu | %5d | %7lu.%02lu | %c | %-22s|\n",
-			         epd->depth_stable_solution,
-			         epd->cs_stable_solution / 100,
-			         epd->cs_stable_solution % 100,
-			         epd->depth_refuted_solution,
-			         epd->cs_refuted_solution / 100,
-			         epd->cs_refuted_solution % 100,
-			         solved ? 'X' : '-',
-			         epd->id);
+			fprintf(stdout,
+			        "    | %5d | %7lu.%02lu | %5d | %7lu.%02lu | %c | %-22s|\n",
+			        epd->depth_stable_solution,
+			        epd->cs_stable_solution / 100,
+			        epd->cs_stable_solution % 100,
+			        epd->depth_refuted_solution,
+			        epd->cs_refuted_solution / 100,
+			        epd->cs_refuted_solution % 100,
+			        solved ? 'X' : '-',
+			        epd->id);
 		}
 
-		fprintf (stdout,
-		         "\
+		fprintf(stdout,
+		        "\
     +-------+------------+-------+------------+---+-----------------------+\n");
-		l = fprintf (stdout,
-		             "    | Solved %d/%d (time %ld.%02ld/%ld.%02ld s).",
-		             solved_epds,
-		             num_epds,
-		             total_time / 100,
-		             total_time % 100,
-		             (num_epds * max_time) / 100,
-		             (num_epds * max_time) % 100);
+		l = fprintf(stdout,
+		            "    | Solved %d/%d.",
+		            solved_epds,
+		            num_epds);
 		for (; l < 74; ++l)
-			fputc (' ', stdout);
-		fputs ("|\n", stdout);
-		fprintf (stdout,
-		         "\
+			fputc(' ', stdout);
+		fputs("|\n", stdout);
+		fprintf(stdout,
+		        "\
     +---------------------------------------------------------------------+\n");
 	}
 
@@ -211,11 +203,11 @@ handle_epdfile (const char *filename, unsigned long max_time)
 
 		for (i = 0; i < num_epds; ++i) {
 			if (epds[i]) {
-				chi_free_epd (epds[i]);
-				free (epds[i]);
+				chi_free_epd(epds[i]);
+				free(epds[i]);
 			}
 		}
-		free (epds);
+		free(epds);
 	}
 
 	return EVENT_CONTINUE;
