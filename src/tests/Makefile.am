@@ -20,6 +20,9 @@
 noinst_PROGRAMS = check_common check_tateplay
 
 TESTS = ./check_common ./check_tateplay
+if HAS_PERL
+        TESTS += ./check_mates
+endif
 
 check_common_SOURCES = \
 		../util.c \
