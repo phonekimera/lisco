@@ -31,6 +31,9 @@ gl_EARLY
 gl_INIT
 LT_INIT
 
+AC_CHECK_PROG([PERL], [perl], [yes], [no])
+AM_CONDITIONAL([HAS_PERL], [test "x$PERL" = "xyes"])
+
 AC_LANG([C])
 
 AC_LIBTOOL_WIN32_DLL
