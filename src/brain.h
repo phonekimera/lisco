@@ -28,9 +28,13 @@
 #include "tate.h"
 
 // Set to the maximum depth to search.
-#define DEBUG_BRAIN 2
+#define DEBUG_BRAIN 3
 #if DEBUG_BRAIN
 # include <stdio.h>
+#endif
+
+#ifndef MOVES_PER_TIME_CONTROL
+# define MOVES_PER_TIME_CONTROL 0x4000
 #endif
 
 #define ONEPLY (64)
@@ -137,7 +141,7 @@ typedef struct tree {
     unsigned long lazy_evals;
 
     // int max_ply;
-    // int status;
+    int status;
     // int iteration_sdepth;
     // int pv_printed;
     // int pv_junk;

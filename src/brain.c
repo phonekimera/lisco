@@ -37,6 +37,8 @@ bitv64 total_nodes = 0;
 bitv64 total_centiseconds = 0;
 bitv64 nps_peak = 0;
 
+int next_time_control;
+
 static void init_tree(TREE *tree, chi_epd_pos *epd);
 static int negamax(TREE *tree, int ply, int alpha, int beta);
 
@@ -58,6 +60,8 @@ think(chi_move* mv, chi_epd_pos *epd)
 	int num_moves;
     int score;
     int value;
+
+	start_time = rtime();
 
 	// FIXME! Remove that, when we have time control.
 	if (max_ply > 5)
@@ -108,6 +112,28 @@ think(chi_move* mv, chi_epd_pos *epd)
 #endif
 
     init_tree(&tree, epd);
+
+    /* How many time will we afford ourselves? */
+    if (pondering) {
+        tree.time_for_move = 0x7fffffff;
+    } else {
+        if (fixed_time) {
+            tree.time_for_move = fixed_time;
+        } else {
+            if (go_fast) {
+                long int alloc = allocate_time ();
+                if (alloc > 40)
+                    tree.time_for_move = 40;
+                else
+                    tree.time_for_move = alloc;
+            } else {
+                tree.time_for_move = allocate_time ();
+            }
+        }
+    }
+
+	next_time_control = 0;
+
     for (i = 0; i < num_moves; ++i) {
         move_ptr = &moves[i];
         chi_apply_move(&tree.pos, *move_ptr);
@@ -133,6 +159,9 @@ think(chi_move* mv, chi_epd_pos *epd)
 				}
         }
         chi_unapply_move(&tree.pos, *move_ptr);
+
+		if (tree.status & EVENTMASK_ENGINE_STOP)
+        	return EVENT_CONTINUE;
     }
 
 	return EVENT_CONTINUE;
@@ -151,6 +180,25 @@ negamax(TREE *tree, int ply, int alpha, int beta)
 
         ++tree->nodes;
 
+		/* Check for time control and user input.  */
+		--next_time_control;
+		if (next_time_control < 0) {
+			if (event_pending) {
+				int result = get_event ();
+				if (result & EVENTMASK_ENGINE_STOP) {
+					tree->status = result;
+				}
+				
+				return beta;
+			}
+			
+			if (rdifftime (rtime (), start_time) >= tree->time_for_move) {
+				tree->status = EVENT_MOVE_NOW;
+				return beta;
+			}
+			next_time_control = MOVES_PER_TIME_CONTROL;
+		}
+
         if (ply >= max_ply || num_moves == 0) {
 			int score = evaluate(tree, ply, alpha, beta);
 #if DEBUG_BRAIN
@@ -162,29 +210,29 @@ negamax(TREE *tree, int ply, int alpha, int beta)
 
         best_score = -INF;
         for (i = 0; i < num_moves; ++i) {
-                chi_move *move = &moves[i];
-                chi_apply_move(&tree->pos, *move);
-                tree->in_check[ply] = chi_check_check (&tree->pos);
-                tree->signatures[ply + 1] = chi_zk_update_signature(
-                    zk_handle, tree->signatures[ply], *move,
-                    chi_on_move(&tree->pos));
+			chi_move *move = &moves[i];
+			chi_apply_move(&tree->pos, *move);
+			tree->in_check[ply] = chi_check_check (&tree->pos);
+			tree->signatures[ply + 1] = chi_zk_update_signature(
+				zk_handle, tree->signatures[ply], *move,
+				chi_on_move(&tree->pos));
 #if DEBUG_BRAIN
-        indent_output(tree, ply + 1);
-        my_print_move(*move);
-        fprintf(stderr, "\n");
-        fflush(stderr);
+			indent_output(tree, ply + 1);
+			my_print_move(*move);
+			fprintf(stderr, "\n");
+			fflush(stderr);
 #endif
-                int node_score = -negamax(tree, ply + 1, -beta, -alpha);
-                chi_unapply_move(&tree->pos, *move);
-                if (node_score > best_score) {
-                        best_score = node_score;
-                }
-                if (node_score > alpha) {
-                    alpha = node_score;
-                }
-                if (alpha >= beta) {
-                    break;
-                }
+			int node_score = -negamax(tree, ply + 1, -beta, -alpha);
+			chi_unapply_move(&tree->pos, *move);
+			if (node_score > best_score) {
+					best_score = node_score;
+			}
+			if (node_score > alpha) {
+				alpha = node_score;
+			}
+			if (alpha >= beta || tree->status & EVENTMASK_ENGINE_STOP) {
+				break;
+			}
         }
         
         return best_score;
