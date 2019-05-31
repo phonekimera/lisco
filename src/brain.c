@@ -136,6 +136,12 @@ think(chi_move *mv, chi_epd_pos *epd)
 
 	for (int max_ply = 1; max_ply <= max_depth; ++max_ply) {
 		tree.max_ply = max_ply;
+#if DEBUG_BRAIN
+	if (max_ply > 1) {
+		indent_output(&tree, 1);
+		fprintf(stderr, "deepening search to %d plies\n", max_ply);
+	}
+#endif
 		for (i = 0; i < num_moves; ++i) {
 			move_ptr = &moves[i];
 			chi_apply_move(&tree.pos, *move_ptr);

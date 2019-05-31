@@ -43,7 +43,8 @@ search(TREE *tree, int ply, int alpha, int beta)
 		int score = evaluate(tree, ply, alpha, beta);
 #if DEBUG_BRAIN
 		indent_output(tree, ply);
-		fprintf(stderr, "--> evaluation: %d\n", score);
+		fprintf(stderr, "--> score: %d, alpha: %d, beta: %d\n",
+		        score, alpha, beta);
 #endif
 		return score;
 	}
@@ -68,6 +69,11 @@ search(TREE *tree, int ply, int alpha, int beta)
 			alpha = node_score;
 		}
 		if (alpha >= beta || tree->status & EVENTMASK_ENGINE_STOP) {
+#if DEBUG_BRAIN
+			indent_output(tree, ply + 1);
+			fprintf(stderr, "alpha(%d) beta(%d) cut-off\n", alpha, beta);
+			fflush(stderr);
+#endif
 			break;
 		}
 	}
