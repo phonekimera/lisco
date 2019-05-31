@@ -134,35 +134,38 @@ think(chi_move *mv, chi_epd_pos *epd)
 
 	next_time_control = 0;
 
-	for (i = 0; i < num_moves; ++i) {
-		move_ptr = &moves[i];
-		chi_apply_move(&tree.pos, *move_ptr);
-#if DEBUG_BRAIN
-		indent_output(&tree, 1);
-		my_print_move(*move_ptr);
-		fprintf(stderr, "\n");
-		fflush(stderr);
-#endif
-		tree.in_check[0] = chi_check_check (&tree.pos);
-		tree.signatures[1] = chi_zk_update_signature(zk_handle,
-		                                             tree.signatures[0],
-		                                             *move_ptr,
-		                                             chi_on_move(&tree.
-		                                                         pos));
-		value = -search(&tree, 1, -INF, +INF);
-		if (value > score) {
-			*mv = *move_ptr;
-			score = value;
-			// FIXME! This has to be more sophisticated for correct
-			// timing.  But we need pv handling first.
-			if (tree.epd) {
-				tree.epd->suggestion = *mv;
+	for (int max_ply = 1; max_ply <= max_depth; ++max_ply) {
+		tree.max_ply = max_ply;
+		for (i = 0; i < num_moves; ++i) {
+			move_ptr = &moves[i];
+			chi_apply_move(&tree.pos, *move_ptr);
+		#if DEBUG_BRAIN
+			indent_output(&tree, 1);
+			my_print_move(*move_ptr);
+			fprintf(stderr, "\n");
+			fflush(stderr);
+		#endif
+			tree.in_check[0] = chi_check_check (&tree.pos);
+			tree.signatures[1] = chi_zk_update_signature(zk_handle,
+															tree.signatures[0],
+															*move_ptr,
+															chi_on_move(&tree.
+																		pos));
+			value = -search(&tree, 1, -INF, +INF);
+			if (value > score) {
+				*mv = *move_ptr;
+				score = value;
+				// FIXME! This has to be more sophisticated for correct
+				// timing.  But we need pv handling first.
+				if (tree.epd) {
+					tree.epd->suggestion = *mv;
+				}
 			}
-		}
-		chi_unapply_move(&tree.pos, *move_ptr);
+			chi_unapply_move(&tree.pos, *move_ptr);
 
-		if (tree.status & EVENTMASK_ENGINE_STOP)
-			return EVENT_CONTINUE;
+			if (tree.status & EVENTMASK_ENGINE_STOP)
+				return EVENT_CONTINUE;
+		}
 	}
 
 	return EVENT_CONTINUE;

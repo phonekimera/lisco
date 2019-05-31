@@ -39,7 +39,7 @@ search(TREE *tree, int ply, int alpha, int beta)
 
 	if (stop_thinking(tree)) return beta;
 
-	if (ply >= max_depth || num_moves == 0) {
+	if (ply >= tree->max_ply || num_moves == 0) {
 		int score = evaluate(tree, ply, alpha, beta);
 #if DEBUG_BRAIN
 		indent_output(tree, ply);
