@@ -27,6 +27,6 @@
 
 #include "brain.h"
 
-extern int search(TREE* tree, int ply, int alpha, int beta);
+extern int search(TREE* tree, int depth, int alpha, int beta);
 
 #endif /* SEARCH_H */

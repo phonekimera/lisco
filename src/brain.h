@@ -98,7 +98,9 @@ typedef struct tree {
 	bitv64 signatures[MAX_PLY + 1];
 
 	chi_pos pos;
-	int max_ply;
+
+	/* Current search depth.  */
+	int depth;
 
 	/* The current variation.  */
 	PATH cv;

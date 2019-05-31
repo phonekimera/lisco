@@ -27,19 +27,20 @@ static chi_bool stop_thinking(TREE *tree);
 static void update_tree(TREE *tree, int ply, chi_move move);
 
 int
-search(TREE *tree, int ply, int alpha, int beta)
+search(TREE *tree, int depth, int alpha, int beta)
 {
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move *end = chi_legal_moves(&tree->pos, moves);
 	size_t num_moves = end - moves;
 	size_t i;
 	int best_score;
+	int ply = tree->depth - depth;
 
 	++tree->nodes;
 
 	if (stop_thinking(tree)) return beta;
 
-	if (ply >= tree->max_ply || num_moves == 0) {
+	if (depth == 0 || num_moves == 0) {
 		int score = evaluate(tree, ply, alpha, beta);
 #if DEBUG_BRAIN
 		indent_output(tree, ply);
@@ -62,7 +63,7 @@ search(TREE *tree, int ply, int alpha, int beta)
 		fprintf(stderr, "\n");
 		fflush(stderr);
 #endif
-		int node_score = -search(tree, ply + 1, -beta, -alpha);
+		int node_score = -search(tree, depth - 1, -beta, -alpha);
 		chi_unapply_move(&tree->pos, move);
 		if (node_score > best_score) {
 			best_score = node_score;

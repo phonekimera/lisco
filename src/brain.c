@@ -128,15 +128,15 @@ think(chi_move *mv, chi_epd_pos *epd)
 
 	next_time_control = 0;
 
-	for (int max_ply = 1; max_ply <= max_depth; ++max_ply) {
-		tree.max_ply = max_ply;
+	for (int depth = 1; depth <= max_depth; ++depth) {
+		tree.depth = depth;
 #if DEBUG_BRAIN
 		if (max_ply > 1) {
 			indent_output(&tree, 1);
 			fprintf(stderr, "deepening search to %d plies\n", max_ply);
 		}
 #endif
-		value = -search(&tree, 0, -INF, +INF);
+		value = -search(&tree, depth, -INF, +INF);
 		*mv = tree.cv.moves[0];
 #if DEBUG_BRAIN
 		fprintf(stderr, "best move at depth %d(%d): ", max_ply, max_depth);
