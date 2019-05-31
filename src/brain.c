@@ -149,7 +149,7 @@ think(chi_move *mv, chi_epd_pos *epd)
 		                                             *move_ptr,
 		                                             chi_on_move(&tree.
 		                                                         pos));
-		value = -negamax(&tree, 1, -INF, +INF);
+		value = -search(&tree, 1, -INF, +INF);
 		if (value > score) {
 			*mv = *move_ptr;
 			score = value;
@@ -166,77 +166,6 @@ think(chi_move *mv, chi_epd_pos *epd)
 	}
 
 	return EVENT_CONTINUE;
-}
-
-
-// NEGAMAX
-static int
-negamax(TREE *tree, int ply, int alpha, int beta)
-{
-	chi_move moves[CHI_MAX_MOVES];
-	chi_move *end = chi_legal_moves(&tree->pos, moves);
-	size_t num_moves = end - moves;
-	size_t i;
-	int best_score;
-
-	++tree->nodes;
-
-	/* Check for time control and user input.  */
-	--next_time_control;
-	if (next_time_control < 0) {
-		if (event_pending) {
-			int result = get_event ();
-			if (result & EVENTMASK_ENGINE_STOP) {
-				tree->status = result;
-			}
-
-			return beta;
-		}
-
-		if (rdifftime (rtime (), start_time) >= tree->time_for_move) {
-			tree->status = EVENT_MOVE_NOW;
-			return beta;
-		}
-		next_time_control = MOVES_PER_TIME_CONTROL;
-	}
-
-	if (ply >= max_ply || num_moves == 0) {
-		int score = evaluate(tree, ply, alpha, beta);
-#if DEBUG_BRAIN
-		indent_output(tree, ply);
-		fprintf(stderr, "--> evaluation: %d\n", score);
-#endif
-		return score;
-	}
-
-	best_score = -INF;
-	for (i = 0; i < num_moves; ++i) {
-		chi_move *move = &moves[i];
-		chi_apply_move(&tree->pos, *move);
-		tree->in_check[ply] = chi_check_check (&tree->pos);
-		tree->signatures[ply + 1] = chi_zk_update_signature(
-			zk_handle, tree->signatures[ply], *move,
-			chi_on_move(&tree->pos));
-#if DEBUG_BRAIN
-		indent_output(tree, ply + 1);
-		my_print_move(*move);
-		fprintf(stderr, "\n");
-		fflush(stderr);
-#endif
-		int node_score = -negamax(tree, ply + 1, -beta, -alpha);
-		chi_unapply_move(&tree->pos, *move);
-		if (node_score > best_score) {
-			best_score = node_score;
-		}
-		if (node_score > alpha) {
-			alpha = node_score;
-		}
-		if (alpha >= beta || tree->status & EVENTMASK_ENGINE_STOP) {
-			break;
-		}
-	}
-
-	return best_score;
 }
 
 #if DEBUG_BRAIN

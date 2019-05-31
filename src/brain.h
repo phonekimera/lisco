@@ -177,11 +177,6 @@ extern void my_print_move(chi_move move);
 
 extern void update_signature(TREE* tree, chi_move move, int ply);
 
-extern int search(TREE* tree, int depth, int ply,
-			      int alpha, int beta, int make_null);
-
-extern int quiescence(TREE* tree, int ply, int alpha, int beta);
-
 extern void print_current_move(TREE* tree, chi_pos* pos,
 					           chi_move move, int count, 
 					           int num_moves, int alpha, int beta);

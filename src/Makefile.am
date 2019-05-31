@@ -26,6 +26,7 @@ noinst_HEADERS = \
 	brain.h \
 	edit.h \
 	log.h \
+	search.h \
 	tate.h \
 	tateplay-engine.h \
 	tateplay-game.h \
