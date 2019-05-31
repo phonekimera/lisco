@@ -102,8 +102,8 @@ typedef struct tree {
 	/* Current search depth.  */
 	int depth;
 
-	/* The current variation.  */
-	PATH cv;
+	/* FIXME! Rather use the principal variation for that.  */
+	chi_move best_move;
 
 	int in_check[MAX_PLY];
 

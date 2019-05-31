@@ -50,8 +50,6 @@ search(TREE *tree, int depth, int alpha, int beta)
 		return score;
 	}
 
-	tree->cv.length = ply + 1;
-	tree->cv.moves[ply] = moves[0];
 	best_score = -INF;
 	for (i = 0; i < num_moves; ++i) {
 		chi_move move = moves[i];
@@ -67,10 +65,12 @@ search(TREE *tree, int depth, int alpha, int beta)
 		chi_unapply_move(&tree->pos, move);
 		if (node_score > best_score) {
 			best_score = node_score;
-			tree->cv.moves[ply] = move;
 		}
 		if (node_score > alpha) {
 			alpha = node_score;
+			if (ply == 0) {
+				tree->best_move = move;
+			}
 		}
 		if (alpha >= beta || tree->status & EVENTMASK_ENGINE_STOP) {
 #if DEBUG_BRAIN

@@ -32,7 +32,7 @@
 #include "search.h"
 #include "tate.h"
 #include "time-control.h"
-#include "board.h"
+#include "time-management.h"
 
 bitv64 total_nodes = 0;
 bitv64 total_centiseconds = 0;
@@ -41,6 +41,12 @@ bitv64 nps_peak = 0;
 int next_time_control;
 
 static void init_tree(TREE *tree, chi_epd_pos *epd);
+
+/* Time control options stockfish-style.  FIXME! Should be configurable!  */
+TimePoint min_thinking_time;
+TimePoint move_overhead;
+TimePoint slow_mover;
+TimePoint nodestime;
 
 void
 evaluate_move (chi_move move)
@@ -136,8 +142,11 @@ think(chi_move *mv, chi_epd_pos *epd)
 			fprintf(stderr, "deepening search to %d plies\n", max_ply);
 		}
 #endif
+
+		tree.best_move = chi_false;
 		value = -search(&tree, depth, -INF, +INF);
-		*mv = tree.cv.moves[0];
+		if (tree.best_move) *mv = tree.best_move;
+
 #if DEBUG_BRAIN
 		fprintf(stderr, "best move at depth %d(%d): ", max_ply, max_depth);
 		my_print_move(*mv);
@@ -225,7 +234,7 @@ init_tree(TREE *tree, chi_epd_pos *epd)
 {
 	memset(tree, 0, sizeof *tree);
 	tree->pos = current;
-	tree->cv.length = 1;
+
 	// FIXME! Is this correct?
 	tree->w_castled = chi_w_castled(&tree->pos);
 	tree->b_castled = chi_b_castled(&tree->pos);

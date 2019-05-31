@@ -48,6 +48,8 @@
 // FIXME: contempt factor!
 #define DRAW    0
 
+#include "time-management.h"
+
 struct game_hist_entry {
     bitv64   signature;
     chi_move move;
@@ -77,6 +79,11 @@ extern int mate_announce;
 extern int current_score;
 
 extern int isa_tty;
+
+extern TimePoint min_thinking_time;
+extern TimePoint move_overhead;
+extern TimePoint slow_mover;
+extern TimePoint npmsec;
 
 extern int get_event(void);
 extern int handle_epd(const char* epdstr, chi_epd_pos* epd);

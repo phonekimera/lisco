@@ -48,6 +48,7 @@
 #include "book.h"
 #include "brain.h"
 #include "time-control.h"
+#include "time-management.h"
 
 static void greeting(void);
 static void feature_requests(void);
@@ -100,6 +101,11 @@ struct game_hist_entry *game_hist = NULL;
 unsigned int game_hist_ply = 0;
 
 static unsigned int game_hist_alloc = 0;
+
+TimePoint min_thinking_time = 20;
+TimePoint move_overhead = 30;
+TimePoint slow_mover = 84;
+TimePoint npmsec = 0;
 
 #define PROMPT (edit_mode   \
 	        ? ((chi_on_move (&current) == chi_white   \
