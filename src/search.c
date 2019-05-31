@@ -24,6 +24,7 @@
 #include "time-control.h"
 
 static chi_bool stop_thinking(TREE *tree);
+static void update_tree(TREE *tree, int ply, chi_move move);
 
 int
 search(TREE *tree, int ply, int alpha, int beta)
@@ -51,10 +52,7 @@ search(TREE *tree, int ply, int alpha, int beta)
 	for (i = 0; i < num_moves; ++i) {
 		chi_move *move = &moves[i];
 		chi_apply_move(&tree->pos, *move);
-		tree->in_check[ply] = chi_check_check (&tree->pos);
-		tree->signatures[ply + 1] = chi_zk_update_signature(
-			zk_handle, tree->signatures[ply], *move,
-			chi_on_move(&tree->pos));
+		update_tree(tree, ply, *move);
 #if DEBUG_BRAIN
 		indent_output(tree, ply + 1);
 		my_print_move(*move);
@@ -100,4 +98,14 @@ stop_thinking(TREE *tree)
 	}
 
 	return chi_false;
+}
+
+static void
+update_tree(TREE *tree, int ply, chi_move move)
+{
+	tree->in_check[ply] = chi_check_check (&tree->pos);
+	tree->signatures[ply + 1] = chi_zk_update_signature(
+		zk_handle, tree->signatures[ply], move,
+		chi_on_move(&tree->pos)
+	);
 }
