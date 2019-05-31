@@ -140,7 +140,7 @@ typedef struct tree {
     unsigned long ev_hits;
     unsigned long lazy_evals;
 
-    // int max_ply;
+    // int deepest_search;
     int status;
     // int iteration_sdepth;
     // int pv_printed;

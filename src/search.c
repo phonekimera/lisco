@@ -53,7 +53,7 @@ search(TREE *tree, int ply, int alpha, int beta)
 		next_time_control = MOVES_PER_TIME_CONTROL;
 	}
 
-	if (ply >= max_ply || num_moves == 0) {
+	if (ply >= max_depth || num_moves == 0) {
 		int score = evaluate(tree, ply, alpha, beta);
 #if DEBUG_BRAIN
 		indent_output(tree, ply);

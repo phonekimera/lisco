@@ -85,7 +85,7 @@ chi_color_t engine_color = chi_black;
 
 int input_available = 0;
 int event_pending = 0;
-int max_ply = MAX_PLY;
+int max_depth = MAX_PLY;
 
 int mate_announce = 0;
 int current_score = 0;
@@ -426,7 +426,7 @@ get_event ()
 			fprintf (stdout, "error (illegal search depth): %s",
 			         depth_str);
 		} else {
-			max_ply = parsed;
+			max_depth = parsed;
 		}
 	} else if (strcasecmp (cmd, "random") == 0) {
 		/* Ignore.  */

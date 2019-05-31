@@ -70,7 +70,7 @@ extern int allow_pondering;
 extern int ics;
 extern int computer;
 extern chi_color_t engine_color;
-extern int max_ply;
+extern int max_depth;
 extern int event_pending;
 extern int post;
 extern int mate_announce;

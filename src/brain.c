@@ -29,6 +29,7 @@
 #include <libchi.h>
 
 #include "brain.h"
+#include "search.h"
 #include "tate.h"
 #include "time-control.h"
 #include "board.h"
@@ -40,7 +41,6 @@ bitv64 nps_peak = 0;
 int next_time_control;
 
 static void init_tree(TREE *tree, chi_epd_pos *epd);
-static int negamax(TREE *tree, int ply, int alpha, int beta);
 
 void
 evaluate_move (chi_move move)
@@ -64,8 +64,8 @@ think(chi_move *mv, chi_epd_pos *epd)
 	start_time = rtime();
 
 	// FIXME! Remove that, when we have time control.
-	if (max_ply > 5)
-		max_ply = 5;
+	if (max_depth > 5)
+		max_depth = 5;
 
 	move_ptr = chi_legal_moves(&current, moves);
 
@@ -107,7 +107,7 @@ think(chi_move *mv, chi_epd_pos *epd)
 	}
 
 #if DEBUG_BRAIN
-	max_ply = DEBUG_BRAIN;
+	max_depth = DEBUG_BRAIN;
 	tree.time_for_move = 999999;
 #endif
 
