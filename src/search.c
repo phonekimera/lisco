@@ -23,6 +23,8 @@
 #include "search.h"
 #include "time-control.h"
 
+static chi_bool stop_thinking(TREE *tree);
+
 int
 search(TREE *tree, int ply, int alpha, int beta)
 {
@@ -34,24 +36,7 @@ search(TREE *tree, int ply, int alpha, int beta)
 
 	++tree->nodes;
 
-	/* Check for time control and user input.  */
-	--next_time_control;
-	if (next_time_control < 0) {
-		if (event_pending) {
-			int result = get_event ();
-			if (result & EVENTMASK_ENGINE_STOP) {
-				tree->status = result;
-			}
-
-			return beta;
-		}
-
-		if (rdifftime (rtime (), start_time) >= tree->time_for_move) {
-			tree->status = EVENT_MOVE_NOW;
-			return beta;
-		}
-		next_time_control = MOVES_PER_TIME_CONTROL;
-	}
+	if (stop_thinking(tree)) return beta;
 
 	if (ply >= max_depth || num_moves == 0) {
 		int score = evaluate(tree, ply, alpha, beta);
@@ -90,4 +75,29 @@ search(TREE *tree, int ply, int alpha, int beta)
 	}
 
 	return best_score;
+}
+
+/* Check for time control and user input.  */
+static chi_bool
+stop_thinking(TREE *tree)
+{
+	--next_time_control;
+	if (next_time_control < 0) {
+		if (event_pending) {
+			int result = get_event ();
+			if (result & EVENTMASK_ENGINE_STOP) {
+				tree->status = result;
+			}
+
+			return chi_true;
+		}
+
+		if (rdifftime (rtime (), start_time) >= tree->time_for_move) {
+			tree->status = EVENT_MOVE_NOW;
+			return chi_true;
+		}
+		next_time_control = MOVES_PER_TIME_CONTROL;
+	}
+
+	return chi_false;
 }

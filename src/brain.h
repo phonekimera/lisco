@@ -160,7 +160,6 @@ extern unsigned int history[];
 
 extern int think(chi_move* mv, chi_epd_pos* epd);
 extern int move_now(chi_move* mv);
-extern void stop_thinking(void);
 
 extern int evaluate(TREE* tree, int ply, int alpha, int beta);
 extern int evaluate_dev_white(TREE* tree, int ply);
