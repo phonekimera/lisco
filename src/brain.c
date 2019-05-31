@@ -55,10 +55,7 @@ think(chi_move *mv, chi_epd_pos *epd)
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move *move_ptr;
 
-	size_t i;
-
 	int num_moves;
-	int score;
 	int value;
 
 	start_time = rtime();
@@ -70,8 +67,6 @@ think(chi_move *mv, chi_epd_pos *epd)
 	move_ptr = chi_legal_moves(&current, moves);
 
 	num_moves = move_ptr - moves;
-
-	score = -INF;
 
 #if 0
 	current_score = chi_material (&current) * 100;
@@ -102,7 +97,6 @@ think(chi_move *mv, chi_epd_pos *epd)
 
 	/* Better than nothing ...  */
 	if (num_moves == 1) {
-		//current_score = evaluate(???);
 		return EVENT_CONTINUE;
 	}
 
@@ -137,41 +131,27 @@ think(chi_move *mv, chi_epd_pos *epd)
 	for (int max_ply = 1; max_ply <= max_depth; ++max_ply) {
 		tree.max_ply = max_ply;
 #if DEBUG_BRAIN
-	if (max_ply > 1) {
-		indent_output(&tree, 1);
-		fprintf(stderr, "deepening search to %d plies\n", max_ply);
-	}
-#endif
-		for (i = 0; i < num_moves; ++i) {
-			move_ptr = &moves[i];
-			chi_apply_move(&tree.pos, *move_ptr);
-		#if DEBUG_BRAIN
+		if (max_ply > 1) {
 			indent_output(&tree, 1);
-			my_print_move(*move_ptr);
-			fprintf(stderr, "\n");
-			fflush(stderr);
-		#endif
-			tree.in_check[0] = chi_check_check (&tree.pos);
-			tree.signatures[1] = chi_zk_update_signature(zk_handle,
-															tree.signatures[0],
-															*move_ptr,
-															chi_on_move(&tree.
-																		pos));
-			value = -search(&tree, 1, -INF, +INF);
-			if (value > score) {
-				*mv = *move_ptr;
-				score = value;
-				// FIXME! This has to be more sophisticated for correct
-				// timing.  But we need pv handling first.
-				if (tree.epd) {
-					tree.epd->suggestion = *mv;
-				}
-			}
-			chi_unapply_move(&tree.pos, *move_ptr);
-
-			if (tree.status & EVENTMASK_ENGINE_STOP)
-				return EVENT_CONTINUE;
+			fprintf(stderr, "deepening search to %d plies\n", max_ply);
 		}
+#endif
+		value = -search(&tree, 0, -INF, +INF);
+		*mv = tree.cv.moves[0];
+#if DEBUG_BRAIN
+		fprintf(stderr, "best move at depth %d(%d): ", max_ply, max_depth);
+		my_print_move(*mv);
+		fprintf(stderr, " (score: %d)\n", value);
+		fflush(stderr);
+#endif
+		// FIXME! This has to be more sophisticated for correct
+		// timing.  But we need pv handling first.
+		if (tree.epd) {
+			tree.epd->suggestion = *mv;
+		}
+
+		if (tree.status & EVENTMASK_ENGINE_STOP)
+			return EVENT_CONTINUE;
 	}
 
 	return EVENT_CONTINUE;
@@ -245,7 +225,8 @@ init_tree(TREE *tree, chi_epd_pos *epd)
 {
 	memset(tree, 0, sizeof *tree);
 	tree->pos = current;
-	tree->in_check[0] = chi_check_check(&tree->pos);
+	tree->cv.length = 1;
+	// FIXME! Is this correct?
 	tree->w_castled = chi_w_castled(&tree->pos);
 	tree->b_castled = chi_b_castled(&tree->pos);
 

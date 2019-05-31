@@ -49,21 +49,24 @@ search(TREE *tree, int ply, int alpha, int beta)
 		return score;
 	}
 
+	tree->cv.length = ply + 1;
+	tree->cv.moves[ply] = moves[0];
 	best_score = -INF;
 	for (i = 0; i < num_moves; ++i) {
-		chi_move *move = &moves[i];
-		chi_apply_move(&tree->pos, *move);
-		update_tree(tree, ply, *move);
+		chi_move move = moves[i];
+		chi_apply_move(&tree->pos, move);
+		update_tree(tree, ply, move);
 #if DEBUG_BRAIN
 		indent_output(tree, ply + 1);
-		my_print_move(*move);
+		my_print_move(move);
 		fprintf(stderr, "\n");
 		fflush(stderr);
 #endif
 		int node_score = -search(tree, ply + 1, -beta, -alpha);
-		chi_unapply_move(&tree->pos, *move);
+		chi_unapply_move(&tree->pos, move);
 		if (node_score > best_score) {
 			best_score = node_score;
+			tree->cv.moves[ply] = move;
 		}
 		if (node_score > alpha) {
 			alpha = node_score;

@@ -100,6 +100,9 @@ typedef struct tree {
 	chi_pos pos;
 	int max_ply;
 
+	/* The current variation.  */
+	PATH cv;
+
 	int in_check[MAX_PLY];
 
 	/* Initial castling state.  */
