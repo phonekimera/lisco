@@ -678,9 +678,208 @@ START_TEST(test_undo_kcastle)
 	chi_move move;
 	const char *moves[] = {
 		"e2-e4", "e7-e5",
-		"Nf1-f3", "Ng8-f6",
+		"Ng1-f3", "Ng8-f6",
 		"Bf1-c4", "Bf8-c5",
 		"O-O", "O-O"
+	};
+	size_t num_moves = sizeof moves / sizeof moves[0];
+	chi_pos *positions = xcalloc(1 + num_moves, sizeof(chi_pos));
+	size_t i;
+
+	chi_init_position(&positions[0]);
+
+	for (i = 0; i < num_moves; ++i) {
+		chi_pos *pos1, *pos2;
+		pos1 = &positions[i];
+		pos2 = &positions[i + 1];
+		chi_copy_pos(&positions[i + 1], &positions[i]);
+		errnum = chi_parse_move(&positions[i + 1], &move, moves[i]);
+		ck_assert_int_eq(errnum, 0);
+		errnum = chi_apply_move(&positions[i + 1], move);
+		ck_assert_int_eq(errnum, 0);
+	}
+
+	for (i = num_moves; i != 0; --i) {
+		chi_pos *before, *after;
+		before = &positions[i - 1];
+		after = &positions[i];
+		errnum = chi_parse_move(&positions[i - 1], &move, moves[i - 1]);
+		ck_assert_int_eq(errnum, 0);
+		errnum = chi_unapply_move(&positions[i], move);
+
+		/* Copy the insignificant book-keeping stuff before comparing.  */
+		memcpy((&positions[i])->irreversible,
+		       (&positions[i - 1])->irreversible,
+		       sizeof (&positions[i])->irreversible);
+		(&positions[i])->irreversible_count = (&positions[i - 1])->irreversible_count;
+		memcpy((&positions[i])->double_pawn_moves,
+		       (&positions[i - 1])->double_pawn_moves,
+		       sizeof (&positions[i])->irreversible);
+
+		ck_assert_int_eq(0, chi_cmp_pos(&positions[i - 1], &positions[i]));
+	}
+
+	free(positions);
+END_TEST;
+/* 
+ * Check that queenside castling right gets restored after unapplying.
+ */
+
+START_TEST(test_undo_qcastle)
+	int errnum;
+	chi_move move;
+	const char *moves[] = {
+		"d2-d4", "d7-d5",
+		"Nb1-c3", "Nb8-c6",
+		"Bc1-f4", "Bc8-f5",
+		"Qd1-d3", "Qd8-d6",
+		"O-O-O", "O-O-O"
+	};
+	size_t num_moves = sizeof moves / sizeof moves[0];
+	chi_pos *positions = xcalloc(1 + num_moves, sizeof(chi_pos));
+	size_t i;
+
+	chi_init_position(&positions[0]);
+
+	for (i = 0; i < num_moves; ++i) {
+		chi_pos *pos1, *pos2;
+		pos1 = &positions[i];
+		pos2 = &positions[i + 1];
+		chi_copy_pos(&positions[i + 1], &positions[i]);
+		errnum = chi_parse_move(&positions[i + 1], &move, moves[i]);
+		ck_assert_int_eq(errnum, 0);
+		errnum = chi_apply_move(&positions[i + 1], move);
+		ck_assert_int_eq(errnum, 0);
+	}
+
+	for (i = num_moves; i != 0; --i) {
+		chi_pos *before, *after;
+		before = &positions[i - 1];
+		after = &positions[i];
+		errnum = chi_parse_move(&positions[i - 1], &move, moves[i - 1]);
+		ck_assert_int_eq(errnum, 0);
+		errnum = chi_unapply_move(&positions[i], move);
+
+		/* Copy the insignificant book-keeping stuff before comparing.  */
+		memcpy((&positions[i])->irreversible,
+		       (&positions[i - 1])->irreversible,
+		       sizeof (&positions[i])->irreversible);
+		(&positions[i])->irreversible_count = (&positions[i - 1])->irreversible_count;
+		memcpy((&positions[i])->double_pawn_moves,
+		       (&positions[i - 1])->double_pawn_moves,
+		       sizeof (&positions[i])->irreversible);
+
+		ck_assert_int_eq(0, chi_cmp_pos(&positions[i - 1], &positions[i]));
+	}
+
+	free(positions);
+END_TEST;
+
+START_TEST(test_undo_krook_move)
+	int errnum;
+	chi_move move;
+
+	const char *moves[] = {
+		"h2-h4", "h7-h5",
+		"Rh1-h2", "Rh8-h7"
+	};
+	size_t num_moves = sizeof moves / sizeof moves[0];
+	chi_pos *positions = xcalloc(1 + num_moves, sizeof(chi_pos));
+	size_t i;
+
+	chi_init_position(&positions[0]);
+
+	for (i = 0; i < num_moves; ++i) {
+		chi_pos *pos1, *pos2;
+		pos1 = &positions[i];
+		pos2 = &positions[i + 1];
+		chi_copy_pos(&positions[i + 1], &positions[i]);
+		errnum = chi_parse_move(&positions[i + 1], &move, moves[i]);
+		ck_assert_int_eq(errnum, 0);
+		errnum = chi_apply_move(&positions[i + 1], move);
+		ck_assert_int_eq(errnum, 0);
+	}
+
+	for (i = num_moves; i != 0; --i) {
+		chi_pos *before, *after;
+		before = &positions[i - 1];
+		after = &positions[i];
+		errnum = chi_parse_move(&positions[i - 1], &move, moves[i - 1]);
+		ck_assert_int_eq(errnum, 0);
+		errnum = chi_unapply_move(&positions[i], move);
+
+		/* Copy the insignificant book-keeping stuff before comparing.  */
+		memcpy((&positions[i])->irreversible,
+		       (&positions[i - 1])->irreversible,
+		       sizeof (&positions[i])->irreversible);
+		(&positions[i])->irreversible_count = (&positions[i - 1])->irreversible_count;
+		memcpy((&positions[i])->double_pawn_moves,
+		       (&positions[i - 1])->double_pawn_moves,
+		       sizeof (&positions[i])->irreversible);
+
+		ck_assert_int_eq(0, chi_cmp_pos(&positions[i - 1], &positions[i]));
+	}
+
+	free(positions);
+END_TEST;
+
+START_TEST(test_undo_qrook_move)
+	int errnum;
+	chi_move move;
+
+	const char *moves[] = {
+		"a2-a4", "a7-a5",
+		"Ra1-a2", "Ra8-a7"
+	};
+	size_t num_moves = sizeof moves / sizeof moves[0];
+	chi_pos *positions = xcalloc(1 + num_moves, sizeof(chi_pos));
+	size_t i;
+
+	chi_init_position(&positions[0]);
+
+	for (i = 0; i < num_moves; ++i) {
+		chi_pos *pos1, *pos2;
+		pos1 = &positions[i];
+		pos2 = &positions[i + 1];
+		chi_copy_pos(&positions[i + 1], &positions[i]);
+		errnum = chi_parse_move(&positions[i + 1], &move, moves[i]);
+		ck_assert_int_eq(errnum, 0);
+		errnum = chi_apply_move(&positions[i + 1], move);
+		ck_assert_int_eq(errnum, 0);
+	}
+
+	for (i = num_moves; i != 0; --i) {
+		chi_pos *before, *after;
+		before = &positions[i - 1];
+		after = &positions[i];
+		errnum = chi_parse_move(&positions[i - 1], &move, moves[i - 1]);
+		ck_assert_int_eq(errnum, 0);
+		errnum = chi_unapply_move(&positions[i], move);
+
+		/* Copy the insignificant book-keeping stuff before comparing.  */
+		memcpy((&positions[i])->irreversible,
+		       (&positions[i - 1])->irreversible,
+		       sizeof (&positions[i])->irreversible);
+		(&positions[i])->irreversible_count = (&positions[i - 1])->irreversible_count;
+		memcpy((&positions[i])->double_pawn_moves,
+		       (&positions[i - 1])->double_pawn_moves,
+		       sizeof (&positions[i])->irreversible);
+
+		ck_assert_int_eq(0, chi_cmp_pos(&positions[i - 1], &positions[i]));
+	}
+
+	free(positions);
+END_TEST;
+
+
+
+START_TEST(test_undo_king_move)
+	int errnum;
+	chi_move move;
+
+	const char *moves[] = {
+		"e2-e3", "e7-e6",
+		"Ke1-e2", "Ke8-e7"
 	};
 	size_t num_moves = sizeof moves / sizeof moves[0];
 	chi_pos *positions = xcalloc(1 + num_moves, sizeof(chi_pos));
@@ -755,6 +954,12 @@ move_making_suite(void)
 
 	tc_undo = tcase_create("Completely undo position");
 	tcase_add_test(tc_undo, test_undo_kcastle);
+	tcase_add_test(tc_undo, test_undo_qcastle);
+	tcase_add_test(tc_undo, test_undo_krook_move);
+	tcase_add_test(tc_undo, test_undo_qrook_move);
+	tcase_add_test(tc_undo, test_undo_king_move);
+
+
 	suite_add_tcase(suite, tc_undo);
 
 	return suite;
