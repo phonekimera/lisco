@@ -53,7 +53,6 @@ static void reap_children(void);
 //static void unplay_move(chi_move *move);
 
 static Game *game;
-static chi_move *legal_moves(chi_move *);
 
 static int opt_protocol_seen = 0;
 static int opt_depth_seen = 0;
