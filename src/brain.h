@@ -28,7 +28,7 @@
 #include "tate.h"
 
 // Set to the maximum depth to search.
-#define DEBUG_BRAIN 3
+#define DEBUG_BRAIN 0
 #if DEBUG_BRAIN
 # include <stdio.h>
 #endif
