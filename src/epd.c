@@ -147,7 +147,6 @@ handle_epdfile(const char *filename)
 		fprintf(stdout,
 		        "Error: file contains no valid EPD positions.\n");
 	} else {
-		unsigned long total_time = 0;
 		int solved_epds = 0;
 		int i;
 		int l;
