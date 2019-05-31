@@ -231,6 +231,7 @@ init_tree(TREE *tree, chi_epd_pos *epd)
 	tree->b_castled = chi_b_castled(&tree->pos);
 
 	tree->signatures[0] = game_hist[game_hist_ply].signature;
+	tree->in_check[0] = chi_check_check(&tree->pos);
 
 	tree->epd = epd;
 

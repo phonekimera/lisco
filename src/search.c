@@ -56,7 +56,7 @@ search(TREE *tree, int depth, int alpha, int beta)
 	for (i = 0; i < num_moves; ++i) {
 		chi_move move = moves[i];
 		chi_apply_move(&tree->pos, move);
-		update_tree(tree, ply, move);
+		update_tree(tree, ply + 1, move);
 #if DEBUG_BRAIN
 		indent_output(tree, ply + 1);
 		my_print_move(move);
@@ -114,7 +114,7 @@ static void
 update_tree(TREE *tree, int ply, chi_move move)
 {
 	tree->in_check[ply] = chi_check_check (&tree->pos);
-	tree->signatures[ply + 1] = chi_zk_update_signature(
+	tree->signatures[ply] = chi_zk_update_signature(
 		zk_handle, tree->signatures[ply], move,
 		chi_on_move(&tree->pos)
 	);

@@ -188,7 +188,7 @@ evaluate(TREE *tree, int ply, int alpha, int beta)
 		return score;
 	}
 
-	if (tree->in_check[ply - 1]) {
+	if (tree->in_check[ply]) {
 		chi_move moves[CHI_MAX_MOVES];
 		chi_move* mv = moves;
 
