@@ -30,7 +30,7 @@
 
 #include "brain.h"
 #include "tate.h"
-#include "time_ctrl.h"
+#include "time-control.h"
 #include "board.h"
 
 bitv64 total_nodes = 0;

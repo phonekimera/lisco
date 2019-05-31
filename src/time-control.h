@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TIME_CTRL_H
-# define TIME_CTRL_H        /* Allow multiple inclusion.  */
+#ifndef TIME_CONTROL_H
+# define TIME_CONTROL_H        /* Allow multiple inclusion.  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>

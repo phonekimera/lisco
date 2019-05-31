@@ -25,7 +25,7 @@
 #include <sys/time.h>
 #include <stdlib.h>
 
-#include "time_ctrl.h"
+#include "time-control.h"
 #include "tate.h"
 
 long int moves_to_tc  = 40;

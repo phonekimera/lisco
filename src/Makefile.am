@@ -33,12 +33,12 @@ noinst_HEADERS = \
 	tateplay-loop.h \
 	tateplay-option.h \
 	tateplay-time-control.h \
-	time_ctrl.h \
+	time-control.h \
 	util.h \
 	xboard-feature.h \
 	xmalloca-debug.h
 
-tate_SOURCES = tate.c board.c brain.c edit.c book.c time_ctrl.c \
+tate_SOURCES = tate.c board.c brain.c edit.c book.c time-control.c \
 	evaluate.c search.c \
 	tt_hash.c epd.c ev_hash.c qtt_hash.c
 tateplay_SOURCES = tateplay.c tateplay-engine.c log.c tateplay-game.c \

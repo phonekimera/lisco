@@ -25,7 +25,7 @@
 #include <libchi.h>
 
 #include "brain.h"
-#include "time_ctrl.h"
+#include "time-control.h"
 
 int
 quiescence (TREE *tree, int ply, int alpha, int beta)

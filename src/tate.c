@@ -47,7 +47,7 @@
 #include "board.h"
 #include "book.h"
 #include "brain.h"
-#include "time_ctrl.h"
+#include "time-control.h"
 
 static void greeting(void);
 static void feature_requests(void);

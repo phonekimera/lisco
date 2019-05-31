@@ -21,7 +21,7 @@
 #endif
 
 #include "search.h"
-#include "time_ctrl.h"
+#include "time-control.h"
 
 int
 search(TREE *tree, int ply, int alpha, int beta)
