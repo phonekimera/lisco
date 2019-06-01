@@ -66,10 +66,6 @@ think(chi_move *mv, chi_epd_pos *epd)
 
 	start_time = rtime();
 
-	// FIXME! Remove that, when we have time control.
-	if (max_depth > 5)
-		max_depth = 5;
-
 	move_ptr = chi_legal_moves(&current, moves);
 
 	num_moves = move_ptr - moves;
