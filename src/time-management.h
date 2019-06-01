@@ -55,6 +55,7 @@ typedef struct TimeLimits {
 
 extern TimeManagement timer;
 
+extern void time_limits_init(TimeLimits *self);
 extern void time_management_init(TimeManagement *self, struct TimeLimits *limits,
                                  chi_color_t us, int ply);
 extern TimePoint now();

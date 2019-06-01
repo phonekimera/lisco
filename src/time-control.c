@@ -92,6 +92,7 @@ parse_level (level_str)
 	return;
     }
   
+    fixed_time = 0;
     moves_to_tc = new_moves_to_tc;
     min_per_game = new_min_per_game;
     sec_per_game = new_sec_per_game;

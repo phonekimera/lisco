@@ -23,16 +23,32 @@
 #include <xalloc.h>
 
 #include "time-management.h"
+#include "tate.h"
+#include "time-control.h"
 
 /* Stolen from stockfish and ported to C.  */
 
-TimeLimits limits;
-
-TimeLimits *
-time_limits_new()
+void
+time_limits_init(TimeLimits *self)
 {
-	TimeLimits *self = xmalloc(sizeof *self);
 	memset(self, 0, sizeof *self);
 
-	return self;
+	self->start_time = now();
+	if (engine_color == chi_white) {
+		self->time[chi_white] = time_left * 10;
+		self->time[chi_black] = opp_time * 10;
+	} else {
+		self->time[chi_white] = opp_time * 10;
+		self->time[chi_black] = time_left * 10;
+	}
+	self->inc[chi_white] = self->inc[chi_black] = inc;
+
+	if (fixed_time) {
+		self->movetime = 1000 * fixed_time;
+	} else {
+		self->movetime = 0;
+	}
+
+	/* FIXME! This is normally MAX_PLY.  */
+	self->depth = max_depth;
 }

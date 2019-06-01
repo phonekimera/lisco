@@ -41,6 +41,7 @@ bitv64 nps_peak = 0;
 int next_time_control;
 
 static void init_tree(TREE *tree, chi_epd_pos *epd);
+static int _think(chi_move *mv, chi_epd_pos *epd);
 
 /* Time control options stockfish-style.  FIXME! Should be configurable!  */
 TimePoint min_thinking_time;
@@ -56,6 +57,23 @@ evaluate_move (chi_move move)
 
 int
 think(chi_move *mv, chi_epd_pos *epd)
+{
+	int retval;
+
+	TimeLimits limits;
+	
+	time_limits_init(&limits);
+
+	/* How many moves to go?  */
+
+	retval = _think(mv, epd);
+	time_left -= (now() - limits.start_time) * 10;
+
+	return retval;
+}
+
+static int
+_think(chi_move *mv, chi_epd_pos *epd)
 {
 	TREE tree;
 	chi_move moves[CHI_MAX_MOVES];
