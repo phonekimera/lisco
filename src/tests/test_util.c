@@ -45,6 +45,11 @@ START_TEST(test_trim)
 	ck_assert_str_eq(got, wanted);
 	ck_assert_ptr_eq(got, string + 3);
 	free(string);
+
+	string = NULL;
+	wanted = NULL;
+	got = trim(NULL);
+	ck_assert_ptr_null(got);
 }
 END_TEST
 
@@ -65,6 +70,11 @@ START_TEST(test_ltrim)
 	got = ltrim(string);
 	ck_assert_str_eq(got, wanted);
 	ck_assert_ptr_eq(got, string + 3);
+
+	string = NULL;
+	wanted = NULL;
+	got = trim(NULL);
+	ck_assert_ptr_null(got);
 }
 END_TEST
 

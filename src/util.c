@@ -37,6 +37,8 @@
 char *
 trim(char *str)
 {
+	if (str == NULL) return NULL;
+
 	char *end_ptr;
 
 	while (isspace((unsigned char) *str)) ++str;
@@ -54,6 +56,8 @@ trim(char *str)
 const char *
 ltrim(const char *str)
 {
+	if (str == NULL) return NULL;
+
 	while (isspace((unsigned const char) *str)) ++str;
 
 	return str;
