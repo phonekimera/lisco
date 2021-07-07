@@ -16,30 +16,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef UCI_ENGINE_H
-# define UCI_ENGINE_H        /* Allow multiple inclusion.  */
-
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include <stdio.h>
+#include <check.h>
 
-#define UCI_ENGINE_MAX_THREADS 512
+#include "libchi.h"
 
-typedef struct UCIEngineOptions {
-	int threads;
-} UCIEngineOptions;
+extern Suite *uci_engine_suite();
 
-extern void uci_init(UCIEngineOptions* options);
-extern int uci_main(UCIEngineOptions *options,
-                    FILE *in, const char *inname,
-                    FILE *out, const char *outname);
-
-#ifdef TEST_UCI_ENGINE
-extern int uci_handle_quit(UCIEngineOptions *options);
-extern int uci_handle_uci(UCIEngineOptions *options,
-                          const char *input, FILE *out);
+#ifdef DEBUG_XMALLOC
+# include "../xmalloc-debug.c"
 #endif
 
+int
+main(int argc, char *argv[])
+{
+	int failed = 0;
+	SRunner *runner;
+
+#ifdef DEBUG_XMALLOC
+	init_xmalloc_debug();
 #endif
+
+	runner = srunner_create(uci_engine_suite());
+	srunner_add_suite(runner, uci_engine_suite());
+
+	srunner_run_all(runner, CK_NORMAL);
+	failed = srunner_ntests_failed(runner);
+	srunner_free(runner);
+
+	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+}

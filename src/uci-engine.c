@@ -23,19 +23,17 @@
 #include <string.h>
 #include <errno.h>
 
+#define TEST_UCI_ENGINE 1
+
 #include "util.h"
 #include "uci-engine.h"
-
-uci_engine_extern int
-handle_quit(const char *line)
-{
-	return 0;
-}
 
 void
 uci_init(UCIEngineOptions *options)
 {
 	memset(options, 0, sizeof *options);
+
+	options->threads = 1;
 }
 
 int
@@ -56,7 +54,12 @@ uci_main(UCIEngineOptions *options, FILE *in, const char *inname,
 				break;
 			case 'q':
 				if(strcmp(command + 1, "uit") == 0) {
-					go_on = handle_quit(trimmed);
+					go_on = uci_handle_quit(options);
+					break;
+				}
+			case 'u':
+				if(strcmp(command + 1, "ci") == 0) {
+					go_on = uci_handle_uci(options, trimmed, out);
 					break;
 				}
 			default:
@@ -78,4 +81,22 @@ uci_main(UCIEngineOptions *options, FILE *in, const char *inname,
 	}
 
 	return 0;
+}
+
+int
+uci_handle_quit(UCIEngineOptions *options)
+{
+	return 0;
+}
+
+int
+uci_handle_uci(UCIEngineOptions *options, const char *input, FILE *out)
+{
+	fprintf(out, "id name %s %s\n", PACKAGE, PACKAGE_VERSION);
+	fprintf(out, "id author %s\n", "Guido Flohr <guido.flohr@cantanea.com>");
+	fprintf(out, "option name Threads type spin default 1 min 1 max %u\n",
+	        UCI_ENGINE_MAX_THREADS);
+	fprintf(out, "uciok\n");
+
+	return 1;
 }
