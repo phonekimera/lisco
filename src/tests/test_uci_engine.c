@@ -98,6 +98,27 @@ START_TEST(test_uci_uci)
 }
 END_TEST
 
+START_TEST(test_uci_debug)
+{
+	const char output[1024];
+	int status;
+
+	INIT_UCI(engine_options, output);
+
+	uci_init(&engine_options);
+
+	status = uci_handle_debug(&engine_options, "on", engine_out);
+	ck_assert_int_eq(status, 1);
+	ck_assert_int_ne(engine_options.debug, 0);
+
+	status = uci_handle_debug(&engine_options, "off", engine_out);
+	ck_assert_int_eq(status, 1);
+	ck_assert_int_eq(engine_options.debug, 0);
+
+	ck_assert_str_eq(output, "");
+}
+END_TEST
+
 Suite *
 uci_engine_suite(void)
 {
@@ -110,6 +131,7 @@ uci_engine_suite(void)
 	tcase_add_test(tc_uci_parser, test_uci_main);
 	tcase_add_test(tc_uci_parser, test_uci_quit);
 	tcase_add_test(tc_uci_parser, test_uci_uci);
+	tcase_add_test(tc_uci_parser, test_uci_debug);
 	suite_add_tcase(suite, tc_uci_parser);
 
 	return suite;

@@ -28,12 +28,14 @@
 #include "util.h"
 #include "uci-engine.h"
 
+#define DELIM " \n\t\v\f\r"
+
 void
 uci_init(UCIEngineOptions *options)
 {
 	memset(options, 0, sizeof *options);
 
-	options->threads = 1;
+	options->option_threads = 1;
 }
 
 int
@@ -44,30 +46,41 @@ uci_main(UCIEngineOptions *options, FILE *in, const char *inname,
 	size_t linecap = 0;
 	ssize_t linelen = 1;
 
+	// FIXME!
 	while ((linelen = getline(&line, &linecap, in)) > 0) {
 		char *trimmed = trim(line);
-		const char *command = strsep(&trimmed, " \t\f\n");
-		int go_on = 1;
+		const char *command = strsep(&trimmed, DELIM);
+		int go_on = -1;
 
 		switch(command[0]) {
-			case 0:
+			case 'g':
+				if(strcmp(command + 1, "uit") == 0) {
+					go_on = uci_handle_quit(options);
+				}
 				break;
 			case 'q':
 				if(strcmp(command + 1, "uit") == 0) {
 					go_on = uci_handle_quit(options);
-					break;
 				}
+				break;
 			case 'u':
 				if(strcmp(command + 1, "ci") == 0) {
-					go_on = uci_handle_uci(options, trimmed, out);
-					break;
+					go_on = uci_handle_uci(options, trim(trimmed), out);
 				}
-			default:
-				fprintf(out, "Unknown command: %s\n", command);
+				break;
+			case 'd':
+				if(strcmp(command + 1, "ebug") == 0) {
+					go_on = uci_handle_debug(options, trim(trimmed), out);
+				}
+				break;
+			case 0:
+				go_on = 1;
 				break;
 		}
 
-		if (!go_on) {
+		if (go_on < 0) {
+			fprintf(out, "Unknown command: %s\n", command);
+		} else if (go_on == 0) {
 			break;
 		}
 	}
@@ -90,13 +103,25 @@ uci_handle_quit(UCIEngineOptions *options)
 }
 
 int
-uci_handle_uci(UCIEngineOptions *options, const char *input, FILE *out)
+uci_handle_uci(UCIEngineOptions *options, const char *args, FILE *out)
 {
 	fprintf(out, "id name %s %s\n", PACKAGE, PACKAGE_VERSION);
 	fprintf(out, "id author %s\n", "Guido Flohr <guido.flohr@cantanea.com>");
 	fprintf(out, "option name Threads type spin default 1 min 1 max %u\n",
 	        UCI_ENGINE_MAX_THREADS);
 	fprintf(out, "uciok\n");
+
+	return 1;
+}
+
+int
+uci_handle_debug(UCIEngineOptions *options, const char *args, FILE *out)
+{
+	if (strcmp(args, "on") == 0) {
+		options->debug = 1;
+	} else if (strcmp(args, "off") == 0) {
+		options->debug = 0;
+	}
 
 	return 1;
 }

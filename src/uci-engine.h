@@ -28,7 +28,8 @@
 #define UCI_ENGINE_MAX_THREADS 512
 
 typedef struct UCIEngineOptions {
-	int threads;
+	int debug;
+	int option_threads;
 } UCIEngineOptions;
 
 extern void uci_init(UCIEngineOptions* options);
@@ -39,7 +40,9 @@ extern int uci_main(UCIEngineOptions *options,
 #ifdef TEST_UCI_ENGINE
 extern int uci_handle_quit(UCIEngineOptions *options);
 extern int uci_handle_uci(UCIEngineOptions *options,
-                          const char *input, FILE *out);
+                          const char *args, FILE *out);
+extern int uci_handle_debug(UCIEngineOptions *options,
+                          const char *args, FILE *out);
 #endif
 
 #endif
