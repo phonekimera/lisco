@@ -25,8 +25,11 @@
 
 #define TEST_UCI_ENGINE 1
 
-#include "util.h"
 #include "uci-engine.h"
+
+#include "state.h"
+#include "think.h"
+#include "util.h"
 
 #define DELIM " \n\t\v\f\r"
 
@@ -128,7 +131,35 @@ uci_handle_debug(UCIEngineOptions *options, const char *args, FILE *out)
 int
 uci_handle_go(UCIEngineOptions *options, const char *args, FILE *out)
 {
-	fprintf(out, "bestmove e2e4 ponder e7e5\n");
+	char *bestmove = NULL;
+	char *pondermove = NULL;
+	unsigned int bufsize;
+	int errnum;
+
+	think();
+
+	if (tate.bestmove_found) {
+		errnum = chi_coordinate_notation(
+			tate.bestmove, chi_on_move(&tate.position), &bestmove, &bufsize);
+		if (!errnum && tate.pondermove_found) {
+			errnum = chi_coordinate_notation(
+				tate.pondermove, !chi_on_move(&tate.position), &pondermove,
+				&bufsize);
+		}
+
+		if (errnum) {
+			fprintf(out, "bestmove 0000\n");
+		} else if (pondermove) {
+			fprintf(out, "bestmove %s pondermove %s\n", bestmove, pondermove);
+		} else {
+			fprintf(out, "bestmove %s\n", bestmove);
+		}
+
+		if (bestmove) free(bestmove);
+		if (pondermove) free(pondermove);
+	} else {
+		fprintf(out, "bestmove 0000\n");
+	}
 
 	return 1;
 }

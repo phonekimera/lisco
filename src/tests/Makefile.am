@@ -40,6 +40,8 @@ check_tateplay_SOURCES = \
 		check_tateplay.c
 
 check_tate_SOURCES = \
+		../state.c \
+		../think.c \
 		../uci-engine.c \
 		../util.c \
 		test_uci_engine.c \

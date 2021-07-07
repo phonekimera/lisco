@@ -34,6 +34,7 @@ noinst_HEADERS = \
 	tateplay-loop.h \
 	tateplay-option.h \
 	tateplay-time-control.h \
+	think.h \
 	time-control.h \
 	time-management.h \
 	uci-engine.h \
@@ -48,7 +49,7 @@ tate_SOURCES = tate.c board.c brain.c edit.c book.c time-control.c \
 tateplay_SOURCES = tateplay.c tateplay-engine.c log.c tateplay-game.c \
 	tateplay-loop.c util.c tateplay-option.c xboard-feature.c display-board.c \
 	tateplay-time-control.c
-tateuci_SOURCES = tateuci.c uci-engine.c util.c
+tateuci_SOURCES = tateuci.c uci-engine.c util.c think.c state.c
 
 tate_LDADD = ../lib/libtate.la ../libchi/libchi.la
 tate_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la

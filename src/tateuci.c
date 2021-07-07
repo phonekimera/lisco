@@ -34,8 +34,6 @@
 #include "state.h"
 #include "uci-engine.h"
 
-Tate tate;
-
 static void greeting();
 
 #ifdef DEBUG_XMALLOC
@@ -58,6 +56,8 @@ char *argv[];
 	atexit(close_stdout);
 
 	greeting();
+
+	memset(&tate, 0, sizeof tate);
 
 	chi_init_position (&tate.position);
 

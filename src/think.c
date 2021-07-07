@@ -16,47 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _STATE_H
-# define _STATE_H        /* Allow multiple inclusion.  */
-
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include <libchi.h>
+#include "state.h"
 
-#include "uci-engine.h"
+void
+think(void)
+{
+	chi_move moves[CHI_MAX_MOVES];
+	chi_move *move_ptr;
 
-typedef struct Tate {
-	// The current UCI options and state.
-	UCIEngineOptions uci;
+	if (chi_game_over(&tate.position, NULL)) return;
 
-	// The current position.
-	chi_pos position;
+	move_ptr = chi_legal_moves(&tate.position, moves);
 
-	// The move found.
-	chi_move bestmove;
-
-	// Non-zero if a valid move had been found.
-	int bestmove_found;
-
-	// Move that the engine would like to ponder on.
-	chi_move pondermove;
-
-	// Non-zero if a valid move to ponder upon had been found.
-	int pondermove_found;
-
-	chi_zk_handle zk_handle;
-} Tate;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern Tate tate;
-
-#ifdef __cplusplus
+	tate.bestmove = moves[0];
+	tate.bestmove_found = 1;
+	tate.pondermove_found = 0;
 }
-#endif
-
-#endif

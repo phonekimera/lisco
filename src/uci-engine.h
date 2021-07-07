@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef UCI_ENGINE_H
-# define UCI_ENGINE_H        /* Allow multiple inclusion.  */
+#ifndef _UCI_ENGINE_H
+# define _UCI_ENGINE_H        /* Allow multiple inclusion.  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
