@@ -34,7 +34,8 @@ noinst_HEADERS = \
 	tateplay-option.h \
 	tateplay-time-control.h \
 	time-control.h \
-        time-management.h \
+	time-management.h \
+	uci-engine.h \
 	util.h \
 	xboard-feature.h \
 	xmalloca-debug.h
@@ -42,10 +43,11 @@ noinst_HEADERS = \
 tate_SOURCES = tate.c board.c brain.c edit.c book.c time-control.c \
 	evaluate.c search.c time-limits.c time-management.c \
 	tt_hash.c epd.c ev_hash.c qtt_hash.c
+# FIXME! Remove tateplay. Can be replaced with cutechess-cli.
 tateplay_SOURCES = tateplay.c tateplay-engine.c log.c tateplay-game.c \
 	tateplay-loop.c util.c tateplay-option.c xboard-feature.c display-board.c \
 	tateplay-time-control.c
-tateuci_SOURCES = tateuci.c
+tateuci_SOURCES = tateuci.c uci-engine.c util.c
 
 tate_LDADD = ../lib/libtate.la ../libchi/libchi.la
 tate_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la

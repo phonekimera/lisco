@@ -17,9 +17,9 @@
 
 ## Process this file with automake to produce Makefile.in.
 
-noinst_PROGRAMS = check_common check_tateplay
+noinst_PROGRAMS = check_common check_tate check_tateplay
 
-TESTS = ./check_common ./check_tateplay
+TESTS = ./check_common ./check_tate ./check_tateplay
 if HAS_PERL
         TESTS += ./check_mates
 endif
@@ -39,8 +39,17 @@ check_tateplay_SOURCES = \
 		test_uci.c \
 		check_tateplay.c
 
+check_tate_SOURCES = \
+		../uci-engine.c \
+		../util.c \
+		test_uci_engine.c \
+		check_tate.c
+
 check_common_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
 check_common_LDADD = ../../lib/libtate.la ../../libchi/libchi.la \
+	$(LDFLAGS) $(CHECK_LIBS)
+check_tate_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
+check_tate_LDADD = ../../lib/libtate.la ../../libchi/libchi.la \
 	$(LDFLAGS) $(CHECK_LIBS)
 check_tateplay_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
 check_tateplay_LDADD = ../../lib/libtate.la ../../libchi/libchi.la \

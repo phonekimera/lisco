@@ -69,7 +69,7 @@ AC_PROG_EGREP
 AC_CHECK_HEADERS([sys/timeb.h])
 
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([ftime gettimeofday memcpy])
+AC_CHECK_FUNCS([ftime gettimeofday memcpy fmemopen])
 AC_REPLACE_FUNCS([memset strcasecmp strncasecmp])
 if test $am_cv_func_working_getline != yes; then
   AC_CHECK_FUNCS(getdelim)

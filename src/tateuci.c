@@ -32,10 +32,17 @@
 #include "xalloc.h"
 
 #include "tate.h"
+#include "uci-engine.h"
+#include "xmalloca-debug.h"
 
 chi_zk_handle zk_handle;
+UCIEngineOptions uci_options;
 
 static void greeting();
+
+#ifdef DEBUG_XMALLOC
+# include "xmalloc-debug.c"
+#endif
 
 int
 main (argc, argv)
@@ -43,6 +50,10 @@ int argc;
 char *argv[];
 {
 	int errnum;
+
+#ifdef DEBUG_XMALLOC
+	init_xmalloc_debug();
+#endif
 
 	set_program_name(argv[0]);
 
@@ -57,8 +68,10 @@ char *argv[];
 		       "Cannot initialize Zobrist key array: %s",
 		       chi_strerror (errnum));
 
-	while (1) {
-	}
+	uci_init(&uci_options);
+	uci_main(&uci_options,
+	         stdin, "[standard input]",
+	         stdout, "[standard output]");
 
 	return EXIT_SUCCESS;
 }
