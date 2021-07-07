@@ -1,6 +1,6 @@
 /* This file is part of the chess engine tate.
  *
- * Copyright (C) 2002-2019 cantanea EOOD.
+ * Copyright (C) 2002-2021 cantanea EOOD.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -194,7 +194,7 @@ License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>\n
 This is free software: you are free to change and redistribute it.\n\
 There is NO WARRANTY, to the extent permitted by law.\n\
 ",
-	       "2002-2019");
+	       "2002-2021");
 	printf("Written by Guido Flohr.\n\n");
 
 	printf("Type 'help' for help.\n\n");

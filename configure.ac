@@ -1,6 +1,6 @@
 dnl This file is part of the chess engine tate.
 dnl
-dnl Copyright (C) 2002-2019 cantanea EOOD.
+dnl Copyright (C) 2002-2021 cantanea EOOD.
 dnl
 dnl This program is free software: you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
