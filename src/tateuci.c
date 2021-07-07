@@ -33,7 +33,6 @@
 
 #include "tate.h"
 #include "uci-engine.h"
-#include "xmalloca-debug.h"
 
 chi_zk_handle zk_handle;
 UCIEngineOptions uci_options;
