@@ -27,45 +27,51 @@
 #include "util.h"
 
 START_TEST(test_trim)
+{
 	char *string;
 	char *wanted;
 	char *got;
-	
+
 	string = xstrdup("foo  bar\tbaz");
 	wanted = string;
 	got = trim(string);
 	ck_assert_str_eq(got, string);
 	ck_assert_ptr_eq(got, string);
 	free(string);
-	
+
 	string = xstrdup("\t  foo  bar\tbaz   \t\t   ");
 	wanted = "foo  bar\tbaz";
 	got = trim(string);
 	ck_assert_str_eq(got, wanted);
 	ck_assert_ptr_eq(got, string + 3);
 	free(string);
+}
 END_TEST
 
 START_TEST(test_ltrim)
+{
 	const char *string;
 	const char *wanted;
 	const char *got;
-	
+
 	string = "foo  bar\tbaz";
 	wanted = string;
 	got = ltrim(string);
 	ck_assert_str_eq(got, string);
 	ck_assert_ptr_eq(got, string);
-	
+
 	string = "\t  foo  bar\tbaz   \t\t   ";
 	wanted = "foo  bar\tbaz   \t\t   ";
 	got = ltrim(string);
 	ck_assert_str_eq(got, wanted);
 	ck_assert_ptr_eq(got, string + 3);
+}
 END_TEST
 
 START_TEST(test_num_cpus)
+{
 	ck_assert_int_gt(num_cpus(), 0);
+}
 END_TEST
 
 Suite *

@@ -25,6 +25,7 @@
 #include "libchi.h"
 
 START_TEST(test_parse_move_san_bug)
+{
 	chi_pos pos;
 	chi_move move;
 /*
@@ -62,35 +63,41 @@ START_TEST(test_parse_move_san_bug)
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(0, 7));
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 7));
+}
 END_TEST
 
 START_TEST(test_parse_move_san_pawn)
+{
 	chi_pos pos;
 	chi_move move;
 	int errnum;
-	
+
 	chi_init_position(&pos);
 
 	errnum = chi_parse_move (&pos, &move, "e4");
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 1));
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(4, 3));
+}
 END_TEST
 
 START_TEST(test_parse_move_san_piece)
+{
 	chi_pos pos;
 	chi_move move;
 	int errnum;
-	
+
 	chi_init_position(&pos);
 
 	errnum = chi_parse_move (&pos, &move, "Nc3");
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(1, 0));
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(2, 2));
+}
 END_TEST
 
 START_TEST(test_parse_move_san_piece_capture)
+{
 	chi_pos pos;
 	chi_move move;
 /*
@@ -131,10 +138,12 @@ START_TEST(test_parse_move_san_piece_capture)
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(5, 2));
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(4, 4));
+}
 END_TEST
 
 
 START_TEST(test_parse_move_san_ambiguous_pawn_capture)
+{
 	chi_pos pos;
 	chi_move move;
 /*
@@ -235,10 +244,11 @@ START_TEST(test_parse_move_san_ambiguous_pawn_capture)
 	ck_assert_int_eq(errnum, CHI_ERR_AMBIGUOUS_MOVE);
 	errnum = chi_parse_move (&pos, &move, "ef:");
 	ck_assert_int_eq(errnum, CHI_ERR_AMBIGUOUS_MOVE);
-
+}
 END_TEST
 
 START_TEST(test_parse_move_san_promotion)
+{
 	chi_pos pos;
 	chi_move move;
 /*
@@ -295,9 +305,11 @@ START_TEST(test_parse_move_san_promotion)
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(4, 6));
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(5, 7));
+}
 END_TEST
 
 START_TEST(test_parse_move_san_ambiguous_file)
+{
 	chi_pos pos;
 	chi_move move;
 /*
@@ -334,9 +346,11 @@ START_TEST(test_parse_move_san_ambiguous_file)
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(6, 6));
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(4, 6));
+}
 END_TEST
 
 START_TEST(test_parse_move_san_ambiguous_rank)
+{
 	chi_pos pos;
 	chi_move move;
 /*
@@ -373,10 +387,12 @@ START_TEST(test_parse_move_san_ambiguous_rank)
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(6, 1));
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(6, 3));
+}
 END_TEST
 
 
 START_TEST(test_parse_move_san_ambiguous_file_and_rank)
+{
 	chi_pos pos;
 	chi_move move;
 /*
@@ -409,6 +425,7 @@ START_TEST(test_parse_move_san_ambiguous_file_and_rank)
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_int_eq(chi_move_from(move), chi_coords2shift(6, 1));
 	ck_assert_int_eq(chi_move_to(move), chi_coords2shift(6, 5));
+}
 END_TEST
 
 Suite *
@@ -417,7 +434,7 @@ parsers_suite(void)
 	Suite *suite;
 	TCase *tc_bugs;
     TCase *tc_san;
-	
+
 	suite = suite_create("Parsers");
 
 	tc_bugs = tcase_create("Bugs");

@@ -25,6 +25,7 @@
 #include "libchi.h"
 
 START_TEST(test_initial_e4)
+{
 	const char *wanted =
 		"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
 /*
@@ -53,15 +54,16 @@ START_TEST(test_initial_e4)
 	char *got;
 
 	ck_assert_int_eq(errnum, 0);
-	
+
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 
 	free(got);
-
+}
 END_TEST
 
 START_TEST(test_immortal_game)
+{
 	const char *wanted =
 		"r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b - - 0 23";
 /*
@@ -95,7 +97,7 @@ START_TEST(test_immortal_game)
 	ck_assert_str_eq(wanted, got);
 
 	free(got);
-
+}
 END_TEST
 
 Suite *

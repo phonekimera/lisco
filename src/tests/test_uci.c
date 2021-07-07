@@ -25,6 +25,7 @@
 #include "tateplay-option.h"
 
 START_TEST(test_uci_spin_option)
+{
 	const char *input;
 	Option *option;
 
@@ -35,7 +36,7 @@ START_TEST(test_uci_spin_option)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Has \t Space", option->name);
-	
+
 	ck_assert_int_eq(option_type_spin, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
@@ -56,7 +57,7 @@ START_TEST(test_uci_spin_option)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Selectivity", option->name);
-	
+
 	ck_assert_int_eq(option_type_spin, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
@@ -69,9 +70,11 @@ START_TEST(test_uci_spin_option)
 	ck_assert_str_eq("4", option->max);
 
 	option_destroy(option);
+}
 END_TEST
 
 START_TEST(test_uci_check_option)
+{
 	const char *input;
 	Option *option;
 
@@ -82,16 +85,18 @@ START_TEST(test_uci_check_option)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Nullmove", option->name);
-	
+
 	ck_assert_int_eq(option_type_check, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
 	ck_assert_str_eq("true", option->default_value);
 
 	option_destroy(option);
+}
 END_TEST
 
 START_TEST(test_uci_combo_option)
+{
 	const char *input;
 	Option *option;
 
@@ -102,7 +107,7 @@ START_TEST(test_uci_combo_option)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Style", option->name);
-	
+
 	ck_assert_int_eq(option_type_combo, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
@@ -117,11 +122,13 @@ START_TEST(test_uci_combo_option)
 	ck_assert_str_eq("Normal", option->vars[1]);
 	ck_assert_ptr_ne(NULL, option->vars[2]);
 	ck_assert_str_eq("Risky", option->vars[2]);
-	
+
 	option_destroy(option);
+}
 END_TEST
 
 START_TEST(test_uci_button_option)
+{
 	const char *input;
 	Option *option;
 
@@ -132,13 +139,15 @@ START_TEST(test_uci_button_option)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Clear Hash", option->name);
-	
+
 	ck_assert_int_eq(option_type_button, option->type);
 
 	option_destroy(option);
+}
 END_TEST
 
 START_TEST(test_uci_string_option)
+{
 	const char *input;
 	Option *option;
 
@@ -149,16 +158,18 @@ START_TEST(test_uci_string_option)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("NalimovPath", option->name);
-	
+
 	ck_assert_int_eq(option_type_string, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
 	ck_assert_str_eq("/usr/share/chess/nalimov", option->default_value);
 
 	option_destroy(option);
+}
 END_TEST
 
 START_TEST(test_stockfish_logfile_option)
+{
 	const char *input;
 	Option *option;
 
@@ -176,6 +187,7 @@ START_TEST(test_stockfish_logfile_option)
 	ck_assert_str_eq("", option->default_value);
 
 	option_destroy(option);
+}
 END_TEST
 
 Suite *

@@ -27,6 +27,7 @@
 #if CHI_USE_UTF_8
 
 START_TEST(test_char2figurine)
+{
 	ck_assert_str_eq(chi_char2figurine('K'), "♔");
 	ck_assert_str_eq(chi_char2figurine('Q'), "♕");
 	ck_assert_str_eq(chi_char2figurine('R'), "♖");
@@ -40,6 +41,7 @@ START_TEST(test_char2figurine)
 	ck_assert_str_eq(chi_char2figurine('n'), "♞");
 	ck_assert_str_eq(chi_char2figurine('p'), "♟");
 	ck_assert_str_eq(chi_char2figurine('x'), " ");
+}
 END_TEST
 
 #endif /* CHI_USE_UTF_8 */
@@ -51,7 +53,7 @@ presentation_suite(void)
 
 #if CHI_USE_UTF_8
 	TCase *tc_figurine;
-	
+
 	tc_figurine = tcase_create("Figurine");
 
 	tcase_add_test(tc_figurine, test_char2figurine);

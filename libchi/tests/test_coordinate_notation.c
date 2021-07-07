@@ -25,6 +25,7 @@
 #include "libchi.h"
 
 START_TEST(test_pawn_move)
+{
 	chi_move move = chi_coords2shift(4, 1)
 	                | chi_coords2shift(4, 3) << 6
 			| ((~pawn & 0x7) << 13);
@@ -38,9 +39,11 @@ START_TEST(test_pawn_move)
 	ck_assert_str_eq(buf, "e2e4");
 	ck_assert_int_ge(bufsize, 5);
 	free(buf);
+}
 END_TEST
 
 START_TEST(test_knight_move)
+{
 	chi_move move = chi_coords2shift(6, 0)
 	                | chi_coords2shift(5, 2) << 6
 			| ((~knight & 0x7) << 13);
@@ -54,9 +57,11 @@ START_TEST(test_knight_move)
 	ck_assert_str_eq(buf, "g1f3");
 	ck_assert_int_ge(bufsize, 5);
 	free(buf);
+}
 END_TEST
 
 START_TEST(test_castling)
+{
 	chi_move move;
 
 	char *buf = NULL;
@@ -100,9 +105,11 @@ START_TEST(test_castling)
 	ck_assert_int_ge(bufsize, 5);
 
 	free(buf);
+}
 END_TEST
 
 START_TEST(test_promotion)
+{
 	chi_move move;
 
 	char *buf = NULL;
@@ -150,6 +157,7 @@ START_TEST(test_promotion)
 	ck_assert_int_ge(bufsize, 6);
 
 	free(buf);
+}
 END_TEST
 
 Suite *

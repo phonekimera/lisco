@@ -7220,7 +7220,7 @@ test_game(const char *strings[])
 	moves = xcalloc(num_moves, sizeof moves[0]);
 
 	chi_init_position(&pos);
-	
+
 	fens[0] = chi_fen(&pos);
 
 	for (i = 0; i < num_moves; ++i) {
@@ -7284,11 +7284,13 @@ test_game(const char *strings[])
 }
 
 START_TEST(test_games)
+{
 	const char **current = tests;
 
 	while (*current) {
 		current = test_game(current);
 	}
+}
 END_TEST
 
 Suite *
@@ -7296,7 +7298,7 @@ move_making_suite_pgn(void)
 {
 	Suite *suite;
 	TCase *tc_pgn;
-	
+
 	suite = suite_create("Play and Unplay PGN Games");
 
 	tc_pgn = tcase_create("PGNs");

@@ -25,6 +25,7 @@
 #include "tateplay-time-control.h"
 
 START_TEST(test_st_constructor)
+{
 	TimeControl tc;
 
 	ck_assert_int_eq(time_control_init_st(&tc, "2304"), chi_true);
@@ -34,9 +35,11 @@ START_TEST(test_st_constructor)
 	ck_assert_int_eq(time_control_init_st(&tc, "-10"), chi_false);
 
 	ck_assert_int_eq(time_control_init_st(&tc, "0"), chi_false);
+}
 END_TEST
 
 START_TEST(test_st_calculate_flag)
+{
 	TimeControl tc;
 	struct timeval now;
 
@@ -57,9 +60,11 @@ START_TEST(test_st_calculate_flag)
 	now.tv_sec = 13;
 	now.tv_usec = 500000;
 	ck_assert_int_eq(time_control_stop_thinking(&tc, &now), chi_false);
+}
 END_TEST
 
 START_TEST(test_level_sudden_death)
+{
 	TimeControl tc;
 	struct timeval now;
 
@@ -79,9 +84,11 @@ START_TEST(test_level_sudden_death)
 	now.tv_sec = 30;
 	now.tv_usec = 0;
 	ck_assert_int_eq(time_control_stop_thinking(&tc, &now), chi_false);
+}
 END_TEST
 
 START_TEST(test_level_sudden_death_with_increment)
+{
 	TimeControl tc;
 	struct timeval now;
 
@@ -107,9 +114,11 @@ START_TEST(test_level_sudden_death_with_increment)
 	now.tv_sec = 32;
 	now.tv_usec = 0;
 	ck_assert_int_eq(time_control_stop_thinking(&tc, &now), chi_false);
+}
 END_TEST
 
 START_TEST(test_level_conventional)
+{
 	TimeControl tc;
 	struct timeval now;
 
@@ -141,9 +150,11 @@ START_TEST(test_level_conventional)
 	now.tv_sec = 60;
 	now.tv_usec = 0;
 	ck_assert_int_eq(time_control_stop_thinking(&tc, &now), chi_false);
+}
 END_TEST
 
 START_TEST(test_level_constructor)
+{
 	TimeControl tc;
 
 	ck_assert_int_eq(time_control_init_level(&tc, "40 5 0"), chi_true);
@@ -170,6 +181,7 @@ START_TEST(test_level_constructor)
 	ck_assert_int_eq(tc.moves_per_time_control, 40);
 	ck_assert_int_eq(tc.seconds_per_time_control, 30);
 	ck_assert_int_eq(tc.increment, 0);
+}
 END_TEST
 
 Suite *

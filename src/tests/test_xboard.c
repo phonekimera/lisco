@@ -26,6 +26,7 @@
 #include "xboard-feature.h"
 
 START_TEST(test_xboard_feature)
+{
 	const char *input;
 	XboardFeature *feature;
 	const char *endptr;
@@ -68,9 +69,11 @@ START_TEST(test_xboard_feature)
 	ck_assert_str_eq("Tate 1.2.3", feature->value);
 	ck_assert_ptr_eq(input + 17, endptr);
 	xboard_feature_destroy(feature);
+}
 END_TEST
 
 START_TEST(test_xboard_option_button)
+{
 	const char *input;
 	Option *option;
 
@@ -81,13 +84,15 @@ START_TEST(test_xboard_option_button)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Clear Hash", option->name);
-	
+
 	ck_assert_int_eq(option_type_button, option->type);
 
 	option_destroy(option);
+}
 END_TEST
 
 START_TEST(test_xboard_option_save)
+{
 	const char *input;
 	Option *option;
 
@@ -98,13 +103,15 @@ START_TEST(test_xboard_option_save)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Apply", option->name);
-	
+
 	ck_assert_int_eq(option_type_button, option->type);
 
 	option_destroy(option);
+}
 END_TEST
 
 START_TEST(test_xboard_option_reset)
+{
 	const char *input;
 	Option *option;
 
@@ -115,13 +122,15 @@ START_TEST(test_xboard_option_reset)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Reset", option->name);
-	
+
 	ck_assert_int_eq(option_type_button, option->type);
 
 	option_destroy(option);
+}
 END_TEST
 
 START_TEST(test_xboard_option_check)
+{
 	const char *input;
 	Option *option;
 
@@ -132,7 +141,7 @@ START_TEST(test_xboard_option_check)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Nullmove", option->name);
-	
+
 	ck_assert_int_eq(option_type_check, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
@@ -147,7 +156,7 @@ START_TEST(test_xboard_option_check)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Nullmove", option->name);
-	
+
 	ck_assert_int_eq(option_type_check, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
@@ -159,9 +168,11 @@ START_TEST(test_xboard_option_check)
 
 	option = option_xboard_new(input);
 	ck_assert_ptr_eq(NULL, option);
+}
 END_TEST
 
 START_TEST(test_xboard_option_string)
+{
 	const char *input;
 	Option *option;
 
@@ -172,16 +183,18 @@ START_TEST(test_xboard_option_string)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Foobar", option->name);
-	
+
 	ck_assert_int_eq(option_type_string, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
 	ck_assert_str_eq("foo 	 bar", option->default_value);
 
 	option_destroy(option);
+}
 END_TEST
 
 START_TEST(test_xboard_option_spin)
+{
 	const char *input;
 	Option *option;
 
@@ -192,7 +205,7 @@ START_TEST(test_xboard_option_spin)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Foobar", option->name);
-	
+
 	ck_assert_int_eq(option_type_spin, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
@@ -205,9 +218,11 @@ START_TEST(test_xboard_option_spin)
 	ck_assert_str_eq("2304", option->max);
 
 	option_destroy(option);
+}
 END_TEST
 
 START_TEST(test_xboard_option_combo)
+{
 	const char *input;
 	Option *option;
 
@@ -218,7 +233,7 @@ START_TEST(test_xboard_option_combo)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Style", option->name);
-	
+
 	ck_assert_int_eq(option_type_combo, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
@@ -233,7 +248,7 @@ START_TEST(test_xboard_option_combo)
 	ck_assert_str_eq("Normal", option->vars[1]);
 	ck_assert_ptr_ne(NULL, option->vars[2]);
 	ck_assert_str_eq("Risky", option->vars[2]);
-	
+
 	option_destroy(option);
 
 	input = "Style -combo 	Solid /// *Normal /// Risky   ///";
@@ -243,7 +258,7 @@ START_TEST(test_xboard_option_combo)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Style", option->name);
-	
+
 	ck_assert_int_eq(option_type_combo, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
@@ -258,7 +273,7 @@ START_TEST(test_xboard_option_combo)
 	ck_assert_str_eq("Normal", option->vars[1]);
 	ck_assert_ptr_ne(NULL, option->vars[2]);
 	ck_assert_str_eq("Risky", option->vars[2]);
-	
+
 	option_destroy(option);
 
 	input = "Style -combo 	Solid /// *Normal /// Risky   ///	  ";
@@ -268,7 +283,7 @@ START_TEST(test_xboard_option_combo)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Style", option->name);
-	
+
 	ck_assert_int_eq(option_type_combo, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
@@ -283,11 +298,13 @@ START_TEST(test_xboard_option_combo)
 	ck_assert_str_eq("Normal", option->vars[1]);
 	ck_assert_ptr_ne(NULL, option->vars[2]);
 	ck_assert_str_eq("Risky", option->vars[2]);
-	
+
 	option_destroy(option);
+}
 END_TEST
 
 START_TEST(test_xboard_option_slider)
+{
 	const char *input;
 	Option *option;
 
@@ -298,7 +315,7 @@ START_TEST(test_xboard_option_slider)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Foobar", option->name);
-	
+
 	ck_assert_int_eq(option_type_spin, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
@@ -311,9 +328,11 @@ START_TEST(test_xboard_option_slider)
 	ck_assert_str_eq("2304", option->max);
 
 	option_destroy(option);
+}
 END_TEST
 
 START_TEST(test_xboard_option_file)
+{
 	const char *input;
 	Option *option;
 
@@ -324,16 +343,18 @@ START_TEST(test_xboard_option_file)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Foobar", option->name);
-	
+
 	ck_assert_int_eq(option_type_string, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
 	ck_assert_str_eq("/path/to/file", option->default_value);
 
 	option_destroy(option);
+}
 END_TEST
 
 START_TEST(test_xboard_option_path)
+{
 	const char *input;
 	Option *option;
 
@@ -344,13 +365,14 @@ START_TEST(test_xboard_option_path)
 
 	ck_assert_ptr_ne(NULL, option->name);
 	ck_assert_str_eq("Foobar", option->name);
-	
+
 	ck_assert_int_eq(option_type_string, option->type);
 
 	ck_assert_ptr_ne(NULL, option->default_value);
 	ck_assert_str_eq("/path/to/file", option->default_value);
 
 	option_destroy(option);
+}
 END_TEST
 
 Suite *

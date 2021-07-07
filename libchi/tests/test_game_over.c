@@ -25,6 +25,7 @@
 #include "libchi.h"
 
 START_TEST(test_stalemate)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -58,9 +59,11 @@ START_TEST(test_stalemate)
 
 	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
 	ck_assert_int_eq(result, chi_result_stalemate);
+}
 END_TEST
 
 START_TEST(test_white_mates)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -94,9 +97,11 @@ START_TEST(test_white_mates)
 
 	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
 	ck_assert_int_eq(result, chi_result_white_mates);
+}
 END_TEST
 
 START_TEST(test_black_mates)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -130,9 +135,11 @@ START_TEST(test_black_mates)
 
 	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
 	ck_assert_int_eq(result, chi_result_black_mates);
+}
 END_TEST
 
 START_TEST(test_king_king)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -166,9 +173,11 @@ START_TEST(test_king_king)
 
 	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
 	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
+}
 END_TEST
 
 START_TEST(test_white_king_bishop)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -202,9 +211,11 @@ START_TEST(test_white_king_bishop)
 
 	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
 	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
+}
 END_TEST
 
 START_TEST(test_black_king_bishop)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -238,9 +249,11 @@ START_TEST(test_black_king_bishop)
 
 	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
 	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
+}
 END_TEST
 
 START_TEST(test_white_king_knight)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -274,9 +287,11 @@ START_TEST(test_white_king_knight)
 
 	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
 	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
+}
 END_TEST
 
 START_TEST(test_black_king_knight)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -310,9 +325,11 @@ START_TEST(test_black_king_knight)
 
 	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
 	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
+}
 END_TEST
 
 START_TEST(test_2bishops_equal_color)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -346,9 +363,11 @@ START_TEST(test_2bishops_equal_color)
 
 	ck_assert_int_eq(chi_game_over(&pos, &result), chi_true);
 	ck_assert_int_eq(result, chi_result_draw_by_insufficient_material);
+}
 END_TEST
 
 START_TEST(test_2bishops_unequal_color)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -382,6 +401,7 @@ START_TEST(test_2bishops_unequal_color)
 
 	ck_assert_int_eq(chi_game_over(&pos, &result), chi_false);
 	ck_assert_int_eq(result, chi_result_unknown);
+}
 END_TEST
 
 Suite *
@@ -389,7 +409,7 @@ game_over_suite(void)
 {
 	Suite *suite;
 	TCase *tc_draw;
-	
+
 	suite = suite_create("Game Over Detection");
 
 	tc_draw = tcase_create("Draw");

@@ -26,13 +26,14 @@
 #include "libchi.h"
 
 START_TEST(test_pawn_moves)
+{
 	chi_pos pos;
 	chi_init_position(&pos);
 	chi_move move1, move2;
 	int errnum;
 	char *wanted;
 	char *got;
-	
+
 	errnum = chi_parse_move(&pos, &move1, "e4");
 	ck_assert_int_eq(errnum, 0);
 
@@ -43,7 +44,7 @@ START_TEST(test_pawn_moves)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
-	
+
 	errnum = chi_parse_move(&pos, &move2, "e5");
 	ck_assert_int_eq(errnum, 0);
 
@@ -70,9 +71,11 @@ START_TEST(test_pawn_moves)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
+}
 END_TEST
 
 START_TEST(test_white_capture)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -120,9 +123,11 @@ START_TEST(test_white_capture)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
+}
 END_TEST;
 
 START_TEST(test_black_capture)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -170,10 +175,12 @@ START_TEST(test_black_capture)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
+}
 END_TEST;
 
 
 START_TEST(test_white_ep_capture)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -221,9 +228,11 @@ START_TEST(test_white_ep_capture)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
+}
 END_TEST;
 
 START_TEST(test_black_ep_capture)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -272,13 +281,15 @@ START_TEST(test_black_ep_capture)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
+}
 END_TEST;
 
 /* White rook attacks black rook */
 START_TEST(test_ks_black_rook_capture)
+{
 	chi_pos pos;
 
-    /*    
+    /*
     a   b   c   d   e   f   g   h
    +---+---+---+---+---+---+---+---+
  8 |   |   |   |   | k |   |   | r | En passant not possible.
@@ -348,9 +359,11 @@ START_TEST(test_ks_black_rook_capture)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
+}
 END_TEST;
 
 START_TEST(test_ks_white_rook_capture)
+{
 	chi_pos pos;
 /*
      a   b   c   d   e   f   g   h
@@ -421,11 +434,12 @@ START_TEST(test_ks_white_rook_capture)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
-
+}
 END_TEST;
 
 
 START_TEST(test_qs_black_rook_capture)
+{
 	chi_pos pos;
 
 /*
@@ -498,11 +512,12 @@ START_TEST(test_qs_black_rook_capture)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
-    
+}
 END_TEST;
 
 
 START_TEST(test_qs_white_rook_capture)
+{
 	chi_pos pos;
 
 /*
@@ -574,7 +589,7 @@ START_TEST(test_qs_white_rook_capture)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
-
+}
 END_TEST;
 
 /*
@@ -582,6 +597,7 @@ END_TEST;
  * move the material count is reset to its previous value.
  */
 START_TEST(test_white_material)
+{
 	chi_pos pos;
 	int errnum;
 	chi_move move;
@@ -625,6 +641,7 @@ START_TEST(test_white_material)
 	ck_assert_str_eq(wanted, got);
 	free(got);
 #endif
+}
 END_TEST;
 
 /*
@@ -632,6 +649,7 @@ END_TEST;
  * move the material count is reset to its previous value.
  */
 START_TEST(test_black_material)
+{
 	chi_pos pos;
 	int errnum;
 	chi_move move;
@@ -667,6 +685,7 @@ START_TEST(test_black_material)
 	errnum = chi_unapply_move(&pos, move);
 	ck_assert_int_eq(errnum, 0);
 	ck_assert_int_eq(0, chi_material(&pos));
+}
 END_TEST;
 
 /*
@@ -674,6 +693,7 @@ END_TEST;
  */
 #include <stdio.h>
 START_TEST(test_undo_kcastle)
+{
 	int errnum;
 	chi_move move;
 	const char *moves[] = {
@@ -720,12 +740,15 @@ START_TEST(test_undo_kcastle)
 	}
 
 	free(positions);
+}
 END_TEST;
-/* 
+
+/*
  * Check that queenside castling right gets restored after unapplying.
  */
 
 START_TEST(test_undo_qcastle)
+{
 	int errnum;
 	chi_move move;
 	const char *moves[] = {
@@ -773,9 +796,11 @@ START_TEST(test_undo_qcastle)
 	}
 
 	free(positions);
+}
 END_TEST;
 
 START_TEST(test_undo_krook_move)
+{
 	int errnum;
 	chi_move move;
 
@@ -821,9 +846,11 @@ START_TEST(test_undo_krook_move)
 	}
 
 	free(positions);
+}
 END_TEST;
 
 START_TEST(test_undo_qrook_move)
+{
 	int errnum;
 	chi_move move;
 
@@ -869,11 +896,11 @@ START_TEST(test_undo_qrook_move)
 	}
 
 	free(positions);
+}
 END_TEST;
 
-
-
 START_TEST(test_undo_king_move)
+{
 	int errnum;
 	chi_move move;
 
@@ -919,6 +946,7 @@ START_TEST(test_undo_king_move)
 	}
 
 	free(positions);
+}
 END_TEST;
 
 Suite *
@@ -929,7 +957,7 @@ move_making_suite(void)
     TCase *tc_rook;
 	TCase *tc_captures;
 	TCase *tc_undo;
-	
+
 	suite = suite_create("Make/Unmake Moves");
 
 	tc_pawn = tcase_create("Pawn Moves");
