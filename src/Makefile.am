@@ -17,7 +17,7 @@
 
 SUBDIRS = . tests
 
-bin_PROGRAMS = tate tateplay
+bin_PROGRAMS = tate tateplay tateuci
 
 noinst_HEADERS = \
 	basename.h \
@@ -45,11 +45,14 @@ tate_SOURCES = tate.c board.c brain.c edit.c book.c time-control.c \
 tateplay_SOURCES = tateplay.c tateplay-engine.c log.c tateplay-game.c \
 	tateplay-loop.c util.c tateplay-option.c xboard-feature.c display-board.c \
 	tateplay-time-control.c
+tateuci_SOURCES = tateuci.c
 
 tate_LDADD = ../lib/libtate.la ../libchi/libchi.la
 tate_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
 tateplay_LDADD = ../lib/libtate.la ../libchi/libchi.la
 tateplay_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
+tateuci_LDADD = ../lib/libtate.la ../libchi/libchi.la
+tateuci_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
 
 AM_CPPFLAGS = -I. -I$(srcdir) -I.. -I$(top_srcdir)/lib -I../lib \
 	-I$(top_srcdir)/libchi -I../libchi $(AM_CFLAGS)
