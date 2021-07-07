@@ -59,6 +59,8 @@ char *argv[];
 
 	greeting();
 
+	chi_init_position (&tate.position);
+
 	errnum = chi_zk_init(&tate.zk_handle);
 	if (errnum)
 		error (EXIT_FAILURE,

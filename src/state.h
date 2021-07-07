@@ -29,6 +29,7 @@
 
 typedef struct Tate {
 	UCIEngineOptions uci;
+	chi_pos position;
 	chi_zk_handle zk_handle;
 } Tate;
 
