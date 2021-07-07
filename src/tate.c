@@ -62,8 +62,8 @@ static int handle_setboard(const char *fen);
 static int handle_perft(unsigned int depth, int post_flag);
 static void display_offsets(void);
 static void display_moves(void);
-static RETSIGTYPE sigio_handler(int);
-static RETSIGTYPE sigxboard_handler(int);
+static void sigio_handler(int);
+static void sigxboard_handler(int);
 static void check_input(void);
 
 #define WHITE_SPACE " \t\r\n\v\f"
@@ -646,26 +646,18 @@ const char *feature;
 	fprintf (stdout, "Interface rejected feature %s\n", feature);
 }
 
-RETSIGTYPE
+void
 sigio_handler (signum)
 int signum;
 {
 	input_available = event_pending = 1;
-
-#if RETSIGTYPE != void
-	return 0;
-#endif
 }
 
-RETSIGTYPE
+void
 sigxboard_handler (signum)
 int signum;
 {
 	error (EXIT_FAILURE, 0, "engine received signal %d\n", signum);
-
-#if RETSIGTYPE != void
-	return 0;
-#endif
 }
 
 static void

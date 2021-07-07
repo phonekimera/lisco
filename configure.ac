@@ -1,7 +1,7 @@
 dnl This file is part of the chess engine tate.
-dnl 
+dnl
 dnl Copyright (C) 2002-2019 cantanea EOOD.
-dnl 
+dnl
 dnl This program is free software: you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
 dnl the Free Software Foundation; either version 3 of the License, or
@@ -15,14 +15,14 @@ dnl
 dnl You should have received a copy of the GNU General Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_PREREQ([2.63])
-AC_INIT([tate], [0.5.0])
+AC_PREREQ([2.71])
+AC_INIT([tate],[0.6.0])
 AC_CONFIG_SRCDIR([src/tate.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
-AM_INIT_AUTOMAKE([1.16.1 silent-rules parallel-tests subdir-objects])
+AM_INIT_AUTOMAKE([1.16.3 silent-rules parallel-tests subdir-objects])
 AM_SILENT_RULES([yes])
- 
+
 AC_CONFIG_HEADERS([config.h])
 
 AC_PROG_CPP
@@ -36,8 +36,8 @@ AM_CONDITIONAL([HAS_PERL], [test "x$PERL" = "xyes"])
 
 AC_LANG([C])
 
-AC_LIBTOOL_WIN32_DLL
-AC_PROG_LIBTOOL
+AC_CANONICAL_HOST
+LT_INIT([win32-dll])
 
 PKG_CHECK_MODULES([CHECK], [check])
 
@@ -63,8 +63,9 @@ fi
 
 AC_SUBST(BITV64)
 
-AC_HEADER_STDC
-AC_HEADER_TIME
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
 AC_CHECK_HEADERS([sys/timeb.h])
 
 AC_FUNC_VPRINTF
@@ -73,7 +74,6 @@ AC_REPLACE_FUNCS([memset strcasecmp strncasecmp])
 if test $am_cv_func_working_getline != yes; then
   AC_CHECK_FUNCS(getdelim)
 fi
-AC_TYPE_SIGNAL
 
 AC_CONFIG_FILES([Makefile lib/Makefile
                  libchi/libchi.h libchi/Makefile libchi/tests/Makefile \
