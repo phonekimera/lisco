@@ -46,7 +46,6 @@ uci_main(UCIEngineOptions *options, FILE *in, const char *inname,
 	size_t linecap = 0;
 	ssize_t linelen = 1;
 
-	// FIXME!
 	while ((linelen = getline(&line, &linecap, in)) > 0) {
 		char *trimmed = trim(line);
 		const char *command = strsep(&trimmed, DELIM);
@@ -54,8 +53,8 @@ uci_main(UCIEngineOptions *options, FILE *in, const char *inname,
 
 		switch(command[0]) {
 			case 'g':
-				if(strcmp(command + 1, "uit") == 0) {
-					go_on = uci_handle_quit(options);
+				if(strcmp(command + 1, "o") == 0) {
+					go_on = uci_handle_go(options, trim(trimmed), out);
 				}
 				break;
 			case 'q':
@@ -122,6 +121,14 @@ uci_handle_debug(UCIEngineOptions *options, const char *args, FILE *out)
 	} else if (strcmp(args, "off") == 0) {
 		options->debug = 0;
 	}
+
+	return 1;
+}
+
+int
+uci_handle_go(UCIEngineOptions *options, const char *args, FILE *out)
+{
+	fprintf(out, "bestmove e2e4 ponder e7e5\n");
 
 	return 1;
 }

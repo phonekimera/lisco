@@ -31,11 +31,10 @@
 #include "progname.h"
 #include "xalloc.h"
 
-#include "tate.h"
+#include "state.h"
 #include "uci-engine.h"
 
-chi_zk_handle zk_handle;
-UCIEngineOptions uci_options;
+Tate tate;
 
 static void greeting();
 
@@ -60,15 +59,15 @@ char *argv[];
 
 	greeting();
 
-	errnum = chi_zk_init(&zk_handle);
+	errnum = chi_zk_init(&tate.zk_handle);
 	if (errnum)
 		error (EXIT_FAILURE,
 		       0,
 		       "Cannot initialize Zobrist key array: %s",
 		       chi_strerror (errnum));
 
-	uci_init(&uci_options);
-	uci_main(&uci_options,
+	uci_init(&tate.uci);
+	uci_main(&tate.uci,
 	         stdin, "[standard input]",
 	         stdout, "[standard output]");
 

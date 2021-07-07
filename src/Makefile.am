@@ -27,6 +27,7 @@ noinst_HEADERS = \
 	edit.h \
 	log.h \
 	search.h \
+	state.h \
 	tate.h \
 	tateplay-engine.h \
 	tateplay-game.h \

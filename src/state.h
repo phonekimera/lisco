@@ -16,40 +16,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef UCI_ENGINE_H
-# define UCI_ENGINE_H        /* Allow multiple inclusion.  */
+#ifndef _STATE_H
+# define _STATE_H        /* Allow multiple inclusion.  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include <stdio.h>
+#include <libchi.h>
 
-#define UCI_ENGINE_MAX_THREADS 512
+#include "uci-engine.h"
 
-typedef struct UCIEngineOptions {
-	int debug;
-	int option_threads;
-} UCIEngineOptions;
+typedef struct Tate {
+	UCIEngineOptions uci;
+	chi_zk_handle zk_handle;
+} Tate;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern void uci_init(UCIEngineOptions* options);
-extern int uci_main(UCIEngineOptions *options,
-                    FILE *in, const char *inname,
-                    FILE *out, const char *outname);
-
-#ifdef TEST_UCI_ENGINE
-extern int uci_handle_quit(UCIEngineOptions *options);
-extern int uci_handle_uci(UCIEngineOptions *options,
-                          const char *args, FILE *out);
-extern int uci_handle_debug(UCIEngineOptions *options,
-                          const char *args, FILE *out);
-extern int uci_handle_go(UCIEngineOptions *options,
-                         const char *args, FILE *out);
-#endif
+extern Tate tate;
 
 #ifdef __cplusplus
 }
