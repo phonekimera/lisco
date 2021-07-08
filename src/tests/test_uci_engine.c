@@ -26,6 +26,8 @@
 
 #include <check.h>
 
+#include "xalloc.h"
+
 #include "../state.h"
 #include "../uci-engine.h"
 
@@ -73,7 +75,7 @@ END_TEST
 
 START_TEST(test_uci_uci)
 {
-	const char *input = "uci\n";
+	char *command;
 	const char output[1024];
 	char *expect;
 	int status;
@@ -81,7 +83,9 @@ START_TEST(test_uci_uci)
 
 	INIT_UCI(engine_options, output);
 
-	status = uci_handle_uci(&engine_options, input, engine_out);
+	command = xstrdup("uci\n");
+	status = uci_handle_uci(&engine_options, command, engine_out);
+	free(command);
 	ck_assert_int_eq(status, 1);
 
 	output_length = strlen(output);
@@ -122,16 +126,28 @@ START_TEST(test_uci_position)
 	const char output[1024];
 	int status;
 	const char *current_fen;
+	char *command;
+#define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+#define IDIOT_MATE_FEN "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3"
 
 	INIT_UCI(engine_options, output);
 
 	chi_init_position (&tate.position);
 
-	status = uci_handle_position(&engine_options, "startpos", engine_out);
+	command = xstrdup("startpos");
+	status = uci_handle_position(&engine_options, command, engine_out);
+	free(command);
 	ck_assert_int_eq(status, 1);
 	current_fen = chi_fen(&tate.position);
-	ck_assert_str_eq(current_fen,
-		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	ck_assert_str_eq(current_fen, START_FEN);
+	free((void *) current_fen);
+
+	command = xstrdup("fen " IDIOT_MATE_FEN);
+	status = uci_handle_position(&engine_options, command, engine_out);
+	free(command);
+	ck_assert_int_eq(status, 1);
+	current_fen = chi_fen(&tate.position);
+	ck_assert_str_eq(current_fen, IDIOT_MATE_FEN);
 	free((void *) current_fen);
 
 	ck_assert_str_eq(output, "");

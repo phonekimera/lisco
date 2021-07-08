@@ -43,14 +43,10 @@ extern int uci_main(UCIEngineOptions *options,
 
 #ifdef TEST_UCI_ENGINE
 extern int uci_handle_quit(UCIEngineOptions *options);
-extern int uci_handle_uci(UCIEngineOptions *options,
-                          const char *args, FILE *out);
-extern int uci_handle_debug(UCIEngineOptions *options,
-                          const char *args, FILE *out);
-extern int uci_handle_position(UCIEngineOptions *options,
-                               const char *args, FILE *out);
-extern int uci_handle_go(UCIEngineOptions *options,
-                         const char *args, FILE *out);
+extern int uci_handle_uci(UCIEngineOptions *options, char *args, FILE *out);
+extern int uci_handle_debug(UCIEngineOptions *options, char *args, FILE *out);
+extern int uci_handle_position(UCIEngineOptions *options, char *args, FILE *out);
+extern int uci_handle_go(UCIEngineOptions *options, char *args, FILE *out);
 #endif
 
 #ifdef __cplusplus

@@ -110,7 +110,7 @@ uci_handle_quit(UCIEngineOptions *options)
 }
 
 int
-uci_handle_uci(UCIEngineOptions *options, const char *args, FILE *out)
+uci_handle_uci(UCIEngineOptions *options, char *args, FILE *out)
 {
 	fprintf(out, "id name %s %s\n", PACKAGE, PACKAGE_VERSION);
 	fprintf(out, "id author %s\n", "Guido Flohr <guido.flohr@cantanea.com>");
@@ -122,7 +122,7 @@ uci_handle_uci(UCIEngineOptions *options, const char *args, FILE *out)
 }
 
 int
-uci_handle_debug(UCIEngineOptions *options, const char *args, FILE *out)
+uci_handle_debug(UCIEngineOptions *options, char *args, FILE *out)
 {
 	if (strcmp(args, "on") == 0) {
 		options->debug = 1;
@@ -133,12 +133,12 @@ uci_handle_debug(UCIEngineOptions *options, const char *args, FILE *out)
 	return 1;
 }
 
-
 int
-uci_handle_position(UCIEngineOptions *options, const char *args, FILE *out)
+uci_handle_position(UCIEngineOptions *options, char *args, FILE *out)
 {
 	char *rest;
 	const char *type;
+	int errnum;
 
 	if (!args) {
 		fprintf(out, "info Command 'position' requires an argument.\n");
@@ -148,7 +148,17 @@ uci_handle_position(UCIEngineOptions *options, const char *args, FILE *out)
 	rest = (char *) args;
 	type = strsep(&rest, DELIM);
 	if (strcmp("fen", type) == 0) {
-		fprintf(out, "info not yet implemented.\n");
+		if (!rest) {
+			fprintf(out, "info Command 'position fen' requires an argument.\n");
+			return 1;
+		}
+
+		rest = trim(rest);
+		errnum = chi_extract_position(&tate.position, rest, (const char **) &rest);
+		if (errnum) {
+			fprintf(out, "info Invalid FEN string.\n");
+			return 1;
+		}
 	} else if (strcmp("startpos", type) == 0) {
 		chi_init_position(&tate.position);
 	} else {
@@ -161,7 +171,7 @@ uci_handle_position(UCIEngineOptions *options, const char *args, FILE *out)
 }
 
 int
-uci_handle_go(UCIEngineOptions *options, const char *args, FILE *out)
+uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 {
 	char *bestmove = NULL;
 	char *pondermove = NULL;

@@ -25,8 +25,9 @@
 
 #include <libchi.h>
 
-int
-chi_set_position(chi_pos *argpos, const char *fen)
+static int
+chi_set_position_internal(chi_pos *argpos, const char *fen,
+	int extract, const char **endptr)
 {
 	const char* ptr = fen;
 	int ep_file = -1;
@@ -186,9 +187,17 @@ chi_set_position(chi_pos *argpos, const char *fen)
 	while (*ptr == ' ' || *ptr == '\t' || *ptr == '\r' || *ptr == '\n')
 		++ptr;
 
-		/* Trailing garbage? */
-	if (*ptr)
-		return CHI_ERR_ILLEGAL_FEN;
+	/* Trailing garbage? */
+	if (*ptr) {
+		if (extract) {
+			if (endptr)
+				*endptr = ptr;
+		} else {
+			return CHI_ERR_ILLEGAL_FEN;
+		}
+	} else if (endptr) {
+		*endptr = NULL;
+	}
 
 	/* Side not to move in check? */
 	chi_on_move (pos) = !chi_on_move (pos);
@@ -233,4 +242,16 @@ chi_set_position(chi_pos *argpos, const char *fen)
 	*argpos = *pos;
 
 	return 0;
+}
+
+int
+chi_set_position(chi_pos *argpos, const char *fen)
+{
+	return chi_set_position_internal(argpos, fen, 0, NULL);
+}
+
+int
+chi_extract_position(chi_pos *argpos, const char *fen, const char **endptr)
+{
+	return chi_set_position_internal(argpos, fen, 1, endptr);
 }

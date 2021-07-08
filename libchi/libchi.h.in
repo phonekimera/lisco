@@ -532,6 +532,11 @@ extern void chi_clear_position(chi_pos* chi_arg_pos);
 /* Set a position according to a FEN notation.  */
 extern int chi_set_position(chi_pos* chi_arg_pos, const char* chi_arg_fen);
 
+/* Set a position according to a FEN notation.  If the string continues,
+   the tail is stored in endp. */
+extern int chi_extract_position(chi_pos* chi_arg_pos, const char* chi_arg_fen,
+                                const char **endptr);
+
 /* Parse only the position part of a FEN string (not parsing color on
    move, castling state, en passant status and move counters.  */
 extern int chi_parse_fen_position(chi_pos* chi_arg_pos,
