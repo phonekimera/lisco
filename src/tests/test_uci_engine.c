@@ -26,6 +26,7 @@
 
 #include <check.h>
 
+#include "../state.h"
 #include "../uci-engine.h"
 
 #define INIT_UCI(engine_options, output) \
@@ -80,7 +81,6 @@ START_TEST(test_uci_uci)
 
 	INIT_UCI(engine_options, output);
 
-	uci_init(&engine_options);
 	status = uci_handle_uci(&engine_options, input, engine_out);
 	ck_assert_int_eq(status, 1);
 
@@ -105,8 +105,6 @@ START_TEST(test_uci_debug)
 
 	INIT_UCI(engine_options, output);
 
-	uci_init(&engine_options);
-
 	status = uci_handle_debug(&engine_options, "on", engine_out);
 	ck_assert_int_eq(status, 1);
 	ck_assert_int_ne(engine_options.debug, 0);
@@ -114,6 +112,27 @@ START_TEST(test_uci_debug)
 	status = uci_handle_debug(&engine_options, "off", engine_out);
 	ck_assert_int_eq(status, 1);
 	ck_assert_int_eq(engine_options.debug, 0);
+
+	ck_assert_str_eq(output, "");
+}
+END_TEST
+
+START_TEST(test_uci_position)
+{
+	const char output[1024];
+	int status;
+	const char *current_fen;
+
+	INIT_UCI(engine_options, output);
+
+	chi_init_position (&tate.position);
+
+	status = uci_handle_position(&engine_options, "startpos", engine_out);
+	ck_assert_int_eq(status, 1);
+	current_fen = chi_fen(&tate.position);
+	ck_assert_str_eq(current_fen,
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	free((void *) current_fen);
 
 	ck_assert_str_eq(output, "");
 }
@@ -132,6 +151,7 @@ uci_engine_suite(void)
 	tcase_add_test(tc_uci_parser, test_uci_quit);
 	tcase_add_test(tc_uci_parser, test_uci_uci);
 	tcase_add_test(tc_uci_parser, test_uci_debug);
+	tcase_add_test(tc_uci_parser, test_uci_position);
 	suite_add_tcase(suite, tc_uci_parser);
 
 	return suite;

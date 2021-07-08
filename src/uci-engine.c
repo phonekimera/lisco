@@ -55,6 +55,11 @@ uci_main(UCIEngineOptions *options, FILE *in, const char *inname,
 		int go_on = -1;
 
 		switch(command[0]) {
+			case 'p':
+				if(strcmp(command + 1, "osition") == 0) {
+					go_on = uci_handle_position(options, trim(trimmed), out);
+				}
+				break;
 			case 'g':
 				if(strcmp(command + 1, "o") == 0) {
 					go_on = uci_handle_go(options, trim(trimmed), out);
@@ -123,6 +128,33 @@ uci_handle_debug(UCIEngineOptions *options, const char *args, FILE *out)
 		options->debug = 1;
 	} else if (strcmp(args, "off") == 0) {
 		options->debug = 0;
+	}
+
+	return 1;
+}
+
+
+int
+uci_handle_position(UCIEngineOptions *options, const char *args, FILE *out)
+{
+	char *rest;
+	const char *type;
+
+	if (!args) {
+		fprintf(out, "info Command 'position' requires an argument.\n");
+		return 1;
+	}
+
+	rest = (char *) args;
+	type = strsep(&rest, DELIM);
+	if (strcmp("fen", type) == 0) {
+		fprintf(out, "info not yet implemented.\n");
+	} else if (strcmp("startpos", type) == 0) {
+		chi_init_position(&tate.position);
+	} else {
+		fprintf(out, "info Command 'position' requires one of 'startpos' or"
+			" 'fen' as an argument.\n");
+		return 1;
 	}
 
 	return 1;

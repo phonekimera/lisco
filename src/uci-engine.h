@@ -47,6 +47,8 @@ extern int uci_handle_uci(UCIEngineOptions *options,
                           const char *args, FILE *out);
 extern int uci_handle_debug(UCIEngineOptions *options,
                           const char *args, FILE *out);
+extern int uci_handle_position(UCIEngineOptions *options,
+                               const char *args, FILE *out);
 extern int uci_handle_go(UCIEngineOptions *options,
                          const char *args, FILE *out);
 #endif
