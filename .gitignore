@@ -35,7 +35,7 @@ m4/
 !m4/ax_pthread.m4
 
 src/tate
-src/tateuci
+src/tateold
 src/tateplay
 src/tests/check_common
 src/tests/check_tate
