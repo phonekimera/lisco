@@ -1,10 +1,11 @@
-/* print_move.c - ASCII representation(s) of a move.
- * Copyright (C) 2002 Guido Flohr (guido@imperia.net)
+/* This file is part of the chess engine tate.
  *
- * This program is free software; you can redistribute it and/or modify
+ * Copyright (C) 2002-2021 cantanea EOOD.
+ *
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,24 +13,20 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
+#include <stdlib.h>
+
 #include <libchi.h>
 
 int
-chi_print_move (pos, move, buf, bufsize, san)
-     chi_pos* pos;
-     chi_move move;
-     char** buf;
-     unsigned int* bufsize;
-     int san;
+chi_print_move (chi_pos *pos, chi_move move, char **buf,
+                unsigned int *bufsize, int san)
 {
     int from = chi_move_from (move);
     int to = chi_move_to (move);
@@ -146,6 +143,50 @@ chi_print_move (pos, move, buf, bufsize, san)
 	    *ptr++ = '=';
 	    *ptr++ = chi_piece2char (chi_move_promote (move));
 	}
+    } else {
+	/* SAN.  */
+	chi_move legalmoves[CHI_MAX_MOVES];
+	chi_move* move_end = chi_legal_moves (&target_pos, legalmoves);
+	chi_move* mv;
+	int move_from_file = 7 - (chi_move_from (move) % 8);
+	int move_from_rank = chi_move_from (move) / 8;
+	int move_to = chi_move_to (move);
+	chi_piece_t attacker = chi_move_attacker (move);
+	int from_file_matches = 0;
+	int from_rank_matches = 0;
+	int is_ambiguous = 0;
+	const char* label = chi_shift2label (chi_move_from (to));
+
+	if (attacker != pawn) {
+	    for (mv = legalmoves; mv < move_end; ++mv) {
+		if (chi_move_attacker (*mv) != attacker)
+		    continue;
+		
+		if (chi_move_to (*mv) != move_to)
+		    continue;
+
+		if (move_from_file == 7 - (chi_move_from (*mv) % 8))
+		    ++from_file_matches;
+		if (move_from_rank == chi_move_from (*mv) / 8)
+		    ++from_rank_matches;
+		++is_ambiguous;
+	    }
+	}
+
+	if (attacker == pawn || ((is_ambiguous > 1) && from_file_matches <= 1))
+	    *ptr++ = 'a' + move_from_file;
+	if (attacker != pawn && (is_ambiguous > 1) && from_file_matches > 1)
+	    *ptr++ = '1' + move_from_rank;
+	if (chi_move_victim (move))
+	    *ptr++ = 'x';
+	if (attacker != pawn || chi_move_victim (move))
+	    *ptr++ = label[0];
+	*ptr++ = label[1];
+	if (chi_move_promote (move)) {
+	    *ptr++ = '=';
+	    *ptr++ = chi_piece2char (chi_move_promote (move));
+	}
+
     }
 
     chi_apply_move (&target_pos, move);

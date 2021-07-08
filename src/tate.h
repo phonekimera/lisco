@@ -1,10 +1,11 @@
-/* tate.h - global variables... :-(
- * Copyright (C) 2002 Guido Flohr (guido@imperia.net)
+/* This file is part of the chess engine tate.
  *
- * This program is free software; you can redistribute it and/or modify
+ * Copyright (C) 2002-2021 cantanea EOOD.
+ *
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,9 +13,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef TATE_H
@@ -23,8 +22,6 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-
-#include <system.h>
 
 #include <libchi.h>
 
@@ -46,23 +43,17 @@
 #define EVENTMASK_ENGINE_STOP 0x1f
 
 #define MAX_PLY 512
-#define MATE    -9999
+#define MATE    -10000
 #define INF     ((-(MATE)) << 1)
-#define DRAW    (0)
+// FIXME: contempt factor!
+#define DRAW    0
+
+#include "time-management.h"
 
 struct game_hist_entry {
     bitv64   signature;
     chi_move move;
     chi_pos  pos;
-    /* Bitmask for keeping track of castling state. 
-       0x1 - white can castle on one side
-       0x2 - white can castle on two sides
-       0x4 - white has castled
-       0x10 - black can castle on one side
-       0x20 - black can castle on two sides
-       0x40 - black has castled
-    */
-    int castling_state;
 };
 
 extern struct game_hist_entry* game_hist;
@@ -81,11 +72,22 @@ extern int allow_pondering;
 extern int ics;
 extern int computer;
 extern chi_color_t engine_color;
-extern int max_ply;
+extern int max_depth;
 extern int event_pending;
 extern int post;
 extern int mate_announce;
+extern int current_score;
 
-extern int get_event PARAMS ((void));
+extern int isa_tty;
+
+extern TimePoint min_thinking_time;
+extern TimePoint move_overhead;
+extern TimePoint slow_mover;
+extern TimePoint npmsec;
+
+extern int get_event(void);
+extern int handle_epd(const char* epdstr, chi_epd_pos* epd);
+extern int handle_epdfile (const char* command);
+extern int handle_go (chi_epd_pos* epd);
 
 #endif

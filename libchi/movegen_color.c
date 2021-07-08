@@ -1,10 +1,11 @@
-/* movegen_color.c - Color-specific move generators.
- * Copyright (C) 2002 Guido Flohr (guido@imperia.net)
+/* This file is part of the chess engine tate.
  *
- * This program is free software; you can redistribute it and/or modify
+ * Copyright (C) 2002-2021 cantanea EOOD.
+ *
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,9 +13,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* This is a code fragment, that gets included by movegen.c.  Do
@@ -816,74 +815,6 @@ chi_color_check_check (pos)
     }
 
     return 0;
-#if 0
-    /* Rook attacks.  */
-    if (HER_ROOKS (pos)) {
-	bitv64 her_rooks = HER_ROOKS (pos);
-	bitv64 state = (rank_masks[king_shift] & occ_squares) >> 
-	    ((king_shift >> 3) << 3);
-	bitv64 state90 = (file_masks[king_shift] & occ90_squares) >> 
-	    ((rotate90[king_shift] >> 3) << 3);
-	bitv64 attack_mask = rook_hor_attack_masks[king_shift][state] ^
-	    rook_ver_attack_masks[king_shift][state90];
-	
-	while (attack_mask) {
-	    if (her_rooks &
-		((bitv64) 1) <<
-		chi_bitv2shift (chi_clear_but_least_set (attack_mask)))
-		return 1;
-	    
-	    attack_mask = chi_clear_least_set (attack_mask);
-	}
-    }
-
-    if (her_bishops) {
-	register bitv64 dest_mask = 
-	    (king_mask & ~(CHI_A_MASK | CHI_8_MASK)) << 9;
-	bitv64 empty_squares = ~occ_squares;
-	bitv64 valid_mask = empty_squares & ~(CHI_A_MASK | CHI_8_MASK);
-
-	while (dest_mask) {
-	    if (dest_mask & her_bishops)
-		return 1;
-	    if (dest_mask & occ_squares)
-		break;
-	    dest_mask = ((dest_mask & valid_mask) << 9);
-	}
-
-	dest_mask = (king_mask & ~(CHI_H_MASK | CHI_8_MASK)) << 7;
-	valid_mask = empty_squares & ~(CHI_H_MASK | CHI_8_MASK);
-	while (dest_mask) {
-	    if (dest_mask & her_bishops)
-		return 1;
-	    if (dest_mask & occ_squares)
-		break;
-	    dest_mask = ((dest_mask & valid_mask) << 7);
-	}
-
-	dest_mask = (king_mask & ~(CHI_A_MASK | CHI_1_MASK)) >> 7;
-	valid_mask = empty_squares & ~(CHI_A_MASK | CHI_1_MASK);
-	while (dest_mask) {
-	    if (dest_mask & her_bishops)
-		return 1;
-	    if (dest_mask & occ_squares)
-		break;
-	    dest_mask = ((dest_mask & valid_mask) >> 7);
-	}
-
-	dest_mask = (king_mask & ~(CHI_H_MASK | CHI_1_MASK)) >> 9;
-	valid_mask = empty_squares & ~(CHI_H_MASK | CHI_1_MASK);
-	while (dest_mask) {
-	    if (dest_mask & her_bishops)
-		return 1;
-	    if (dest_mask & occ_squares)
-		break;
-	    dest_mask = ((dest_mask & valid_mask) >> 9);
-	}
-    }
-
-    return 0;
-#endif
 }
 
 /*

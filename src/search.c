@@ -1,10 +1,11 @@
-/* search.c - negamax search.
- * Copyright (C) 2002 Guido Flohr (guido@imperia.net)
+/* This file is part of the chess engine tate.
  *
- * This program is free software; you can redistribute it and/or modify
+ * Copyright (C) 2002-2021 cantanea EOOD.
+ *
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,330 +13,109 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include <system.h>
+#include "search.h"
+#include "time-control.h"
 
-#include <libchi.h>
-
-#include "brain.h"
-#include "time_ctrl.h"
+static chi_bool stop_thinking(TREE *tree);
+static void update_tree(TREE *tree, int ply, chi_move move);
 
 int
-search (tree, depth, ply, alpha, beta, allow_null)
-     TREE* tree;
-     int depth;
-     int ply;
-     int alpha;
-     int beta;
-     int allow_null;
-{ 
-    chi_move moves[CHI_MAX_MOVES];
-    chi_move* mv;
-    chi_pos saved_pos = tree->pos;
-    chi_pos* pos = &tree->pos;
-    int num_moves = 0;
-    int pv_seen = 0;
-    int original_alpha = alpha;
-    int best_score = -INF;
+search(TREE *tree, int depth, int alpha, int beta)
+{
+	chi_move moves[CHI_MAX_MOVES];
+	chi_move *end = chi_legal_moves(&tree->pos, moves);
+	size_t num_moves = end - moves;
+	size_t i;
+	int best_score;
+	int ply = tree->depth - depth;
 
-    ++tree->nodes;
+	++tree->nodes;
 
-    tree->cv.moves[ply] = 0;
+	if (stop_thinking(tree)) return beta;
 
-    /* Check for time control and user input.  */
-    if (tree->nodes > 0x2000) {
-	if (event_pending) {
-	    int result = get_event ();
-	    if (result & EVENTMASK_ENGINE_STOP)
-		tree->status = result;
-	    return beta;
-	}
-
-	if (rdifftime (rtime (), start_time) >= tree->time_for_move) {
-	    tree->status = EVENT_MOVE_NOW;
-	    fprintf (stdout, "  Time used up!\n");
-	    return beta;
-	}
-    }
-
-    if (ply >= MAX_PLY - 1)
-	return beta;
-
-    /* Probe the transposition table.  */
-    if (ply) {
-	++tree->tt_probes;
-	switch (probe_tt (pos, tree->signatures[ply], depth,
-			  &alpha, &beta)) {
-	    
-	    case HASH_EXACT:
-		++tree->tt_exact_hits;
-		++tree->tt_hits;		
-		return alpha;
-		
-	    case HASH_BETA:
-		++tree->tt_beta_hits;
-		++tree->tt_hits;
-		return beta;
-		
-	    case HASH_ALPHA:
-		++tree->tt_alpha_hits;
-		++tree->tt_hits;
-		return alpha;
-	}
-    }
-    
-    if (depth < 1) {
-	int score;
-	
-	tree->pv[ply].length = 0;
-
-#if NO_QUIESCENCE
-	/* Leaf.  Do a quiescence search.  */
-	score = evaluate (tree, ply, alpha, beta);
-#else
-	score = quiescence (tree, ply, alpha, beta);
-#endif
-
+	if (depth == 0 || num_moves == 0) {
+		int score = evaluate(tree, ply, alpha, beta);
 #if DEBUG_BRAIN
-	chi_on_move (pos) = !chi_on_move (pos);
-	indent_output (tree, ply - 1);
-	fprintf (stderr, 
-		 "Returning quiescence score %d\n", -score);
-	chi_on_move (pos) = !chi_on_move (pos);
+		indent_output(tree, ply);
+		fprintf(stderr, "--> score: %d, alpha: %d, beta: %d\n",
+		        score, alpha, beta);
 #endif
-
-	if (score > alpha) {
-	    if (score >= beta) {
-		store_tt_entry (pos, tree->signatures[ply], 
-				0, depth, 
-				score, HASH_BETA);
-	    } else {
-		store_tt_entry (pos, tree->signatures[ply],
-				0, depth,
-				score, HASH_EXACT);
-	    }
-	} else {
-	    store_tt_entry (pos, tree->signatures[ply],
-			    0, 0,
-			    score, HASH_ALPHA);
-	}
-	
-	return score;
-    }
-
-    tree->in_check[ply] = chi_check_check (pos);
-
-#if 0
-    /* Try a null move if applicable.  */
-    if (depth <= NULL_R)
-	allow_null = 0;
-#endif
-
-    if (allow_null && !tree->in_check[ply]) {
-	int null_score;
-	int saved_pv_length = tree->pv[ply].length;
-
-	++tree->null_moves;
-
-#if DEBUG_BRAIN
-        indent_output (tree, ply);
-        fprintf (stderr, "NM: alpha: %d, beta: %d\n",
-                 chi_value2centipawns (alpha),
-                 chi_value2centipawns (beta));
-#endif
-
-	chi_ep (pos) = 0;
-	chi_on_move (pos) = !chi_on_move (pos);
-	tree->signatures[ply + 1] = 
-	    chi_zk_change_side (zk_handle, tree->signatures[ply]);
-	tree->castling_states[ply + 1] = tree->castling_states[ply];
-	null_score = -search (tree, depth - NULL_R, ply + 1,
-			      -beta, -beta + 1, 0);
-
-	*pos = saved_pos;
-	tree->pv[ply].length = saved_pv_length;
-
-	if (null_score >= beta) {
-#if DEBUG_BRAIN
-	    indent_output (tree, ply);
-            fprintf (stderr, "NH: null move failed high with score %d\n",
-                     chi_value2centipawns (null_score));
-#endif
-
-	    // FIXME: Seems to lead to bugs.
-	    store_tt_entry (pos, tree->signatures[ply], 
-			    0, depth, 
-			    null_score, HASH_BETA);
-
-	    ++tree->null_fh;
-	    return null_score;
-	}
-
-	// FIXME: Is it possible to use the null move score for 
-	// making our search window smaller?
-#if DEBUG_BRAIN
-	indent_output (tree, ply);
-	fprintf (stderr, "NM: null move returned score %d\n",
-		 chi_value2centipawns (null_score));
-#endif
-    } else {
-	allow_null = 0;
-    }
-
-    tree->move_stack[ply] = moves;
-    tree->move_states[ply] = move_state_init;
-
-    tree->cv.moves[ply] = 0;
-    tree->cv.length = ply + 1;
-
-allow_null = 0;
-    while (NULL != (mv = next_move (tree, ply, depth))) {
-	int score;
-
-	if (chi_illegal_move (pos, *mv, 
-			      (tree->move_states[ply] <= 
-			       move_state_generate_non_captures)))
-	    continue;
-
-	tree->signatures[ply + 1] = 
-	    chi_zk_update_signature (zk_handle, tree->signatures[ply],
-				     *mv, !chi_on_move (pos));
-	update_castling_state (tree, *mv, ply);
-
-	++num_moves;
-	tree->cv.moves[ply] = *mv;
-
-#if DEBUG_BRAIN
-        chi_on_move (pos) = !chi_on_move (pos);
-        indent_output (tree, ply);
-        fprintf (stderr, "ST: ");
-        my_print_move (*mv);
-        fprintf (stderr, " alpha: %d, beta: %d\n",
-                 chi_value2centipawns (alpha),
-                 chi_value2centipawns (beta));
-        chi_on_move (pos) = !chi_on_move (pos);
-#endif
-
-	if (pv_seen) {
-	    score = -search (tree, depth - 1, ply + 1, 
-			     -alpha - 1, -alpha, !allow_null);
-	    if ((score > alpha) && (score < beta)) {
-#if DEBUG_BRAIN
-		chi_on_move (pos) = !chi_on_move (pos);
-		indent_output (tree, ply);
-		fprintf (stderr, "ST out of bounds: ");
-		my_print_move (*mv);
-		fprintf (stderr, " alpha: %d, beta: %d\n",
-			 chi_value2centipawns (alpha),
-			 chi_value2centipawns (beta));
-		chi_on_move (pos) = !chi_on_move (pos);
-#endif
-
-		score = -search (tree, depth - 1, ply + 1, 
-				 -beta, -alpha, !allow_null);
-	    }
-	} else {
-	    score = -search (tree, depth - 1, ply + 1, 
-			     -beta, -alpha, !allow_null);
-	}
-	*pos = saved_pos;
-
-	if (score > best_score)
-	    best_score = score;
-
-	if (tree->status & EVENTMASK_ENGINE_STOP)
-	    return alpha;
-
-	if (score > alpha) {
-	    if (score >= beta) {
-#if DEBUG_BRAIN
-		indent_output (tree, ply);
-		fprintf (stderr, "FH: ");
-		my_print_move (*mv);
-		fprintf (stderr, " failed high with score %d\n",
-			 chi_value2centipawns (score));
-#endif
-		
-		store_killer (tree, *mv, depth, ply);
-		++tree->fh;
-		if (num_moves == 1)
-		    ++tree->ffh;
-		else if (*mv == tree->bonny[ply] || *mv == tree->clyde[ply])
-		    ++tree->killers;
-
-		store_tt_entry (pos, tree->signatures[ply], *mv, depth, 
-				score, HASH_BETA);
-
 		return score;
-	    } else {
-		pv_seen = 1;
-		alpha = score;
-		
-#if DEBUG_BRAIN
-		indent_output (tree, ply);
-		fprintf (stderr, "PV: ");
-		my_print_move (*mv);
-		fprintf (stderr, " new pv with score: %d\n",
-			 chi_value2centipawns (score));
-#endif
-
-		tree->pv[ply].moves[0] = *mv;
-		if (tree->pv[ply + 1].length) {
-		    memcpy (tree->pv[ply].moves + 1, tree->pv[ply + 1].moves,
-			    tree->pv[ply + 1].length * sizeof *mv);
-		    tree->pv[ply].length = tree->pv[ply + 1].length + 1;
-		} else {
-		    tree->pv[ply].length = 1;
-		}
-
-		if (ply == 0)
-		    print_pv (tree, score, 0, ply);
-	    }
-	} else {
-#if DEBUG_BRAIN
-            indent_output (tree, ply);
-            fprintf (stderr, "FL: ");
-            my_print_move (*mv);
-            fprintf (stderr, " failed low with score: %d\n",
-                     chi_value2centipawns (score));
-#endif
-	    ++tree->fl;
 	}
-    }
 
-    if (!num_moves) {
-	if (tree->in_check[ply])
-	    alpha = MATE - ply;
-	else
-	    alpha = DRAW;
-    } else if (best_score < alpha) {
-	alpha = best_score;
-    }
+	best_score = -INF;
+	for (i = 0; i < num_moves; ++i) {
+		chi_move move = moves[i];
+		chi_apply_move(&tree->pos, move);
+		update_tree(tree, ply + 1, move);
+#if DEBUG_BRAIN
+		indent_output(tree, ply + 1);
+		my_print_move(move);
+		fprintf(stderr, "\n");
+		fflush(stderr);
+#endif
+		int node_score = -search(tree, depth - 1, -beta, -alpha);
+		chi_unapply_move(&tree->pos, move);
+		if (node_score > best_score) {
+			best_score = node_score;
+		}
+		if (node_score > alpha) {
+			alpha = node_score;
+			if (ply == 0) {
+				tree->best_move = move;
+			}
+		}
+		if (alpha >= beta || tree->status & EVENTMASK_ENGINE_STOP) {
+#if DEBUG_BRAIN
+			indent_output(tree, ply + 1);
+			fprintf(stderr, "alpha(%d) beta(%d) cut-off\n", alpha, beta);
+			fflush(stderr);
+#endif
+			break;
+		}
+	}
 
-    store_killer (tree, tree->pv[ply].moves[0], depth, ply);
-
-    tree->tt_collisions += store_tt_entry (pos,
-					   tree->signatures[ply],
-					   tree->pv[ply].moves[0], 
-					   depth, alpha,
-					   alpha != original_alpha ?
-					   HASH_EXACT : HASH_ALPHA);
-					   
-    return alpha;
+	return best_score;
 }
 
-/*
-Local Variables:
-mode: c
-c-style: K&R
-c-basic-shift: 8
-End:
-*/
+/* Check for time control and user input.  */
+static chi_bool
+stop_thinking(TREE *tree)
+{
+	--next_time_control;
+	if (next_time_control < 0) {
+		if (event_pending) {
+			int result = get_event ();
+			if (result & EVENTMASK_ENGINE_STOP) {
+				tree->status = result;
+			}
+
+			return chi_true;
+		}
+
+		if (rdifftime (rtime (), start_time) >= tree->time_for_move) {
+			tree->status = EVENT_MOVE_NOW;
+			return chi_true;
+		}
+		next_time_control = MOVES_PER_TIME_CONTROL;
+	}
+
+	return chi_false;
+}
+
+static void
+update_tree(TREE *tree, int ply, chi_move move)
+{
+	tree->in_check[ply] = chi_check_check (&tree->pos);
+	tree->signatures[ply] = chi_zk_update_signature(
+		zk_handle, tree->signatures[ply], move,
+		chi_on_move(&tree->pos)
+	);
+}

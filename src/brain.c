@@ -1,10 +1,11 @@
-/* brain.c - find the correct move... ;-)
- * Copyright (C) 2002 Guido Flohr (guido@imperia.net)
+/* This file is part of the chess engine tate.
  *
- * This program is free software; you can redistribute it and/or modify
+ * Copyright (C) 2002-2021 cantanea EOOD.
+ *
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,486 +13,250 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include <system.h>
-
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <error.h>
 
 #include <libchi.h>
 
 #include "brain.h"
+#include "search.h"
 #include "tate.h"
-#include "time_ctrl.h"
-#include "board.h"
+#include "time-control.h"
+#include "time-management.h"
 
 bitv64 total_nodes = 0;
 bitv64 total_centiseconds = 0;
+bitv64 nps_peak = 0;
+
+int next_time_control;
+
+static void init_tree(TREE *tree, chi_epd_pos *epd);
+static int _think(chi_move *mv, chi_epd_pos *epd);
+
+/* Time control options stockfish-style.  FIXME! Should be configurable!  */
+TimePoint min_thinking_time;
+TimePoint move_overhead;
+TimePoint slow_mover;
+TimePoint nodestime;
 
 void
-evaluate_move (move)
-     chi_move move;
+evaluate_move (chi_move move)
 {
-    TREE tree;
-    int errnum;
-    int score;
-
-    memset (&tree, 0, sizeof tree);
-
-    tree.pos = current;
-
-    /* Initialize signature.  */
-    tree.signatures[0] = game_hist[game_hist_ply].signature;
-    tree.castling_states[0] = game_hist[game_hist_ply].castling_state;
-
-    /* Apply the move to the position.  */
-    errnum = chi_apply_move (&tree.pos, move);
-    if (errnum) {
-	fprintf (stdout, "  illegal move: %s\n", chi_strerror (errnum));
-	return;
-    }
-
-    tree.pv[0].moves[0] = move;
-    tree.pv[0].length = 1;
-    tree.in_check[0] = chi_check_check (&tree.pos);
-    tree.signatures[1] = 
-	chi_zk_update_signature (zk_handle, tree.signatures[0],
-				 move, chi_on_move (&tree.pos));
-    update_castling_state (&tree, move, 0);
-
-    score = -evaluate (&tree, 1, 
-		       100 * tree.pos.material, 100 * tree.pos.material);
-
-    fprintf (stdout, "  static score: %d\n", score);
+	fprintf (stdout, "  todo\n");
 }
 
 int
-think (mv)
-     chi_move* mv;
+think(chi_move *mv, chi_epd_pos *epd)
 {
-    chi_move moves[CHI_MAX_MOVES];
-    chi_move* move_ptr;
-    int the_score = 0;
-    TREE tree;
-    int result = EVENT_CONTINUE;
-    long int elapsed;
-    int depth;
-    int num_moves;
-    int last_nodes = 0;
-    long int last_elapsed = 0;
-    int alpha = -INF;
-    int beta = +INF;
+	int retval;
 
-    memset (&tree, 0, sizeof tree);
-
-    start_time = rtime ();
-
-    move_ptr = chi_legal_moves (&current, moves);
-
-    num_moves = move_ptr - moves;
-
-    if (num_moves == 0) {
-	if (chi_check_check (&current)) {
-	    if (chi_on_move (&current) == chi_white) {
-		fprintf (stdout, "1-0 {Black mates}\n");
-	    } else {
-		fprintf (stdout, "0-1 {White mates}\n");
-	    }
-	} else {
-	    fprintf (stdout, "1/2-1/2 {Stalemate}\n");
-	}
-	return EVENT_GAME_OVER;
-    }
-
-    if (current.half_move_clock >= 100) {
-	fprintf (stdout, "1/2-1/2 {Fifty-move rule}\n");
-	return EVENT_GAME_OVER;
-    }
-
-    /* Better than nothing ...  */
-    tree.pv[0].length = 1;
-    tree.pv[0].moves[0] = *mv = moves[0];
-    if (num_moves == 1) {
-	time_cushion += inc * 100;
-	return 0;
-    }
-
-    /* Initialize signature.  */
-    tree.signatures[0] = game_hist[game_hist_ply].signature;
-    tree.castling_states[0] = game_hist[game_hist_ply].castling_state;
-
-    fprintf (stderr, "Initial castling state: 0x%x\n", tree.castling_states[0]);
-    // FIXME: Check for book move.
-
-    /* How many time will we afford ourselves? */
-    if (pondering) {
-	tree.time_for_move = 0x7fffffff;
-    } else {
-	if (fixed_time) {
-	    tree.time_for_move = fixed_time;
-	} else {
-	    if (go_fast) {
-		long int alloc = allocate_time ();
-		if (alloc > 40)
-		    tree.time_for_move = 40;
-		else
-		    tree.time_for_move = alloc;
-	    } else {
-		tree.time_for_move = allocate_time ();
-	    }
-	}
-    }
-
-    tree.pos = current;
-
-    fprintf (stdout, "Time for move: %ld\n", tree.time_for_move);
-
-#if DEBUG_BRAIN
-    max_ply = DEBUG_BRAIN;
-#endif
-
-    for (depth = 1; depth <= max_ply; ++depth) {
-	int score;
-
-	tree.iteration_depth = depth;
-
-#if DEBUG_BRAIN
-	fprintf (stderr, "\
-Searching best of %d moves in position (material %d) with depth %d [%d, %d]\n",
-		 num_moves, tree.pos.material, depth, alpha, beta);
-#endif
+	TimeLimits limits;
 	
-	score = search (&tree, depth, 0, alpha, beta, 0);
+	time_limits_init(&limits);
 
-	total_nodes += tree.nodes - last_nodes;
-	last_nodes = tree.nodes;
-	elapsed = rdifftime (rtime (), start_time);
-	total_centiseconds += elapsed - last_elapsed;
-	last_elapsed = elapsed;
+	/* How many moves to go?  */
 
-	*mv = tree.pv[0].moves[0];
+	retval = _think(mv, epd);
+	time_left -= (now() - limits.start_time) * 10;
 
-	if (tree.status & EVENTMASK_ENGINE_STOP)
-	    break;
+	return retval;
+}
 
-	if (score <= MATE) {
-	    /* We will not resign but let our opponent the fun to
-	       beat us.  */
-	    if (elapsed & 0x10) {
-		fprintf (stdout, "offer draw\n"); /* ;-) */
-	    } else if (tree.iteration_depth > 1) {
-		fprintf (stdout, "tellothers Mated in %d. :-(\n",
-			 (MATE - score) >> 1);
-	    }
-	    break;
-	} else if (score >= -MATE) {
-	    if (!mate_announce) {
-		mate_announce = (score - MATE) >> 1;
-		fprintf (stdout, "tellall Mate in %d! :->\n",
-			 mate_announce);
-		fprintf (stdout, "tellothers");
-		print_pv (&tree, score, 1, 0);
-	    }
+static int
+_think(chi_move *mv, chi_epd_pos *epd)
+{
+	TREE tree;
+	chi_move moves[CHI_MAX_MOVES];
+	chi_move *move_ptr;
 
-	    break;
+	int num_moves;
+	int value;
+
+	start_time = rtime();
+
+	move_ptr = chi_legal_moves(&current, moves);
+
+	num_moves = move_ptr - moves;
+
+#if 0
+	current_score = chi_material (&current) * 100;
+	if (chi_on_move (&current) != chi_white)
+		current_score = -current_score;
+#endif
+	fprintf (stdout, "Current score is: %d\n", current_score);
+	if (num_moves == 0) {
+		if (chi_check_check (&current)) {
+			if (chi_on_move (&current) == chi_white) {
+				fprintf (stdout, "0-1 {Black mates}\n");
+			} else {
+				fprintf (stdout, "1-0 {White mates}\n");
+			}
+		} else {
+			fprintf (stdout, "1/2-1/2 {Stalemate}\n");
+		}
+
+		return EVENT_GAME_OVER;
 	}
 
-#define ASPIRATION_WINDOW 1
+	if (current.half_move_clock >= 100) {
+		fprintf (stdout, "1/2-1/2 {Fifty-move rule}\n");
+		return EVENT_GAME_OVER;
+	}
 
-	if (score > MATE && score < -MATE) {
-#if ASPIRATION_WINDOW
-	    if (score <= alpha) {
-		alpha = score - MIN_EVAL_DIFF;
+	*mv = moves[0];
+
+	/* Better than nothing ...  */
+	if (num_moves == 1) {
+		return EVENT_CONTINUE;
+	}
+
 #if DEBUG_BRAIN
-		fprintf (stderr, "\
-Re-searching (failed low) best of %d moves in position (material %d) with depth %d [%d, %d]\n",
-			 num_moves, tree.pos.material, depth, alpha, beta);
+	max_depth = DEBUG_BRAIN;
+	tree.time_for_move = 999999;
 #endif
-		--depth;
-		print_fail_low (&tree, score, 0);
-		continue;
-	    } else if (score >= beta) {
-		beta = score + MIN_EVAL_DIFF;
+
+	init_tree(&tree, epd);
+
+	/* How many time will we afford ourselves? */
+	if (pondering) {
+		tree.time_for_move = 0x7fffffff;
+	} else {
+		if (fixed_time) {
+			tree.time_for_move = fixed_time;
+		} else {
+			if (go_fast) {
+				long int alloc = allocate_time ();
+				if (alloc > 40)
+					tree.time_for_move = 40;
+				else
+					tree.time_for_move = alloc;
+			} else {
+				tree.time_for_move = allocate_time ();
+			}
+		}
+	}
+
+	next_time_control = 0;
+
+	for (int depth = 1; depth <= max_depth; ++depth) {
+		tree.depth = depth;
 #if DEBUG_BRAIN
-		fprintf (stderr, "\
-Re-searching (failed low) best of %d moves in position (material %d) with depth %d [%d, %d]\n",
-			 num_moves, tree.pos.material, depth, alpha, beta);
-#endif
-		--depth;
-		print_fail_high (&tree, score, 0);
-		continue;
-	    }
-	    
-	    alpha = score - MIN_EVAL_DIFF;
-	    beta = score + MIN_EVAL_DIFF;
-	}
+		if (max_ply > 1) {
+			indent_output(&tree, 1);
+			fprintf(stderr, "deepening search to %d plies\n", max_ply);
+		}
 #endif
 
-	the_score = score;
+		tree.best_move = chi_false;
+		value = -search(&tree, depth, -INF, +INF);
+		if (tree.best_move) *mv = tree.best_move;
 
-	if (tree.iteration_depth > tree.pv_printed)
-	    print_pv (&tree, the_score, 0, 0);
+#if DEBUG_BRAIN
+		fprintf(stderr, "best move at depth %d(%d): ", max_ply, max_depth);
+		my_print_move(*mv);
+		fprintf(stderr, " (score: %d)\n", value);
+		fflush(stderr);
+#endif
+		// FIXME! This has to be more sophisticated for correct
+		// timing.  But we need pv handling first.
+		if (tree.epd) {
+			tree.epd->suggestion = *mv;
+		}
 
-	/* Do not go any deeper, if we have already used up more than
-	   2/3 of our time.  */
-	if (depth > 2) {
-	    elapsed = rdifftime (rtime (), start_time);
-	    if (elapsed > tree.time_for_move * 2.1 / 3.0)
-		break;
+		if (tree.status & EVENTMASK_ENGINE_STOP)
+			return EVENT_CONTINUE;
 	}
-    }
 
-    elapsed = rdifftime (rtime (), start_time);
-    if (moves_to_tc && !pondering)
-	time_cushion += tree.time_for_move - elapsed + inc;
-
-    if (1) {
-	printf ("  Nodes searched: %ld (quiescence: %ld [%f%%])\n", 
-		tree.nodes, tree.qnodes, 100 * (float) tree.qnodes / ((float) tree.nodes + 1));
-	printf ("  Deepest search: %d\n", tree.max_ply);
-	printf ("  Refuted quiescences: %ld\n", tree.refuted_quiescences);
-	printf ("  Score: %#.3g\n", chi_value2pawns (the_score));
-	printf ("  Elapsed: %ld.%02lds\n", elapsed / 100, elapsed % 100);
-	if (elapsed)
-	    printf ("  Nodes per second: %ld\n", (100 * tree.nodes) / elapsed);
-	else
-	    printf ("  Nodes per second: INF\n");
-	printf ("  Failed high: %ld (move ordering: %f%%), failed low: %ld\n",
-		tree.fh, (((float) tree.ffh * 100) / (float) (tree.fh + 1)), 
-		tree.fl);
-	printf ("  Killer rate: %f%%\n",
-		(((float) tree.killers * 100) / (float) (tree.fh + 1)));
-	printf ("  Q: failed high: %ld (move ordering: %f%%), failed low: %ld\n",
-		tree.qfh, (((float) tree.qffh * 100) / (float) (tree.qfh + 1)), 
-		tree.qfl);
-	printf ("  TT probes: %lu\n", tree.tt_probes);
-	printf ("  TT hits: %lu (exact: %lu, alpha: %lu, beta: %lu, moves: %lu)\n", 
-		tree.tt_hits, tree.tt_exact_hits, 
-		tree.tt_alpha_hits, tree.tt_beta_hits,
-		tree.tt_moves);
-	printf ("  TT collisions: %lu\n", tree.tt_collisions);
-	printf ("  QTT probes: %lu\n", tree.qtt_probes);
-	printf ("  QTT hits: %lu (exact: %lu, alpha: %lu, beta: %lu, moves: %lu)\n", 
-		tree.qtt_hits, tree.qtt_exact_hits, 
-		tree.qtt_alpha_hits, tree.qtt_beta_hits,
-		tree.qtt_moves);
-	printf ("  Null moves: %lu (%lu failed high)\n",
-		tree.null_moves, tree.null_fh);
-	printf ("  Evaluations: %lu\n", tree.evals);
-	printf ("  One-Pawn lazy evals: %lu\n", tree.lazy_one_pawn);
-	printf ("  Two-pawn lazy evals: %lu\n", tree.lazy_two_pawns);
-	printf ("  Total nodes searched: %llu\n", total_nodes);
-	if (total_centiseconds)
-	    printf ("  Total nodes per second: %lld\n", 
-		    (100 * total_nodes) / total_centiseconds);
-    }
-
-    time_left -= elapsed;
-
-    return result;
-}
-
-void
-update_castling_state (tree, move, ply)
-     TREE* tree;
-     chi_move move;
-     int ply;
-{
-    int castling_state = tree->castling_states[ply];
-    chi_pos* pos = &tree->pos;
-
-#define wk_castle_move ((king << 12) | (1 << 6) | 3)
-#define wq_castle_move ((king << 12) | (5 << 6) | 3)
-#define bk_castle_move ((king << 12) | (57 << 6) | 59)
-#define bq_castle_move ((king << 12) | (61 << 6) | 59)
-
-    switch (move) {
-	case wk_castle_move:
-	case wq_castle_move:
-	    castling_state &= 0x70;
-	    castling_state |= 0x4;
-	    break;
-	case bk_castle_move:
-	case bq_castle_move:
-	    castling_state &= 0x7;
-	    castling_state |= 0x40;
-	    break;
-    }
-
-    if (!chi_wk_castle (pos))
-	castling_state &= ~0x1;
-
-    if (!chi_wq_castle (pos))
-	castling_state &= ~0x2;
-    
-    if (!chi_bk_castle (pos))
-	castling_state &= ~0x10;
-
-    if (!chi_bq_castle (pos))
-	castling_state &= ~0x20;
-
-    tree->castling_states[ply + 1] = castling_state;
-}
-
-unsigned int history[8192];
-
-// FIXME: Should be inlined.
-void
-store_killer (tree, move, depth, ply)
-     TREE* tree;
-     chi_move move;
-     int depth;
-     int ply;
-{
-    /* Moves that change the material balance will always be tried first.  */
-    if (chi_move_material (move))
-	return;
-
-    history[(move & 0xfff) + (chi_on_move (&tree->pos) << 6)] +=
-	depth * tree->pos.half_moves;
-
-    if (tree->bonny[ply] != move) {
-	tree->clyde[ply] = tree->bonny[ply];
-	tree->bonny[ply] = move;
-    }
-}
-
-void init_killers ()
-{
-    memset (history, 0, sizeof history);
+	return EVENT_CONTINUE;
 }
 
 #if DEBUG_BRAIN
 void
-indent_output (TREE* tree, int ply)
+indent_output (TREE *tree, int ply)
 {
-    int i;
+	int i;
 
 //    int ply = tree->current_depth - depth;
 
 //    for (i = depth; i < tree->current_depth; ++i)
 //        fprintf (stderr, " ");
 
-    for (i = 0; i < ply; ++i)
-	fputc (' ', stderr);
+	for (i = 0; i < ply; ++i)
+		fputc (' ', stderr);
 
-    /* Assumed to be called *after* a move has been applied.  */
-    if (chi_on_move (&tree->pos) != chi_white)
-        fprintf (stderr, " [%s(%d)]: ", 
-		 ply < tree->iteration_depth ? "BLACK" : "black", ply);
-    else
-        fprintf (stderr, " [%s(%d)]: ", 
-		 ply < tree->iteration_depth ? "WHITE" : "white", ply);
+	/* Assumed to be called *after* a move has been applied.  */
+	if (chi_on_move(&tree->pos) != chi_white)
+		fprintf(stderr, " [%s(%d)]: ", "white", ply);
+	else
+		fprintf(stderr, " [%s(%d)]: ", "black", ply);
 }
 #endif
 
 void
-my_print_move (chi_move mv)
+my_print_move(chi_move mv)
 {
-    fprintf (stderr, "%s-%s", 
-	     chi_shift2label (chi_move_from (mv)),
-	     chi_shift2label (chi_move_to (mv)));
-    switch (chi_move_promote (mv)) {
+	switch (chi_move_attacker (mv)) {
 	case knight:
-	    fprintf (stderr, "=N");
-	    break;
+		fputc ('N', stderr);
+		break;
 	case bishop:
-	    fprintf (stderr, "=B");
-	    break;
+		fputc ('B', stderr);
+		break;
 	case rook:
-	    fprintf (stderr, "=R");
-	    break;
+		fputc ('R', stderr);
+		break;
 	case queen:
-	    fprintf (stderr, "=Q");
-	    break;
-    }
-
-    fprintf (stderr, "[%08x:", mv);
-    fprintf (stderr, "%d:", chi_move_material (mv));
-    fprintf (stderr, "%s:", chi_move_is_ep (mv) ? "ep" : "-");
-
-    switch (chi_move_promote (mv)) {
-	case knight:
-	    fprintf (stderr, "=N:");
-	    break;
-	case bishop:
-	    fprintf (stderr, "=B:");
-	    break;
-	case rook:
-	    fprintf (stderr, "=R:");
-	    break;
-	case queen:
-	    fprintf (stderr, "=Q:");
-	    break;
-	case empty:
-	    fprintf (stderr, "-:");
-	    break;
-	default:
-	    fprintf (stderr, "=?%d:", chi_move_promote (mv));
-	    break;
-    }
-    
-    switch (chi_move_victim (mv)) {
-	case pawn:
-	    fprintf (stderr, "xP:");
-	    break;
-	case knight:
-	    fprintf (stderr, "xN:");
-	    break;
-	case bishop:
-	    fprintf (stderr, "xB:");
-	    break;
-	case rook:
-	    fprintf (stderr, "xR:");
-	    break;
-	case queen:
-	    fprintf (stderr, "xQ:");
-	    break;
-	case empty:
-	    fprintf (stderr, "-:");
-	    break;
-	default:
-	    fprintf (stderr, "x?%d:", chi_move_victim (mv));
-	    break;
-    }
-
-    switch (chi_move_attacker (mv)) {
-	case pawn:
-	    fprintf (stderr, "P");
-	    break;
-	case knight:
-	    fprintf (stderr, "N");
-	    break;
-	case bishop:
-	    fprintf (stderr, "B");
-	    break;
-	case rook:
-	    fprintf (stderr, "R");
-	    break;
-	case queen:
-	    fprintf (stderr, "Q");
-	    break;
+		fputc ('Q', stderr);
+		break;
 	case king:
-	    fprintf (stderr, "K");
-	    break;
-    }
+		fputc ('K', stderr);
+		break;
+	}
 
-    fprintf (stderr, "]");
+	fprintf(stderr, "%s%c%s",
+	        chi_shift2label (chi_move_from (mv)),
+	        chi_move_victim (mv) ? 'x' : '-',
+	        chi_shift2label (chi_move_to (mv)));
+	switch (chi_move_promote (mv)) {
+	case knight:
+		fprintf (stderr, "=N");
+		break;
+	case bishop:
+		fprintf (stderr, "=B");
+		break;
+	case rook:
+		fprintf (stderr, "=R");
+		break;
+	case queen:
+		fprintf (stderr, "=Q");
+		break;
+	}
 }
 
-/*
-Local Variables:
-mode: c
-c-style: K&R
-c-basic-shift: 8
-End:
-*/
+static void
+init_tree(TREE *tree, chi_epd_pos *epd)
+{
+	memset(tree, 0, sizeof *tree);
+	tree->pos = current;
+
+	// FIXME! Is this correct?
+	tree->w_castled = chi_w_castled(&tree->pos);
+	tree->b_castled = chi_b_castled(&tree->pos);
+
+	tree->signatures[0] = game_hist[game_hist_ply].signature;
+	tree->in_check[0] = chi_check_check(&tree->pos);
+
+	tree->epd = epd;
+
+	// FIXME! Initialize time_for_move.
+}

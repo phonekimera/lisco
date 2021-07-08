@@ -1,10 +1,11 @@
-/* libch.h - Include file for libchi. -*- c -*-
- * Copyright (C) 2002 Guido Flohr (guido@imperia.net)
+/* This file is part of the chess engine tate.
  *
- * This program is free software; you can redistribute it and/or modify
+ * Copyright (C) 2002-2021 cantanea EOOD.
+ *
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,11 +13,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
- *
- * This file is generated from libchi.h.in, do not edit!
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef LIBCHI_H
@@ -26,19 +23,20 @@
 # include <config.h>
 #endif
 
-#include <system.h>
-
-typedef @BITV64@ bitv64;
+#include <stdlib.h>
+#include <string.h>
 
 #define CHI_VERSION "@VERSION@"
 
-#if defined (__GNUC__) || __STDC__ || defined (_AIX) || \
-             (defined (__mips) && defined (_SYSTYPE_SVR4)) || \
-             defined(WIN32) || defined(__cplusplus)
-# define CHI_PARAMS(args) args
-#else
-# define CHI_PARAMS(args) ()
-#endif
+typedef @BITV64@ bitv64;
+
+/* Boolean values.  */
+typedef enum chi_bool {
+	chi_false = 0,
+#define chi_false chi_false
+	chi_true = 1
+#define chi_true chi_true
+} chi_bool;
 
 #ifdef __cplusplus
 # define CHI_BEGIN_DECLS extern "C" {
@@ -48,6 +46,12 @@ typedef @BITV64@ bitv64;
 # define CHI_END_DECLS /* empty */
 #endif
 
+/* Assume UTF-8 capabilities? Unfortunately, using figurine notation looks
+ * ugly in a terminal, so we disable it by default.
+ */
+#define CHI_USE_UTF_8 0
+#define CHI_USE_UTF8 CHI_USE_UTF_8
+
 /* Error codes.  */
 #define CHI_ERR_SUCCESS    0
 /* Out of memory.  */
@@ -56,14 +60,26 @@ typedef @BITV64@ bitv64;
 #define CHI_ERR_PARSER     2
 /* Move from an empty square.  */
 #define CHI_ERR_EMPTY_SQUARE 3
-/* Move from an empty square.  */
+/* Illegal move.  */
 #define CHI_ERR_ILLEGAL_MOVE 4
 /* Side not on move is in check.  */
 #define CHI_ERR_IN_CHECK 5
+/* Illegal FEN string.  */
+#define CHI_ERR_ILLEGAL_FEN 6
+/* One side has two or more kings.  */
+#define CHI_ERR_TWO_KINGS 7
+/* One side has no king.  */
+#define CHI_ERR_NO_KING 8
+/* Illegal castling state.  */
+#define CHI_ERR_ILLEGAL_CASTLING_STATE 9
+/* Illegal EPD string.  */
+#define CHI_ERR_ILLEGAL_EPD 10
 /* Illegal library usage (NULL pointers, etc.).  */
-#define CHI_ERR_YOUR_FAULT 6
+#define CHI_ERR_YOUR_FAULT 11
+/* Ambiguous move.  */
+#define CHI_ERR_AMBIGUOUS_MOVE 12
 /* End marker.  */
-#define CHI_ERRMAX      CHI_ERR_YOUR_FAULT
+#define CHI_ERRMAX      CHI_ERR_AMBIGUOUS_MOVE
 
 /* Bit masks for files and ranks of the chess board.  */
 #define CHI_A_MASK ((bitv64) 0x8080808080808080)
@@ -84,6 +100,138 @@ typedef @BITV64@ bitv64;
 #define CHI_7_MASK ((bitv64) 0x00ff000000000000)
 #define CHI_8_MASK ((bitv64) 0xff00000000000000)
 
+/* Bit masks for individual fields.  */
+#define CHI_A1_MASK (CHI_A_MASK & CHI_1_MASK)
+#define CHI_B1_MASK (CHI_B_MASK & CHI_1_MASK)
+#define CHI_C1_MASK (CHI_C_MASK & CHI_1_MASK)
+#define CHI_D1_MASK (CHI_D_MASK & CHI_1_MASK)
+#define CHI_E1_MASK (CHI_E_MASK & CHI_1_MASK)
+#define CHI_F1_MASK (CHI_F_MASK & CHI_1_MASK)
+#define CHI_G1_MASK (CHI_G_MASK & CHI_1_MASK)
+#define CHI_H1_MASK (CHI_H_MASK & CHI_1_MASK)
+#define CHI_A2_MASK (CHI_A_MASK & CHI_2_MASK)
+#define CHI_B2_MASK (CHI_B_MASK & CHI_2_MASK)
+#define CHI_C2_MASK (CHI_C_MASK & CHI_2_MASK)
+#define CHI_D2_MASK (CHI_D_MASK & CHI_2_MASK)
+#define CHI_E2_MASK (CHI_E_MASK & CHI_2_MASK)
+#define CHI_F2_MASK (CHI_F_MASK & CHI_2_MASK)
+#define CHI_G2_MASK (CHI_G_MASK & CHI_2_MASK)
+#define CHI_H2_MASK (CHI_H_MASK & CHI_2_MASK)
+#define CHI_A3_MASK (CHI_A_MASK & CHI_3_MASK)
+#define CHI_B3_MASK (CHI_B_MASK & CHI_3_MASK)
+#define CHI_C3_MASK (CHI_C_MASK & CHI_3_MASK)
+#define CHI_D3_MASK (CHI_D_MASK & CHI_3_MASK)
+#define CHI_E3_MASK (CHI_E_MASK & CHI_3_MASK)
+#define CHI_F3_MASK (CHI_F_MASK & CHI_3_MASK)
+#define CHI_G3_MASK (CHI_G_MASK & CHI_3_MASK)
+#define CHI_H3_MASK (CHI_H_MASK & CHI_3_MASK)
+#define CHI_A4_MASK (CHI_A_MASK & CHI_4_MASK)
+#define CHI_B4_MASK (CHI_B_MASK & CHI_4_MASK)
+#define CHI_C4_MASK (CHI_C_MASK & CHI_4_MASK)
+#define CHI_D4_MASK (CHI_D_MASK & CHI_4_MASK)
+#define CHI_E4_MASK (CHI_E_MASK & CHI_4_MASK)
+#define CHI_F4_MASK (CHI_F_MASK & CHI_4_MASK)
+#define CHI_G4_MASK (CHI_G_MASK & CHI_4_MASK)
+#define CHI_H4_MASK (CHI_H_MASK & CHI_4_MASK)
+#define CHI_A5_MASK (CHI_A_MASK & CHI_5_MASK)
+#define CHI_B5_MASK (CHI_B_MASK & CHI_5_MASK)
+#define CHI_C5_MASK (CHI_C_MASK & CHI_5_MASK)
+#define CHI_D5_MASK (CHI_D_MASK & CHI_5_MASK)
+#define CHI_E5_MASK (CHI_E_MASK & CHI_5_MASK)
+#define CHI_F5_MASK (CHI_F_MASK & CHI_5_MASK)
+#define CHI_G5_MASK (CHI_G_MASK & CHI_5_MASK)
+#define CHI_H5_MASK (CHI_H_MASK & CHI_5_MASK)
+#define CHI_A6_MASK (CHI_A_MASK & CHI_6_MASK)
+#define CHI_B6_MASK (CHI_B_MASK & CHI_6_MASK)
+#define CHI_C6_MASK (CHI_C_MASK & CHI_6_MASK)
+#define CHI_D6_MASK (CHI_D_MASK & CHI_6_MASK)
+#define CHI_E6_MASK (CHI_E_MASK & CHI_6_MASK)
+#define CHI_F6_MASK (CHI_F_MASK & CHI_6_MASK)
+#define CHI_G6_MASK (CHI_G_MASK & CHI_6_MASK)
+#define CHI_H6_MASK (CHI_H_MASK & CHI_6_MASK)
+#define CHI_A7_MASK (CHI_A_MASK & CHI_7_MASK)
+#define CHI_B7_MASK (CHI_B_MASK & CHI_7_MASK)
+#define CHI_C7_MASK (CHI_C_MASK & CHI_7_MASK)
+#define CHI_D7_MASK (CHI_D_MASK & CHI_7_MASK)
+#define CHI_E7_MASK (CHI_E_MASK & CHI_7_MASK)
+#define CHI_F7_MASK (CHI_F_MASK & CHI_7_MASK)
+#define CHI_G7_MASK (CHI_G_MASK & CHI_7_MASK)
+#define CHI_H7_MASK (CHI_H_MASK & CHI_7_MASK)
+#define CHI_A8_MASK (CHI_A_MASK & CHI_8_MASK)
+#define CHI_B8_MASK (CHI_B_MASK & CHI_8_MASK)
+#define CHI_C8_MASK (CHI_C_MASK & CHI_8_MASK)
+#define CHI_D8_MASK (CHI_D_MASK & CHI_8_MASK)
+#define CHI_E8_MASK (CHI_E_MASK & CHI_8_MASK)
+#define CHI_F8_MASK (CHI_F_MASK & CHI_8_MASK)
+#define CHI_G8_MASK (CHI_G_MASK & CHI_8_MASK)
+#define CHI_H8_MASK (CHI_H_MASK & CHI_8_MASK)
+
+/* Bit shifts for fields.  */
+#define CHI_A1 (7)
+#define CHI_B1 (6)
+#define CHI_C1 (5)
+#define CHI_D1 (4)
+#define CHI_E1 (3)
+#define CHI_F1 (2)
+#define CHI_G1 (1)
+#define CHI_H1 (0)
+#define CHI_A2 (15)
+#define CHI_B2 (14)
+#define CHI_C2 (13)
+#define CHI_D2 (12)
+#define CHI_E2 (11)
+#define CHI_F2 (10)
+#define CHI_G2 (9)
+#define CHI_H2 (8)
+#define CHI_A3 (23)
+#define CHI_B3 (22)
+#define CHI_C3 (21)
+#define CHI_D3 (20)
+#define CHI_E3 (19)
+#define CHI_F3 (18)
+#define CHI_G3 (17)
+#define CHI_H3 (16)
+#define CHI_A4 (31)
+#define CHI_B4 (30)
+#define CHI_C4 (29)
+#define CHI_D4 (28)
+#define CHI_E4 (27)
+#define CHI_F4 (26)
+#define CHI_G4 (25)
+#define CHI_H4 (24)
+#define CHI_A5 (39)
+#define CHI_B5 (38)
+#define CHI_C5 (37)
+#define CHI_D5 (36)
+#define CHI_E5 (35)
+#define CHI_F5 (34)
+#define CHI_G5 (33)
+#define CHI_H5 (32)
+#define CHI_A6 (47)
+#define CHI_B6 (46)
+#define CHI_C6 (45)
+#define CHI_D6 (44)
+#define CHI_E6 (43)
+#define CHI_F6 (42)
+#define CHI_G6 (41)
+#define CHI_H6 (40)
+#define CHI_A7 (55)
+#define CHI_B7 (54)
+#define CHI_C7 (53)
+#define CHI_D7 (52)
+#define CHI_E7 (51)
+#define CHI_F7 (50)
+#define CHI_G7 (49)
+#define CHI_H7 (48)
+#define CHI_A8 (63)
+#define CHI_B8 (62)
+#define CHI_C8 (61)
+#define CHI_D8 (60)
+#define CHI_E8 (59)
+#define CHI_F8 (58)
+#define CHI_G8 (57)
+#define CHI_H8 (56)
+
 #define CHI_FILE_A (0)
 #define CHI_FILE_B (1)
 #define CHI_FILE_C (2)
@@ -102,6 +250,10 @@ typedef @BITV64@ bitv64;
 #define CHI_RANK_7 (6)
 #define CHI_RANK_8 (7)
 
+/* Masks for all black and white fields.  A8 is a white field.  */
+#define CHI_WHITE_MASK ((bitv64) 0xaa55aa55aa55aa55)
+#define CHI_BLACK_MASK ((bitv64) 0x55aa55aa55aa55aa)
+
 /* Commonly used piece values in centipawns bytes.  */
 #define CHI_VALUE_EMPTY      0
 #define CHI_VALUE_PAWN     100
@@ -109,6 +261,46 @@ typedef @BITV64@ bitv64;
 #define CHI_VALUE_BISHOP   300
 #define CHI_VALUE_ROOK     500
 #define CHI_VALUE_QUEEN    900
+
+/* Possible reasons for game over */
+typedef enum chi_result {
+	chi_result_unknown = 0,
+#define chi_result_unknown chi_result_unknown
+	chi_result_draw = 1,
+#define chi_result_draw chi_result_draw
+	chi_result_stalemate = 2,
+#define chi_result_stalemate chi_result_stalemate
+	chi_result_draw_by_repetition = 3,
+#define chi_result_draw_by_repetition chi_result_draw_by_repetition
+	chi_result_draw_by_50_moves_rule = 4,
+#define chi_result_draw_by_50_moves_rule chi_result_draw_by_50_moves_rule
+	chi_result_draw_by_insufficient_material = 5,
+#define chi_result_draw_by_insufficient_material chi_result_draw_by_insufficient_material
+	chi_result_draw_by_impossible_checkmate = 6,
+#define chi_result_draw_by_impossible_checkmate chi_result_draw_by_impossible_checkmate
+	chi_result_draw_by_agreement = 7,
+#define chi_result_draw_by_agreement chi_result_draw_by_agreement
+	chi_result_white_wins = 10, /* Reason unknown */
+#define chi_result_white_wins chi_result_white_wins
+	chi_result_black_wins = -10, /* Reason unknown */
+#define chi_result_black_wins chi_result_black_wins
+	chi_result_white_mates = 11,
+#define chi_result_white_mates chi_result_white_mates
+	chi_result_black_mates = -11,
+#define chi_result_black_mates chi_result_black_mates
+	chi_result_white_wins_on_time = 12,
+#define chi_result_white_wins_on_time chi_result_white_wins_on_time
+	chi_result_black_wins_on_time = -12,
+#define chi_result_black_wins_on_time chi_result_black_wins_on_time
+	chi_result_white_wins_by_resignation = 13,
+#define chi_result_white_wins_by_resignation chi_result_white_wins_by_resignation
+	chi_result_black_wins_by_resignation = -13,
+#define chi_result_black_wins_by_resignation chi_result_black_wins_by_resignation
+} chi_result;
+
+#define chi_result_is_white_win(result) ((result) >= chi_result_white_wins)
+#define chi_result_is_black_win(result) ((result) <= chi_result_black_wins)
+#define chi_result_is_draw(result) (abs(result) < chi_result_white_wins)
 
 /* Artifical evaluations.  */
 #define CHI_VALUE_DOUBLE_STEP   20
@@ -123,12 +315,9 @@ typedef @BITV64@ bitv64;
    the practical will be only half of it.  */
 #define CHI_MAX_MOVES 80
 
-typedef enum {
-	chi_white = 0,
-#define chi_white chi_white
-	chi_black = !chi_white,
-#define chi_black chi_black
-} chi_color_t;
+#define chi_white (0)
+#define chi_black (1)
+typedef unsigned char chi_color_t;
 
 typedef enum {
 	empty = 0,
@@ -150,8 +339,8 @@ typedef enum {
 typedef struct {
 	bitv64 w_pieces;
 	bitv64 b_pieces;
-        bitv64 w_pieces90;
-        bitv64 b_pieces90;
+	bitv64 w_pieces90;
+	bitv64 b_pieces90;
 
 	bitv64 w_pawns;
 	bitv64 w_knights;
@@ -167,48 +356,68 @@ typedef struct {
 
 	unsigned int half_move_clock;
 	unsigned int half_moves;
-        chi_color_t  to_move;
+	unsigned int irreversible[142];
+	unsigned int irreversible_count;
+	unsigned int double_pawn_moves[16];
+	unsigned char ep_files[16];
+	unsigned int double_pawn_move_count;
+	unsigned int lost_wk_castle;
+	unsigned int lost_wq_castle;
+	unsigned int lost_bk_castle;
+	unsigned int lost_bq_castle;
 
 #define chi_flags(p) ((p)->union_flags.flags)
-#define chi_wk_castle(p) ((p)->union_flags.sflags.wk_castle)
-#define chi_wq_castle(p) ((p)->union_flags.sflags.wq_castle)
-#define chi_bk_castle(p) ((p)->union_flags.sflags.bk_castle)
-#define chi_bq_castle(p) ((p)->union_flags.sflags.bq_castle)
-#define chi_ep(p) ((p)->union_flags.sflags.ep)
-#define chi_ep_file(p) ((p)->union_flags.sflags.ep_file)
-#define chi_on_move(p) ((p)->to_move)
-#define chi_ep_rank(p) (chi_to_move(p) ? \
-			  CHI_RANK_6 : CHI_RANK_3)
-    
-	union {
-		unsigned char flags;
-		struct {
-			unsigned wk_castle: 1;
-			unsigned wq_castle: 1;
-			unsigned bk_castle: 1;
-			unsigned bq_castle: 1;
-			unsigned ep: 1;
-			unsigned ep_file: 3;
-		} sflags;
-	} union_flags;
-    
-        /* The material (p = 1, n = 3, b = 3, r = 5, q = 9) from
+#define chi_wk_castle(p) ((p)->flags.wk_castle)
+#define chi_wq_castle(p) ((p)->flags.wq_castle)
+#define chi_bk_castle(p) ((p)->flags.bk_castle)
+#define chi_bq_castle(p) ((p)->flags.bq_castle)
+#define chi_ep(p) ((p)->flags.ep)
+#define chi_ep_file(p) ((p)->flags.ep_file)
+#define chi_on_move(p) ((p)->flags.on_move)
+#define chi_ep_rank(p) (chi_on_move(p) ? \
+			  CHI_RANK_3 : CHI_RANK_6)
+#define chi_material(p) ((p)->flags.material)
+#define chi_w_castled(p) ((p)->flags.w_castled)
+#define chi_b_castled(p) ((p)->flags.b_castled)
+
+	struct {
+		/* FIXME! This four fields are redundant!  Change the corresponding
+		 * macros, and remove them.
+		 */
+		unsigned wk_castle: 1;
+		unsigned wq_castle: 1;
+		unsigned bk_castle: 1;
+		unsigned bq_castle: 1;
+		unsigned ep: 1;
+		unsigned ep_file: 3;
+		unsigned on_move: 1;
+		signed material: 8;
+		unsigned w_castled: 1;
+		unsigned b_castled: 1;
+	} flags;
+
+	/* The material (p = 1, n = 3, b = 3, r = 5, q = 9) from
 	   white's point of view.  This gets updated by chi_apply_move().
 	   In normal chess, the maximum is 9 queens, 2 rooks, and 4 minors,
 	   which sums up to 103.  Luckily less than 128 which leaves
 	   us with sufficient space for the sign.
 	*/
-        char material;
+
+#define chi_pos_fill char reserved[3];
+        chi_pos_fill;
 } chi_pos;
+
+#define chi_copy_pos(d, s) memcpy(d, s, sizeof *d)
+#define chi_cmp_pos(d, s) memcmp(d, s, sizeof *d)
 
 /* A move is represented by 32 bits in host order:
 
            28-32: unused
            23-27: raw material balance (viewed from the side on move)
-              22: en passant flag
-           19-21: promotion piece (add 2)
-           16-18: piece that gets removed
-           13-15: piece that moves (resp. attacker)
+           20-22: promotion piece
+           17-19: piece that gets removed
+           14-16: piece that moves (resp. attacker)
+              13: en passant flag
             7-12: to offset (0-63)
             1- 6: from offset (0-63)
 
@@ -235,26 +444,62 @@ typedef unsigned int chi_move;
 #define chi_move_packed(m) (m)
 #define chi_move_from(m) ((m) & 0x3f)
 #define chi_move_to(m) (((m) >> 6) & 0x3f)
-#define chi_move_attacker(m) (((m) >> 12) & 0x7)
-#define chi_move_victim(m) (((m) >> 15) & 0x7)
-#define chi_move_promote(m) (((m) >> 18) & 0x7)
-#define chi_move_is_ep(m) ((m) & 0x200000)
+#define chi_move_attacker(m) (((~m) >> 13) & 0x7)
+#define chi_move_victim(m) (((m) >> 16) & 0x7)
+#define chi_move_promote(m) (((m) >> 19) & 0x7)
+#define chi_move_is_ep(m) ((m) & 0x1000)
 #define chi_move_material(m) ((m) >> 22)
 
 /* Macros for setting particular values for a move.  They are all
-   expansive and should be avoided in really time-critical situations.
+   expensive and should be avoided in really time-critical situations.
    You can often save a lot of time by doing some exercises in
    bit-twiddling.
 */
 #define chi_move_set_packed(m, v) ((m) = (v))
 #define chi_move_set_from(m, v) ((m) = ((m) & ~0x3f) | ((v) & 0x3f))
 #define chi_move_set_to(m, v) ((m) = ((m) & ~0xfc0) | ((v) & 0x3f) << 6)
-#define chi_move_set_attacker(m, a) ((m) = ((m) & ~0x7000) | ((a) & 0x7) << 12)
-#define chi_move_set_victim(m, v) ((m) = ((m) & ~0x38000) | ((v) & 0x7) << 15)
-#define chi_move_set_promote(m, p) ((m) = ((m) & ~0x1c0000) | ((p) & 0x7) << 18)
-#define chi_move_set_ep(m) ((m) |= 0x200000)
-#define chi_move_unset_ep(m) ((m) &= ~0x200000)
+#define chi_move_set_attacker(m, a) ((m) = ((m) & ~0xe000) | ((~a) & 0x7) << 13)
+#define chi_move_set_victim(m, v) ((m) = ((m) & ~0x70000) | ((v) & 0x7) << 16)
+#define chi_move_set_promote(m, p) ((m) = ((m) & ~0x380000) | ((p) & 0x7) << 19)
+#define chi_move_set_ep(m) ((m) |= 0x1000)
+#define chi_move_unset_ep(m) ((m) &= ~0x1000)
 #define chi_move_set_material(m, v) ((m) = ((m) & ~0x07c00000) | ((v) << 22))
+
+/* Representation of EPD test positions.  */
+typedef struct {
+    /* The position.  */
+    chi_pos pos;
+    
+    /* Solution move.  */
+    chi_move solution;
+
+    /* Flag indicating whether the solution move has to be found or to be
+       avoided.  */
+    int avoid;
+
+    /* ID string.  */
+    char* id;
+
+    /* Maximum time for solution in centiseconds.  */
+    unsigned long fixed_time;
+
+    /* Move currently suggested by the engine.  */
+    chi_move suggestion;
+
+    /* Time elapsed in centiseconds, when the principal variation changed
+       to the solution for the last time.  */
+    unsigned long cs_stable_solution;
+    
+    /* Search depth, where the above happened.  */
+    int depth_stable_solution;
+    
+    /* Time elapsed in centiseconds, when the principal variation changed
+       from the correct solution, to another move.  */
+    unsigned long cs_refuted_solution;
+
+    /* Search depth, where the above happened.  */
+    int depth_refuted_solution;
+} chi_epd_pos;
 
 /* A handle for creating Zobrist keys.  */
 typedef @BITV64@* chi_zk_handle;
@@ -276,187 +521,212 @@ typedef @BITV64@* chi_zk_handle;
 CHI_BEGIN_DECLS
 
 /* Return a descriptive (English!) error message for the given error.  */
-extern const char* chi_strerror CHI_PARAMS ((int chi_arg_errnum));
+extern const char* chi_strerror(int chi_arg_errnum);
 
 /* Set a board to the initial chess position.  */
-extern void chi_init_position CHI_PARAMS ((chi_pos* chi_arg_pos));
+extern void chi_init_position(chi_pos* chi_arg_pos);
 
 /* Set a position to empty (no pieces), unset all flags etc.  */
-extern void chi_clear_position CHI_PARAMS ((chi_pos* chi_arg_pos));
+extern void chi_clear_position(chi_pos* chi_arg_pos);
+
+/* Set a position according to a FEN notation.  */
+extern int chi_set_position(chi_pos* chi_arg_pos, const char* chi_arg_fen);
+
+/* Parse only the position part of a FEN string (not parsing color on
+   move, castling state, en passant status and move counters.  */
+extern int chi_parse_fen_position(chi_pos* chi_arg_pos,
+				  const char* chi_arg_fen,
+				  const char** chi_arg_end_ptr);
+
+/* Get the FEN representation of a position.  You have to free() the result!  */
+extern char *chi_fen(const chi_pos *chi_arg_pos);
+
+/* Fill an EPD test position from a string.  */
+extern int chi_parse_epd(chi_epd_pos* chi_arg_epd_pos,
+			 const char* chi_arg_epd);
+
+/* Free all resources from an EPD test position.  */
+extern void chi_free_epd(chi_epd_pos* chi_arg_epd_pos);
 
 /* Place a piece (also empty!) of given color on board.  Will not update
    en_passant state, castling state, move clocks etc.  */
-extern int chi_set_piece CHI_PARAMS ((chi_pos* chi_arg_pos, 
-				      chi_piece_t chi_arg_piece,
-				      chi_color_t chi_arg_color,
-				      int chi_arg_file, int chi_arg_rank));
+extern int chi_set_piece(chi_pos* chi_arg_pos, 
+			 chi_piece_t chi_arg_piece,
+			 chi_color_t chi_arg_color,
+			 int chi_arg_file, int chi_arg_rank);
 
 /* Dumps piece characters into a string.  The second argument is a buffer
    allocated with malloc(), the third argument must point to the buffer's 
    size.  You can safely pass a NULL pointer for the buffer address,
    in which case libchi will allocate a buffer for you.  */
-extern int chi_dump_pieces CHI_PARAMS ((chi_pos* chi_arg_pos, 
-					char** chi_arg_buf, 
-					unsigned int* chi_arg_bufsize));
+extern int chi_dump_pieces(chi_pos* chi_arg_pos, 
+			   char** chi_arg_buf, 
+			   unsigned int* chi_arg_bufsize);
 
 /* Return the label ("a1", "a2", ...) for given coordinates.  */
-extern const char* chi_coords2label CHI_PARAMS ((unsigned int chi_arg_file, 
-						 unsigned int chi_arg_rank));
+extern const char* chi_coords2label(unsigned int chi_arg_file,
+                                    unsigned int chi_arg_rank);
 
 /* Return the label ("a1", "a2", ...) for given shift.  */
-extern const char* chi_shift2label CHI_PARAMS ((unsigned int chi_arg_shift));
+extern const char* chi_shift2label(unsigned int chi_arg_shift);
 
 /* Return a letter for a given piece (including pawn!).  */
-extern const char chi_piece2char CHI_PARAMS ((chi_piece_t chi_arg_piece));
+extern const char chi_piece2char(chi_piece_t chi_arg_piece);
+
+#if CHI_USE_UTF_8
+/* Return utf-8 representations of English letters for pieces.  */
+extern const char *chi_char2figurine(char piece);
+#endif
 
 /* Parse the move string and place the result into the structure.
    Returns a non-zero error code in case of failure.  */
-extern int chi_parse_move CHI_PARAMS ((chi_pos* chi_arg_pos, 
-				       chi_move* chi_arg_move,
-				       const char* chi_arg_movestr));
+extern int chi_parse_move(chi_pos* chi_arg_pos, 
+			  chi_move* chi_arg_move,
+			  const char* chi_arg_movestr);
 
 /* Place a string describing the move in the output buffer.  */
-extern int chi_print_move CHI_PARAMS ((chi_pos* chi_arg_pos, 
-				       chi_move chi_arg_move, 
-				       char** chi_arg_buf, 
-				       unsigned int* chi_arg_bufsize, 
-				       int chi_arg_san));
+extern int chi_print_move(chi_pos* chi_arg_pos, chi_move chi_arg_move, 
+			  char** chi_arg_buf, unsigned int* chi_arg_bufsize, 
+   		          int chi_arg_san);
+
+/* Place a string with the move in coordinate notation in the output
+   buffer.  You have to pass the color on move so that the castling
+   direction can be detected.  */
+extern int chi_coordinate_notation(chi_move chi_arg_move, chi_color_t on_move,
+			           char** chi_arg_buf,
+                                   unsigned int* chi_arg_bufsize);
 
 /* (Lazily) apply a move to a given position.  */
-extern int chi_make_move CHI_PARAMS ((chi_pos* chi_arg_pos, 
-				      chi_move chi_arg_move));
+extern int chi_make_move(chi_pos* chi_arg_pos, chi_move chi_arg_move);
 
 /* (Fully) apply a move to a given position.  This will also update
    the material count, based on the information in chi_arg_move.  */
-extern int chi_apply_move CHI_PARAMS ((chi_pos* chi_arg_pos, 
-				       chi_move chi_arg_move));
+extern int chi_apply_move(chi_pos* chi_arg_pos, chi_move chi_arg_move);
+
+/* Undoes the effect of chi_apply_move().  */
+extern int chi_unmake_move(chi_pos* chi_arg_pos, chi_move chi_arg_move);
+
+/* Undoes the effect of chi_apply_move().  */
+extern int chi_unapply_move(chi_pos* chi_arg_pos, chi_move chi_arg_move);
 
 /* Generate all pseudo-legal captures for a given position.  */
-extern chi_move* chi_generate_captures CHI_PARAMS ((chi_pos* chi_arg_pos, 
-						    chi_move* 
-						    chi_arg_movestack));
+extern chi_move* chi_generate_captures(chi_pos* chi_arg_pos, 
+				       chi_move* chi_arg_movestack);
 
 /* Generate all pseudo-legal non-captures for a given position.  */
-extern chi_move* chi_generate_non_captures CHI_PARAMS ((chi_pos* chi_arg_pos, 
-							chi_move* 
-							chi_arg_movestack));
+extern chi_move* chi_generate_non_captures(chi_pos* chi_arg_pos, 
+					   chi_move* chi_arg_movestack);
 
 /* Generate all legal moves for a given position.  */
-extern chi_move* chi_legal_moves CHI_PARAMS ((chi_pos* chi_arg_pos, 
-					      chi_move* chi_arg_movestack));
+extern chi_move* chi_legal_moves(chi_pos* chi_arg_pos, 
+				 chi_move* chi_arg_movestack);
+
+/* Return the result of a given position.  The function *only* reports
+ * mandatory draws, i. e. stalemate and draw because of innsufficient
+ * material.  The 50-moves rule is not checked, and draws by repetition
+ * are also ignored as they must be claimed.
+ */
+extern chi_bool chi_game_over(chi_pos *pos, chi_result *result);
+
+/* Generate and count all legal moves from a given position to a fixed
+   depth.  If the third argument is non-zero, pseudo-legal moves are
+   generated that are later checked for legality with chi_illegal_move().
+   Returns the number of moves generated.  */
+extern unsigned long int chi_perft(chi_pos* chi_arg_pos,
+				   unsigned int chi_arg_depth,
+				   int chi_arg_post_check);
 
 /* Check whether the move is illegal (will lead into a check or when
    castling, will cross attacked squares.  In case of legality, the
    move is also applied to the position.  */
-extern int chi_illegal_move CHI_PARAMS ((chi_pos* chi_arg_pos, 
-					 chi_move chi_arg_move, int ext_check));
+extern int chi_illegal_move(chi_pos* chi_arg_pos, 
+			    chi_move chi_arg_move,
+			    int chi_arg_ext_check);
 
 /* Check if a given move is legal (done by generating all legal moves
    and trying to find it there.  */
-extern int chi_check_legality CHI_PARAMS ((chi_pos* chi_arg_pos, 
-					   chi_move chi_arg_move));
+extern int chi_check_legality(chi_pos* chi_arg_pos, 
+			      chi_move chi_arg_move);
 
 /* Check if the side to move is in check.  */
-extern int chi_check_check CHI_PARAMS ((chi_pos* chi_arg_pos));
+extern int chi_check_check(chi_pos* chi_arg_pos);
 
-extern chi_move* chi_generate_white_captures CHI_PARAMS ((chi_pos*, 
-							  chi_move*));
-extern chi_move* chi_generate_black_captures CHI_PARAMS ((chi_pos*, 
-							  chi_move*));
+extern chi_move* chi_generate_white_captures(chi_pos*, chi_move*);
+extern chi_move* chi_generate_black_captures(chi_pos*, chi_move*);
 
-extern chi_move* chi_generate_white_non_captures CHI_PARAMS ((chi_pos*, 
-							      chi_move*));
-extern chi_move* chi_generate_black_non_captures CHI_PARAMS ((chi_pos*, 
-							      chi_move*));
+extern chi_move* chi_generate_white_non_captures(chi_pos*, chi_move*);
+extern chi_move* chi_generate_black_non_captures(chi_pos*, chi_move*);
 
 /* A whole bunch of functions that let you generate (potentially
    expansive to generate) moves step by step.  */
-extern chi_move* chi_generate_pawn_double_steps CHI_PARAMS ((chi_pos*, 
-							     chi_move*));
-extern chi_move* chi_generate_white_pawn_double_steps CHI_PARAMS ((chi_pos*, 
-								   chi_move*));
-extern chi_move* chi_generate_black_pawn_double_steps CHI_PARAMS ((chi_pos*, 
-								   chi_move*));
+extern chi_move* chi_generate_pawn_double_steps(chi_pos*, chi_move*);
+extern chi_move* chi_generate_white_pawn_double_steps(chi_pos*, chi_move*);
+extern chi_move* chi_generate_black_pawn_double_steps(chi_pos*, chi_move*);
 
-extern chi_move* chi_generate_pawn_single_steps CHI_PARAMS ((chi_pos*, 
-							     chi_move*));
-extern chi_move* chi_generate_white_pawn_single_steps CHI_PARAMS ((chi_pos*, 
-								   chi_move*));
-extern chi_move* chi_generate_black_pawn_single_steps CHI_PARAMS ((chi_pos*, 
-								   chi_move*));
+extern chi_move* chi_generate_pawn_single_steps(chi_pos*, chi_move*);
+extern chi_move* chi_generate_white_pawn_single_steps(chi_pos*, chi_move*);
+extern chi_move* chi_generate_black_pawn_single_steps(chi_pos*, chi_move*);
 
-extern chi_move* chi_generate_knight_moves CHI_PARAMS ((chi_pos*, 
-							chi_move*));
-extern chi_move* chi_generate_white_knight_moves CHI_PARAMS ((chi_pos*, 
-							      chi_move*));
-extern chi_move* chi_generate_black_knight_moves CHI_PARAMS ((chi_pos*, 
-							      chi_move*));
+extern chi_move* chi_generate_knight_moves(chi_pos*, chi_move*);
+extern chi_move* chi_generate_white_knight_moves(chi_pos*, chi_move*);
+extern chi_move* chi_generate_black_knight_moves(chi_pos*, chi_move*);
 
-extern chi_move* chi_generate_bishop_moves CHI_PARAMS ((chi_pos*, 
-							chi_move*));
-extern chi_move* chi_generate_white_bishop_moves CHI_PARAMS ((chi_pos*, 
-							      chi_move*));
-extern chi_move* chi_generate_black_bishop_moves CHI_PARAMS ((chi_pos*, 
-							      chi_move*));
+extern chi_move* chi_generate_bishop_moves(chi_pos*, chi_move*);
+extern chi_move* chi_generate_white_bishop_moves(chi_pos*, chi_move*);
+extern chi_move* chi_generate_black_bishop_moves(chi_pos*, chi_move*);
 
-extern chi_move* chi_generate_rook_moves CHI_PARAMS ((chi_pos*, 
-						      chi_move*));
-extern chi_move* chi_generate_white_rook_moves CHI_PARAMS ((chi_pos*, 
-							    chi_move*));
-extern chi_move* chi_generate_black_rook_moves CHI_PARAMS ((chi_pos*, 
-							    chi_move*));
+extern chi_move* chi_generate_rook_moves(chi_pos*, chi_move*);
+extern chi_move* chi_generate_white_rook_moves(chi_pos*, chi_move*);
+extern chi_move* chi_generate_black_rook_moves(chi_pos*, chi_move*);
 
-extern chi_move* chi_generate_king_castling_moves CHI_PARAMS ((chi_pos*, 
-							       chi_move*));
-extern chi_move* chi_generate_white_king_castling_moves CHI_PARAMS ((chi_pos*, 
-								     chi_move*));
-extern chi_move* chi_generate_black_king_castling_moves CHI_PARAMS ((chi_pos*, 
-								     chi_move*));
+extern chi_move* chi_generate_king_castling_moves(chi_pos*, chi_move*);
+extern chi_move* chi_generate_white_king_castling_moves(chi_pos*, chi_move*);
+extern chi_move* chi_generate_black_king_castling_moves(chi_pos*, chi_move*);
 
-extern chi_move* chi_generate_king_moves CHI_PARAMS ((chi_pos*, 
-						      chi_move*));
-extern chi_move* chi_generate_white_king_moves CHI_PARAMS ((chi_pos*, 
-							    chi_move*));
-extern chi_move* chi_generate_black_king_moves CHI_PARAMS ((chi_pos*, 
-							    chi_move*));
+extern chi_move* chi_generate_king_moves(chi_pos*, chi_move*);
+extern chi_move* chi_generate_white_king_moves(chi_pos*, chi_move*);
+extern chi_move* chi_generate_black_king_moves(chi_pos*, chi_move*);
 
 
-extern int chi_white_check_check CHI_PARAMS ((chi_pos*));
-extern int chi_black_check_check CHI_PARAMS ((chi_pos*));
+extern int chi_white_check_check(chi_pos*);
+extern int chi_black_check_check(chi_pos*);
 
 /* Update the material count for a position, regardless of its former
    value.  The function will never fail.  */
-extern void chi_update_material CHI_PARAMS ((chi_pos* chi_arg_pos));
+extern void chi_update_material(chi_pos* chi_arg_pos);
 
 /* For bitboards with exactly one bit set.  */
-extern unsigned int chi_bitv2shift CHI_PARAMS ((bitv64 chi_arg_bitv));
+extern unsigned int chi_bitv2shift(bitv64 chi_arg_bitv);
 
 /* Get a handle for creating zobrist keys.  Returns NULL on failure.  */
-extern int chi_zk_init CHI_PARAMS ((chi_zk_handle* chi_arg_zk_handle));
+extern int chi_zk_init(chi_zk_handle* chi_arg_zk_handle);
 
 /* Free the resources associated with a zobrist key.  */
-extern void chi_zk_finish CHI_PARAMS ((chi_zk_handle chi_arg_zk_handle));
+extern void chi_zk_finish(chi_zk_handle chi_arg_zk_handle);
 
 /* Get a 64 bit signature for a given position.  */
-extern bitv64 chi_zk_signature CHI_PARAMS ((chi_zk_handle chi_arg_zk_handle,
-					    chi_pos* pos));
+extern bitv64 chi_zk_signature(chi_zk_handle chi_arg_zk_handle, chi_pos* pos);
 
 /* Return an updated signature for a given move.  */
-extern bitv64 chi_zk_update_signature CHI_PARAMS ((chi_zk_handle chi_arg_zk_handle,
-						   bitv64 chi_arg_signature,
-						   chi_move chi_arg_move,
-						   chi_color_t chi_arg_color));
+extern bitv64 chi_zk_update_signature(chi_zk_handle chi_arg_zk_handle,
+				      bitv64 chi_arg_signature,
+				      chi_move chi_arg_move,
+				      chi_color_t chi_arg_color);
 
 /* Change the side to move in the signature.  */
-extern bitv64 chi_zk_change_side CHI_PARAMS ((chi_zk_handle chi_arg_zk_handle,
-					      bitv64 chi_arg_signature));
+extern bitv64 chi_zk_change_side(chi_zk_handle chi_arg_zk_handle,
+				 bitv64 chi_arg_signature);
 
 /* Return the prime closest to the argument.  In pathological cases,
    there can be a prime one closer to the argument.  In even more 
-   pathological case, the returned prime is no prime at all.
-   The odds for the latter are less than the odds for you beign a
-   natural blonde and understanding the source.  */
-extern unsigned long int chi_closest_prime CHI_PARAMS ((unsigned long int));
+   pathological case, the returned prime is no prime at all.  */
+extern unsigned long int chi_closest_prime(unsigned long int);
+
+/* This is just an alias for free().  If free() is overloaded with
+ * the debugging version of the xmalloc functions, you can force
+ * using the original function.
+ */
+void chi_free(void *ptr);
 
 CHI_END_DECLS
 

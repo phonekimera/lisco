@@ -1,6 +1,6 @@
 /* This file is part of the chess engine tate.
  *
- * Copyright (C) 2002-2019 cantanea EOOD.
+ * Copyright (C) 2002-2021 cantanea EOOD.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -523,7 +523,7 @@ parse_san_move (chi_pos *pos, chi_move *move, const char *movestr)
 	if (!matches)
 		return -1;
 	else if (matches > 1)
-		return CHI_ERR_PARSER;
+		return CHI_ERR_AMBIGUOUS_MOVE;
 
 	*move = *match;
 
