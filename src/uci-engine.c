@@ -85,8 +85,11 @@ uci_main(UCIEngineOptions *options, FILE *in, const char *inname,
 				break;
 		}
 
+		fflush(out);
+
 		if (go_on < 0) {
 			fprintf(out, "Unknown command: %s\n", command);
+			fflush(out);
 		} else if (go_on == 0) {
 			break;
 		}

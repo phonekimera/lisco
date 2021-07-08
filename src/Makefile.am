@@ -17,7 +17,7 @@
 
 SUBDIRS = . tests
 
-bin_PROGRAMS = tate tateplay tateuci
+bin_PROGRAMS = tate tateplay tateold
 
 noinst_HEADERS = \
 	basename.h \
@@ -42,21 +42,21 @@ noinst_HEADERS = \
 	xboard-feature.h \
 	xmalloca-debug.h
 
-tate_SOURCES = tate.c board.c brain.c edit.c book.c time-control.c \
+tate_SOURCES = tate.c uci-engine.c util.c think.c state.c
+tateold_SOURCES = tateold.c board.c brain.c edit.c book.c time-control.c \
 	evaluate.c search.c time-limits.c time-management.c \
 	tt_hash.c epd.c ev_hash.c qtt_hash.c
 # FIXME! Remove tateplay. Can be replaced with cutechess-cli.
 tateplay_SOURCES = tateplay.c tateplay-engine.c log.c tateplay-game.c \
 	tateplay-loop.c util.c tateplay-option.c xboard-feature.c display-board.c \
 	tateplay-time-control.c
-tateuci_SOURCES = tateuci.c uci-engine.c util.c think.c state.c
 
 tate_LDADD = ../lib/libtate.la ../libchi/libchi.la
 tate_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
+tateold_LDADD = ../lib/libtate.la ../libchi/libchi.la
+tateold_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
 tateplay_LDADD = ../lib/libtate.la ../libchi/libchi.la
 tateplay_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
-tateuci_LDADD = ../lib/libtate.la ../libchi/libchi.la
-tateuci_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
 
 AM_CPPFLAGS = -I. -I$(srcdir) -I.. -I$(top_srcdir)/lib -I../lib \
 	-I$(top_srcdir)/libchi -I../libchi $(AM_CFLAGS)

@@ -20,19 +20,84 @@
 # include <config.h>
 #endif
 
+#include <time.h>
+
 #include "state.h"
+
+#define MATE -10000
+
+static int
+evaluate(chi_pos *position)
+{
+	chi_move moves[CHI_MAX_MOVES];
+	chi_move *move_ptr;
+	int score = 100 * chi_material(position);
+	int factor = chi_on_move(position) ? -1 : +1;
+	chi_result result;
+	int num_moves;
+
+	if (chi_game_over(position, &result)) {
+		if (chi_result_is_white_win(result)) {
+			return -MATE;
+		} else if (chi_result_is_black_win(result)) {
+			return +MATE;
+		} else {
+			return 0;
+		}
+	}
+
+	move_ptr = chi_legal_moves(position, moves);
+	num_moves = move_ptr - moves;
+	score += num_moves * factor;
+
+	// Try a "null move".
+	position->flags.on_move = !position->flags.on_move;
+	move_ptr = chi_legal_moves(position, moves);
+	num_moves = move_ptr - moves;
+	score -= num_moves * factor;
+	position->flags.on_move = !position->flags.on_move;
+
+	return score;
+}
+
+static int seeded = 0;
 
 void
 think(void)
 {
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move *move_ptr;
+	int bestscore, score;
+	chi_color_t on_move;
+	chi_pos position;
+	chi_move move;
 
 	if (chi_game_over(&tate.position, NULL)) return;
 
-	move_ptr = chi_legal_moves(&tate.position, moves);
+	position = tate.position;
 
-	tate.bestmove = moves[0];
-	tate.bestmove_found = 1;
+	on_move = chi_on_move(&position);
+	bestscore = on_move == chi_white ? MATE : -MATE;
+
+	if (!seeded) {
+		srand(time(NULL));
+		seeded = 1;
+	}
+
+	move_ptr = chi_legal_moves(&tate.position, moves);
+	while (move_ptr-- > moves) {
+		move = *move_ptr;
+		chi_apply_move(&position, move);
+		score = evaluate(&position);
+
+		if ((on_move == chi_white && score >= bestscore)
+			|| (on_move == chi_black && score <= bestscore)) {
+			bestscore = score;
+			tate.bestmove = move;
+			tate.bestmove_found = 1;
+		}
+		chi_unapply_move(&position, move);
+	}
+
 	tate.pondermove_found = 0;
 }
