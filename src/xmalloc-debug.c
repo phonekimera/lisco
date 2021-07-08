@@ -138,5 +138,9 @@ xmalloc_debug_free(void *address)
 	blocks[i] = NULL;
 	sizes[i] = 0;
 
+#if defined(free_orig)
+	free_orig(address);
+#else
 	free(address);
+#endif
 }

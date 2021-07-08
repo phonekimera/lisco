@@ -26,6 +26,10 @@
 # define xrealloc(address, size) xrealloc_debug(address, size)
 # define xstrdup(address) xstrdup_debug(address)
 # define xstrndup(address, size) xstrndup_debug(address, size)
+# if free == rpl_free
+#  undef free
+#  define free_orig(address) rpl_free(address)
+# endif
 # define free(address) xmalloc_debug_free(address)
 
 extern void *xmalloc(size_t size);
