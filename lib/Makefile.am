@@ -41,7 +41,7 @@
 #  gettimeofday \
 #  limits-h \
 #  mktime \
-#  pipe \
+#  open \
 #  progname \
 #  sigaction \
 #  stdbool \
@@ -122,12 +122,6 @@ EXTRA_DIST += alloca.in.h
 EXTRA_DIST += assure.h
 
 ## end   gnulib module assure
-
-## begin gnulib module binary-io
-
-libtate_la_SOURCES += binary-io.h binary-io.c
-
-## end   gnulib module binary-io
 
 ## begin gnulib module c-ctype
 
@@ -256,12 +250,6 @@ EXTRA_DIST += exitfail.h
 
 ## end   gnulib module exitfail
 
-## begin gnulib module fatal-signal
-
-libtate_la_SOURCES += fatal-signal.h fatal-signal.c
-
-## end   gnulib module fatal-signal
-
 ## begin gnulib module fcntl
 
 
@@ -313,12 +301,6 @@ libtate_la_SOURCES += fd-hook.c
 EXTRA_DIST += fd-hook.h
 
 ## end   gnulib module fd-hook
-
-## begin gnulib module fd-safer-flag
-
-libtate_la_SOURCES += fd-safer-flag.c dup-safer-flag.c
-
-## end   gnulib module fd-safer-flag
 
 ## begin gnulib module filename
 
@@ -978,124 +960,6 @@ EXTRA_DIST += pathmax.h
 
 ## end   gnulib module pathmax
 
-## begin gnulib module pipe
-
-
-EXTRA_DIST += pipe.h
-
-## end   gnulib module pipe
-
-## begin gnulib module pipe2
-
-libtate_la_SOURCES += pipe2.c
-
-## end   gnulib module pipe2
-
-## begin gnulib module pipe2-safer
-
-libtate_la_SOURCES += pipe2-safer.c
-
-## end   gnulib module pipe2-safer
-
-## begin gnulib module posix_spawn-internal
-
-
-EXTRA_DIST += spawn_int.h spawni.c
-
-EXTRA_libtate_la_SOURCES += spawni.c
-
-## end   gnulib module posix_spawn-internal
-
-## begin gnulib module posix_spawn_file_actions_addclose
-
-
-EXTRA_DIST += spawn_faction_addclose.c spawn_int.h
-
-EXTRA_libtate_la_SOURCES += spawn_faction_addclose.c
-
-## end   gnulib module posix_spawn_file_actions_addclose
-
-## begin gnulib module posix_spawn_file_actions_adddup2
-
-
-EXTRA_DIST += spawn_faction_adddup2.c spawn_int.h
-
-EXTRA_libtate_la_SOURCES += spawn_faction_adddup2.c
-
-## end   gnulib module posix_spawn_file_actions_adddup2
-
-## begin gnulib module posix_spawn_file_actions_addopen
-
-
-EXTRA_DIST += spawn_faction_addopen.c spawn_int.h
-
-EXTRA_libtate_la_SOURCES += spawn_faction_addopen.c
-
-## end   gnulib module posix_spawn_file_actions_addopen
-
-## begin gnulib module posix_spawn_file_actions_destroy
-
-
-EXTRA_DIST += spawn_faction_destroy.c
-
-EXTRA_libtate_la_SOURCES += spawn_faction_destroy.c
-
-## end   gnulib module posix_spawn_file_actions_destroy
-
-## begin gnulib module posix_spawn_file_actions_init
-
-
-EXTRA_DIST += spawn_faction_init.c spawn_int.h
-
-EXTRA_libtate_la_SOURCES += spawn_faction_init.c
-
-## end   gnulib module posix_spawn_file_actions_init
-
-## begin gnulib module posix_spawnattr_destroy
-
-
-EXTRA_DIST += spawnattr_destroy.c
-
-EXTRA_libtate_la_SOURCES += spawnattr_destroy.c
-
-## end   gnulib module posix_spawnattr_destroy
-
-## begin gnulib module posix_spawnattr_init
-
-
-EXTRA_DIST += spawnattr_init.c
-
-EXTRA_libtate_la_SOURCES += spawnattr_init.c
-
-## end   gnulib module posix_spawnattr_init
-
-## begin gnulib module posix_spawnattr_setflags
-
-
-EXTRA_DIST += spawnattr_setflags.c
-
-EXTRA_libtate_la_SOURCES += spawnattr_setflags.c
-
-## end   gnulib module posix_spawnattr_setflags
-
-## begin gnulib module posix_spawnattr_setsigmask
-
-
-EXTRA_DIST += spawnattr_setsigmask.c
-
-EXTRA_libtate_la_SOURCES += spawnattr_setsigmask.c
-
-## end   gnulib module posix_spawnattr_setsigmask
-
-## begin gnulib module posix_spawnp
-
-
-EXTRA_DIST += spawnp.c
-
-EXTRA_libtate_la_SOURCES += spawnp.c
-
-## end   gnulib module posix_spawnp
-
 ## begin gnulib module printf-frexp
 
 libtate_la_SOURCES += printf-frexp.c
@@ -1136,46 +1000,6 @@ EXTRA_DIST += raise.c
 EXTRA_libtate_la_SOURCES += raise.c
 
 ## end   gnulib module raise
-
-## begin gnulib module rawmemchr
-
-
-EXTRA_DIST += rawmemchr.c rawmemchr.valgrind
-
-EXTRA_libtate_la_SOURCES += rawmemchr.c
-
-## end   gnulib module rawmemchr
-
-## begin gnulib module sched
-
-BUILT_SOURCES += $(SCHED_H)
-
-# We need the following in order to create a replacement for <sched.h> when
-# the system doesn't have one.
-if GL_GENERATE_SCHED_H
-sched.h: sched.in.h $(top_builddir)/config.status
-	$(AM_V_GEN)rm -f $@-t $@ && \
-	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
-	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
-	      -e 's|@''HAVE_SCHED_H''@|$(HAVE_SCHED_H)|g' \
-	      -e 's|@''HAVE_SYS_CDEFS_H''@|$(HAVE_SYS_CDEFS_H)|g' \
-	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
-	      -e 's|@''PRAGMA_SYSTEM_HEADER''@|@PRAGMA_SYSTEM_HEADER@|g' \
-	      -e 's|@''PRAGMA_COLUMNS''@|@PRAGMA_COLUMNS@|g' \
-	      -e 's|@''NEXT_SCHED_H''@|$(NEXT_SCHED_H)|g' \
-	      -e 's|@''HAVE_STRUCT_SCHED_PARAM''@|$(HAVE_STRUCT_SCHED_PARAM)|g' \
-	      < $(srcdir)/sched.in.h; \
-	} > $@-t && \
-	mv $@-t $@
-else
-sched.h: $(top_builddir)/config.status
-	rm -f $@
-endif
-MOSTLYCLEANFILES += sched.h sched.h-t
-
-EXTRA_DIST += sched.in.h
-
-## end   gnulib module sched
 
 ## begin gnulib module sigaction
 
@@ -1300,70 +1124,6 @@ WARN_ON_USE_H=$(srcdir)/warn-on-use.h
 EXTRA_DIST += warn-on-use.h
 
 ## end   gnulib module snippet/warn-on-use
-
-## begin gnulib module spawn
-
-BUILT_SOURCES += spawn.h
-
-# We need the following in order to create a replacement for <spawn.h> when
-# the system doesn't have one.
-spawn.h: spawn.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
-	$(AM_V_GEN)rm -f $@-t $@ && \
-	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
-	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
-	      -e 's|@''HAVE_SPAWN_H''@|$(HAVE_SPAWN_H)|g' \
-	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
-	      -e 's|@''PRAGMA_SYSTEM_HEADER''@|@PRAGMA_SYSTEM_HEADER@|g' \
-	      -e 's|@''PRAGMA_COLUMNS''@|@PRAGMA_COLUMNS@|g' \
-	      -e 's|@''NEXT_SPAWN_H''@|$(NEXT_SPAWN_H)|g' \
-	      -e 's/@''GNULIB_POSIX_SPAWN''@/$(GNULIB_POSIX_SPAWN)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNP''@/$(GNULIB_POSIX_SPAWNP)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWN_FILE_ACTIONS_INIT''@/$(GNULIB_POSIX_SPAWN_FILE_ACTIONS_INIT)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR''@/$(GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE''@/$(GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2''@/$(GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN''@/$(GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWN_FILE_ACTIONS_DESTROY''@/$(GNULIB_POSIX_SPAWN_FILE_ACTIONS_DESTROY)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNATTR_INIT''@/$(GNULIB_POSIX_SPAWNATTR_INIT)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNATTR_GETFLAGS''@/$(GNULIB_POSIX_SPAWNATTR_GETFLAGS)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNATTR_SETFLAGS''@/$(GNULIB_POSIX_SPAWNATTR_SETFLAGS)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNATTR_GETPGROUP''@/$(GNULIB_POSIX_SPAWNATTR_GETPGROUP)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNATTR_SETPGROUP''@/$(GNULIB_POSIX_SPAWNATTR_SETPGROUP)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNATTR_GETSCHEDPARAM''@/$(GNULIB_POSIX_SPAWNATTR_GETSCHEDPARAM)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNATTR_SETSCHEDPARAM''@/$(GNULIB_POSIX_SPAWNATTR_SETSCHEDPARAM)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNATTR_GETSCHEDPOLICY''@/$(GNULIB_POSIX_SPAWNATTR_GETSCHEDPOLICY)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNATTR_SETSCHEDPOLICY''@/$(GNULIB_POSIX_SPAWNATTR_SETSCHEDPOLICY)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNATTR_GETSIGDEFAULT''@/$(GNULIB_POSIX_SPAWNATTR_GETSIGDEFAULT)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNATTR_SETSIGDEFAULT''@/$(GNULIB_POSIX_SPAWNATTR_SETSIGDEFAULT)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNATTR_GETSIGMASK''@/$(GNULIB_POSIX_SPAWNATTR_GETSIGMASK)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNATTR_SETSIGMASK''@/$(GNULIB_POSIX_SPAWNATTR_SETSIGMASK)/g' \
-	      -e 's/@''GNULIB_POSIX_SPAWNATTR_DESTROY''@/$(GNULIB_POSIX_SPAWNATTR_DESTROY)/g' \
-	      -e 's|@''HAVE_POSIX_SPAWN''@|$(HAVE_POSIX_SPAWN)|g' \
-	      -e 's|@''HAVE_POSIX_SPAWNATTR_T''@|$(HAVE_POSIX_SPAWNATTR_T)|g' \
-	      -e 's|@''HAVE_POSIX_SPAWN_FILE_ACTIONS_T''@|$(HAVE_POSIX_SPAWN_FILE_ACTIONS_T)|g' \
-	      -e 's|@''HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR''@|$(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)|g' \
-	      -e 's|@''REPLACE_POSIX_SPAWN''@|$(REPLACE_POSIX_SPAWN)|g' \
-	      -e 's|@''REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR''@|$(REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)|g' \
-	      -e 's|@''REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE''@|$(REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE)|g' \
-	      -e 's|@''REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2''@|$(REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2)|g' \
-	      -e 's|@''REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN''@|$(REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN)|g' \
-	      -e '/definitions of _GL_FUNCDECL_RPL/r $(CXXDEFS_H)' \
-	      -e '/definition of _GL_ARG_NONNULL/r $(ARG_NONNULL_H)' \
-	      -e '/definition of _GL_WARN_ON_USE/r $(WARN_ON_USE_H)' \
-	      < $(srcdir)/spawn.in.h; \
-	} > $@-t && \
-	mv $@-t $@
-MOSTLYCLEANFILES += spawn.h spawn.h-t
-
-EXTRA_DIST += spawn.in.h
-
-## end   gnulib module spawn
-
-## begin gnulib module spawn-pipe
-
-libtate_la_SOURCES += spawn-pipe.h spawn-pipe.c w32spawn.h
-
-## end   gnulib module spawn-pipe
 
 ## begin gnulib module stat
 
@@ -1734,15 +1494,6 @@ EXTRA_DIST += strcasecmp.c strncasecmp.c
 EXTRA_libtate_la_SOURCES += strcasecmp.c strncasecmp.c
 
 ## end   gnulib module strcase
-
-## begin gnulib module strchrnul
-
-
-EXTRA_DIST += strchrnul.c strchrnul.valgrind
-
-EXTRA_libtate_la_SOURCES += strchrnul.c
-
-## end   gnulib module strchrnul
 
 ## begin gnulib module streq
 
@@ -2324,14 +2075,6 @@ EXTRA_DIST += unistd.in.h
 
 ## end   gnulib module unistd
 
-## begin gnulib module unistd-safer
-
-libtate_la_SOURCES += dup-safer.c fd-safer.c pipe-safer.c
-
-EXTRA_DIST += unistd--.h unistd-safer.h
-
-## end   gnulib module unistd-safer
-
 ## begin gnulib module vasnprintf
 
 
@@ -2356,12 +2099,6 @@ EXTRA_DIST += vfprintf.c
 EXTRA_libtate_la_SOURCES += vfprintf.c
 
 ## end   gnulib module vfprintf-posix
-
-## begin gnulib module wait-process
-
-libtate_la_SOURCES += wait-process.h wait-process.c
-
-## end   gnulib module wait-process
 
 ## begin gnulib module waitpid
 

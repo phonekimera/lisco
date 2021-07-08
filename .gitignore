@@ -20,7 +20,6 @@ lib*.a
 /config.h.in
 /configure
 /lib
-/m4
 /gnulib
 /build-aux
 /aclocal.m4
@@ -28,6 +27,12 @@ lib*.a
 /INSTALL
 /libchi/bitmasks.h
 .dirstamp
+
+m4/
+!m4/Makefile.am
+!m4/Makefile.in
+!m4/README
+!m4/ax_pthread.m4
 
 src/tate
 src/tateuci

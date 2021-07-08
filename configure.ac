@@ -45,9 +45,10 @@ AC_DEFINE(_GNU_SOURCE, 1, [Make sure we see all GNU extensions.])
 
 AC_C_CONST
 AC_C_BIGENDIAN
-AC_C_BACKSLASH_A
 
 AC_CHECK_LIB(m, log10, , AC_MSG_ERROR(unable to find function log10))
+
+AX_PTHREAD(, AC_MSG_ERROR(thread support is required to compile tate))
 
 AC_CHECK_SIZEOF(unsigned long)
 AC_CHECK_SIZEOF(unsigned long long)

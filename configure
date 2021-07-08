@@ -667,6 +667,11 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
 BITV64
+PTHREAD_CFLAGS
+PTHREAD_LIBS
+PTHREAD_CXX
+PTHREAD_CC
+ax_pthread_config
 CHECK_LIBS
 CHECK_CFLAGS
 PKG_CONFIG_LIBDIR
@@ -783,18 +788,8 @@ HAVE__BOOL
 GL_GENERATE_STDBOOL_H_FALSE
 GL_GENERATE_STDBOOL_H_TRUE
 STDBOOL_H
-HAVE_SPAWN_H
-NEXT_AS_FIRST_DIRECTIVE_SPAWN_H
-NEXT_SPAWN_H
 NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H
 NEXT_SIGNAL_H
-GL_GENERATE_SCHED_H_FALSE
-GL_GENERATE_SCHED_H_TRUE
-SCHED_H
-HAVE_STRUCT_SCHED_PARAM
-HAVE_SCHED_H
-NEXT_AS_FIRST_DIRECTIVE_SCHED_H
-NEXT_SCHED_H
 REPLACE_RAISE
 REPLACE_PTHREAD_SIGMASK
 HAVE_SIGHANDLER_T
@@ -811,38 +806,6 @@ GNULIB_SIGPROCMASK
 GNULIB_SIGNAL_H_SIGPIPE
 GNULIB_RAISE
 GNULIB_PTHREAD_SIGMASK
-LIB_POSIX_SPAWN
-REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN
-REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2
-REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE
-REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
-REPLACE_POSIX_SPAWN
-HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
-HAVE_POSIX_SPAWN_FILE_ACTIONS_T
-HAVE_POSIX_SPAWNATTR_T
-HAVE_POSIX_SPAWN
-GNULIB_POSIX_SPAWNATTR_DESTROY
-GNULIB_POSIX_SPAWNATTR_SETSIGMASK
-GNULIB_POSIX_SPAWNATTR_GETSIGMASK
-GNULIB_POSIX_SPAWNATTR_SETSIGDEFAULT
-GNULIB_POSIX_SPAWNATTR_GETSIGDEFAULT
-GNULIB_POSIX_SPAWNATTR_SETSCHEDPOLICY
-GNULIB_POSIX_SPAWNATTR_GETSCHEDPOLICY
-GNULIB_POSIX_SPAWNATTR_SETSCHEDPARAM
-GNULIB_POSIX_SPAWNATTR_GETSCHEDPARAM
-GNULIB_POSIX_SPAWNATTR_SETPGROUP
-GNULIB_POSIX_SPAWNATTR_GETPGROUP
-GNULIB_POSIX_SPAWNATTR_SETFLAGS
-GNULIB_POSIX_SPAWNATTR_GETFLAGS
-GNULIB_POSIX_SPAWNATTR_INIT
-GNULIB_POSIX_SPAWN_FILE_ACTIONS_DESTROY
-GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN
-GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2
-GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE
-GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
-GNULIB_POSIX_SPAWN_FILE_ACTIONS_INIT
-GNULIB_POSIX_SPAWNP
-GNULIB_POSIX_SPAWN
 APPLE_UNIVERSAL_BUILD
 UNDEFINE_STRTOK_R
 REPLACE_STRSIGNAL
@@ -3862,17 +3825,14 @@ as_fn_append ac_func_c_list " mprotect HAVE_MPROTECT"
 as_fn_append ac_func_c_list " tzset HAVE_TZSET"
 as_fn_append ac_func_c_list " lstat HAVE_LSTAT"
 as_fn_append ac_header_c_list " sys/param.h sys_param_h HAVE_SYS_PARAM_H"
-as_fn_append ac_func_c_list " pipe2 HAVE_PIPE2"
 gl_printf_safe=yes
 as_fn_append ac_func_c_list " sigaction HAVE_SIGACTION"
 as_fn_append ac_func_c_list " sigaltstack HAVE_SIGALTSTACK"
 as_fn_append ac_func_c_list " siginterrupt HAVE_SIGINTERRUPT"
-as_fn_append ac_header_c_list " spawn.h spawn_h HAVE_SPAWN_H"
 as_fn_append ac_header_c_list " wchar.h wchar_h HAVE_WCHAR_H"
 as_fn_append ac_func_c_list " strndup HAVE_STRNDUP"
 as_fn_append ac_header_c_list " sys/wait.h sys_wait_h HAVE_SYS_WAIT_H"
 as_fn_append ac_func_c_list " localtime_r HAVE_LOCALTIME_R"
-as_fn_append ac_func_c_list " pipe HAVE_PIPE"
 as_fn_append ac_func_c_list " vasnprintf HAVE_VASNPRINTF"
 as_fn_append ac_header_c_list " features.h features_h HAVE_FEATURES_H"
 as_fn_append ac_func_c_list " snprintf HAVE_SNPRINTF"
@@ -7896,7 +7856,6 @@ fi
   # Code from module absolute-header:
   # Code from module alloca-opt:
   # Code from module assure:
-  # Code from module binary-io:
   # Code from module builtin-expect:
   # Code from module c-ctype:
   # Code from module c-strcase:
@@ -7909,17 +7868,14 @@ fi
   # Code from module dosname:
   # Code from module double-slash-root:
   # Code from module dup2:
-  # Code from module environ:
   # Code from module errno:
   # Code from module error:
   # Code from module exitfail:
   # Code from module extensions:
   # Code from module extern-inline:
-  # Code from module fatal-signal:
   # Code from module fcntl:
   # Code from module fcntl-h:
   # Code from module fd-hook:
-  # Code from module fd-safer-flag:
   # Code from module filename:
   # Code from module float:
   # Code from module fpending:
@@ -7964,20 +7920,6 @@ fi
   # Code from module nocrash:
   # Code from module open:
   # Code from module pathmax:
-  # Code from module pipe:
-  # Code from module pipe2:
-  # Code from module pipe2-safer:
-  # Code from module posix_spawn-internal:
-  # Code from module posix_spawn_file_actions_addclose:
-  # Code from module posix_spawn_file_actions_adddup2:
-  # Code from module posix_spawn_file_actions_addopen:
-  # Code from module posix_spawn_file_actions_destroy:
-  # Code from module posix_spawn_file_actions_init:
-  # Code from module posix_spawnattr_destroy:
-  # Code from module posix_spawnattr_init:
-  # Code from module posix_spawnattr_setflags:
-  # Code from module posix_spawnattr_setsigmask:
-  # Code from module posix_spawnp:
   # Code from module printf-frexp:
   # Code from module printf-frexpl:
   # Code from module printf-safe:
@@ -7985,9 +7927,6 @@ fi
   # Code from module quotearg:
   # Code from module quotearg-simple:
   # Code from module raise:
-  # Code from module rawmemchr:
-  # Code from module sched:
-  # Code from module sh-filename:
   # Code from module sigaction:
   # Code from module signal-h:
   # Code from module signbit:
@@ -7997,8 +7936,6 @@ fi
   # Code from module snippet/arg-nonnull:
   # Code from module snippet/c++defs:
   # Code from module snippet/warn-on-use:
-  # Code from module spawn:
-  # Code from module spawn-pipe:
   # Code from module ssize_t:
   # Code from module stat:
   # Code from module stat-time:
@@ -8008,7 +7945,6 @@ fi
   # Code from module stdio:
   # Code from module stdlib:
   # Code from module strcase:
-  # Code from module strchrnul:
   # Code from module streq:
   # Code from module strerror:
   # Code from module strerror-override:
@@ -8027,11 +7963,9 @@ fi
   # Code from module time:
   # Code from module time_r:
   # Code from module unistd:
-  # Code from module unistd-safer:
   # Code from module vasnprintf:
   # Code from module verify:
   # Code from module vfprintf-posix:
-  # Code from module wait-process:
   # Code from module waitpid:
   # Code from module wchar:
   # Code from module wctype-h:
@@ -8411,57 +8345,6 @@ printf "%s\n" "$gl_cv_double_slash_root" >&6; }
 
 printf "%s\n" "#define DOUBLE_SLASH_IS_DISTINCT_ROOT 1" >>confdefs.h
 
-  fi
-
-
-
-
-
-
-
-
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if environ is properly declared" >&5
-printf %s "checking if environ is properly declared... " >&6; }
-if test ${gt_cv_var_environ_declaration+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#if HAVE_UNISTD_H
-     #include <unistd.h>
-     #endif
-     /* mingw, BeOS, Haiku declare environ in <stdlib.h>, not in <unistd.h>.  */
-     #include <stdlib.h>
-
-            extern struct { int foo; } environ;
-int
-main (void)
-{
-environ.foo = 1;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"
-then :
-  gt_cv_var_environ_declaration=no
-else $as_nop
-  gt_cv_var_environ_declaration=yes
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $gt_cv_var_environ_declaration" >&5
-printf "%s\n" "$gt_cv_var_environ_declaration" >&6; }
-  if test $gt_cv_var_environ_declaration = yes; then
-
-printf "%s\n" "#define HAVE_ENVIRON_DECL 1" >>confdefs.h
-
-  fi
-
-
-  if test $gt_cv_var_environ_declaration != yes; then
-    HAVE_DECL_ENVIRON=0
   fi
 
 
@@ -9119,22 +9002,6 @@ fi
   XGETTEXT_EXTRA_OPTIONS=
 
 
-
-
-
-  ac_fn_c_check_type "$LINENO" "sig_atomic_t" "ac_cv_type_sig_atomic_t" "#include <signal.h>
-"
-if test "x$ac_cv_type_sig_atomic_t" = xyes
-then :
-
-printf "%s\n" "#define HAVE_SIG_ATOMIC_T 1" >>confdefs.h
-
-
-else $as_nop
-
-printf "%s\n" "#define sig_atomic_t int" >>confdefs.h
-
-fi
 
 
 
@@ -13524,542 +13391,6 @@ printf "%s\n" "#define PROMOTED_MODE_T $gl_cv_promoted_mode_t" >>confdefs.h
 
 
 
-
-  GNULIB_POSIX_SPAWN=0;
-  GNULIB_POSIX_SPAWNP=0;
-  GNULIB_POSIX_SPAWN_FILE_ACTIONS_INIT=0;
-  GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR=0;
-  GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE=0;
-  GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2=0;
-  GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN=0;
-  GNULIB_POSIX_SPAWN_FILE_ACTIONS_DESTROY=0;
-  GNULIB_POSIX_SPAWNATTR_INIT=0;
-  GNULIB_POSIX_SPAWNATTR_GETFLAGS=0;
-  GNULIB_POSIX_SPAWNATTR_SETFLAGS=0;
-  GNULIB_POSIX_SPAWNATTR_GETPGROUP=0;
-  GNULIB_POSIX_SPAWNATTR_SETPGROUP=0;
-  GNULIB_POSIX_SPAWNATTR_GETSCHEDPARAM=0;
-  GNULIB_POSIX_SPAWNATTR_SETSCHEDPARAM=0;
-  GNULIB_POSIX_SPAWNATTR_GETSCHEDPOLICY=0;
-  GNULIB_POSIX_SPAWNATTR_SETSCHEDPOLICY=0;
-  GNULIB_POSIX_SPAWNATTR_GETSIGDEFAULT=0;
-  GNULIB_POSIX_SPAWNATTR_SETSIGDEFAULT=0;
-  GNULIB_POSIX_SPAWNATTR_GETSIGMASK=0;
-  GNULIB_POSIX_SPAWNATTR_SETSIGMASK=0;
-  GNULIB_POSIX_SPAWNATTR_DESTROY=0;
-    HAVE_POSIX_SPAWN=1;
-  HAVE_POSIX_SPAWNATTR_T=1;
-  HAVE_POSIX_SPAWN_FILE_ACTIONS_T=1;
-
-  HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR=1;
-
-  REPLACE_POSIX_SPAWN=0;
-  REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR=0;
-
-  REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE=0;
-
-  REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2=0;
-
-  REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN=0;
-
-
-
-
-
-  LIB_POSIX_SPAWN=
-
-  gl_saved_libs=$LIBS
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing posix_spawn" >&5
-printf %s "checking for library containing posix_spawn... " >&6; }
-if test ${ac_cv_search_posix_spawn+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char posix_spawn ();
-int
-main (void)
-{
-return posix_spawn ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' rt
-do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"
-then :
-  ac_cv_search_posix_spawn=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext
-  if test ${ac_cv_search_posix_spawn+y}
-then :
-  break
-fi
-done
-if test ${ac_cv_search_posix_spawn+y}
-then :
-
-else $as_nop
-  ac_cv_search_posix_spawn=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_posix_spawn" >&5
-printf "%s\n" "$ac_cv_search_posix_spawn" >&6; }
-ac_res=$ac_cv_search_posix_spawn
-if test "$ac_res" != no
-then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-  test "$ac_cv_search_posix_spawn" = "none required" ||
-                    LIB_POSIX_SPAWN=$ac_cv_search_posix_spawn
-fi
-
-    ac_fn_c_check_func "$LINENO" "posix_spawn" "ac_cv_func_posix_spawn"
-if test "x$ac_cv_func_posix_spawn" = xyes
-then :
-  printf "%s\n" "#define HAVE_POSIX_SPAWN 1" >>confdefs.h
-
-fi
-
-  LIBS=$gl_saved_libs
-
-  if test $ac_cv_func_posix_spawn != yes; then
-    HAVE_POSIX_SPAWN=0
-  fi
-
-
-
-
-                                      if test $ac_cv_func_posix_spawn = yes; then
-
-    if test $REPLACE_POSIX_SPAWN = 0; then
-
-
-     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether posix_spawn works" >&5
-printf %s "checking whether posix_spawn works... " >&6; }
-if test ${gl_cv_func_posix_spawn_works+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  if test $cross_compiling = no; then
-       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <errno.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <spawn.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-
-extern char **environ;
-
-#ifndef STDIN_FILENO
-# define STDIN_FILENO 0
-#endif
-#ifndef STDOUT_FILENO
-# define STDOUT_FILENO 1
-#endif
-#ifndef STDERR_FILENO
-# define STDERR_FILENO 2
-#endif
-
-#ifndef WTERMSIG
-# define WTERMSIG(x) ((x) & 0x7f)
-#endif
-#ifndef WIFEXITED
-# define WIFEXITED(x) (WTERMSIG (x) == 0)
-#endif
-#ifndef WEXITSTATUS
-# define WEXITSTATUS(x) (((x) >> 8) & 0xff)
-#endif
-
-#define CHILD_PROGRAM_FILENAME "/non/exist/ent"
-
-static int
-fd_safer (int fd)
-{
-  if (0 <= fd && fd <= 2)
-    {
-      int f = fd_safer (dup (fd));
-      int e = errno;
-      close (fd);
-      errno = e;
-      fd = f;
-    }
-
-  return fd;
-}
-
-int
-main ()
-{
-  char *argv[2] = { CHILD_PROGRAM_FILENAME, NULL };
-  int ofd[2];
-  sigset_t blocked_signals;
-  sigset_t fatal_signal_set;
-  posix_spawn_file_actions_t actions;
-  bool actions_allocated;
-  posix_spawnattr_t attrs;
-  bool attrs_allocated;
-  int err;
-  pid_t child;
-  int status;
-  int exitstatus;
-
-  setvbuf (stdout, NULL, _IOFBF, 0);
-  puts ("This should be seen only once.");
-  if (pipe (ofd) < 0 || (ofd[1] = fd_safer (ofd[1])) < 0)
-    {
-      perror ("cannot create pipe");
-      exit (1);
-    }
-  sigprocmask (SIG_SETMASK, NULL, &blocked_signals);
-  sigemptyset (&fatal_signal_set);
-  sigaddset (&fatal_signal_set, SIGINT);
-  sigaddset (&fatal_signal_set, SIGTERM);
-  sigaddset (&fatal_signal_set, SIGHUP);
-  sigaddset (&fatal_signal_set, SIGPIPE);
-  sigprocmask (SIG_BLOCK, &fatal_signal_set, NULL);
-  actions_allocated = false;
-  attrs_allocated = false;
-  if ((err = posix_spawn_file_actions_init (&actions)) != 0
-      || (actions_allocated = true,
-          (err = posix_spawn_file_actions_adddup2 (&actions, ofd[0], STDIN_FILENO)) != 0
-          || (err = posix_spawn_file_actions_addclose (&actions, ofd[0])) != 0
-          || (err = posix_spawn_file_actions_addclose (&actions, ofd[1])) != 0
-          || (err = posix_spawnattr_init (&attrs)) != 0
-          || (attrs_allocated = true,
-              (err = posix_spawnattr_setsigmask (&attrs, &blocked_signals)) != 0
-              || (err = posix_spawnattr_setflags (&attrs, POSIX_SPAWN_SETSIGMASK)) != 0)
-          || (err = posix_spawnp (&child, CHILD_PROGRAM_FILENAME, &actions, &attrs, argv, environ)) != 0))
-    {
-      if (actions_allocated)
-        posix_spawn_file_actions_destroy (&actions);
-      if (attrs_allocated)
-        posix_spawnattr_destroy (&attrs);
-      sigprocmask (SIG_UNBLOCK, &fatal_signal_set, NULL);
-      if (err == ENOENT)
-        return 0;
-      else
-        {
-          errno = err;
-          perror ("subprocess failed");
-          exit (1);
-        }
-    }
-  posix_spawn_file_actions_destroy (&actions);
-  posix_spawnattr_destroy (&attrs);
-  sigprocmask (SIG_UNBLOCK, &fatal_signal_set, NULL);
-  close (ofd[0]);
-  close (ofd[1]);
-  status = 0;
-  while (waitpid (child, &status, 0) != child)
-    ;
-  if (!WIFEXITED (status))
-    {
-      fprintf (stderr, "subprocess terminated with unexpected wait status %d\n", status);
-      exit (1);
-    }
-  exitstatus = WEXITSTATUS (status);
-  if (exitstatus != 127)
-    {
-      fprintf (stderr, "subprocess terminated with unexpected exit status %d\n", exitstatus);
-      exit (1);
-    }
-  return 0;
-}
-
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-  if test -s conftest$ac_exeext \
-             && ./conftest$ac_exeext > conftest.out \
-             && echo 'This should be seen only once.' > conftest.ok \
-             && cmp conftest.out conftest.ok >/dev/null 2>&1; then
-            gl_cv_func_posix_spawn_works=yes
-          else
-            gl_cv_func_posix_spawn_works=no
-          fi
-else $as_nop
-  gl_cv_func_posix_spawn_works=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-       if test $gl_cv_func_posix_spawn_works = yes; then
-         if test "$cross_compiling" = yes
-then :
-  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run test program while cross compiling
-See \`config.log' for more details" "$LINENO" 5; }
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Test whether posix_spawn_file_actions_addopen supports filename arguments
-   that contain special characters such as '*'.  */
-
-#include <errno.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <spawn.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-
-extern char **environ;
-
-#ifndef STDIN_FILENO
-# define STDIN_FILENO 0
-#endif
-#ifndef STDOUT_FILENO
-# define STDOUT_FILENO 1
-#endif
-#ifndef STDERR_FILENO
-# define STDERR_FILENO 2
-#endif
-
-#ifndef WTERMSIG
-# define WTERMSIG(x) ((x) & 0x7f)
-#endif
-#ifndef WIFEXITED
-# define WIFEXITED(x) (WTERMSIG (x) == 0)
-#endif
-#ifndef WEXITSTATUS
-# define WEXITSTATUS(x) (((x) >> 8) & 0xff)
-#endif
-
-#define CHILD_PROGRAM_FILENAME "conftest"
-#define DATA_FILENAME "conftest%=*#?"
-
-static int
-parent_main (void)
-{
-  FILE *fp;
-  char *argv[3] = { CHILD_PROGRAM_FILENAME, "-child", NULL };
-  posix_spawn_file_actions_t actions;
-  bool actions_allocated;
-  int err;
-  pid_t child;
-  int status;
-  int exitstatus;
-
-  /* Create a data file with specific contents.  */
-  fp = fopen (DATA_FILENAME, "wb");
-  if (fp == NULL)
-    {
-      perror ("cannot create data file");
-      return 1;
-    }
-  fwrite ("Halle Potta", 1, 11, fp);
-  if (fflush (fp) || fclose (fp))
-    {
-      perror ("cannot prepare data file");
-      return 2;
-    }
-
-  /* Avoid reading from our stdin, as it could block.  */
-  freopen ("/dev/null", "rb", stdin);
-
-  /* Test whether posix_spawn_file_actions_addopen with this file name
-     actually works, but spawning a child that reads from this file.  */
-  actions_allocated = false;
-  if ((err = posix_spawn_file_actions_init (&actions)) != 0
-      || (actions_allocated = true,
-          (err = posix_spawn_file_actions_addopen (&actions, STDIN_FILENO, DATA_FILENAME, O_RDONLY, 0600)) != 0
-          || (err = posix_spawn (&child, CHILD_PROGRAM_FILENAME, &actions, NULL, argv, environ)) != 0))
-    {
-      if (actions_allocated)
-        posix_spawn_file_actions_destroy (&actions);
-      errno = err;
-      perror ("subprocess failed");
-      return 3;
-    }
-  posix_spawn_file_actions_destroy (&actions);
-  status = 0;
-  while (waitpid (child, &status, 0) != child)
-    ;
-  if (!WIFEXITED (status))
-    {
-      fprintf (stderr, "subprocess terminated with unexpected wait status %d\n", status);
-      return 4;
-    }
-  exitstatus = WEXITSTATUS (status);
-  if (exitstatus != 0)
-    {
-      fprintf (stderr, "subprocess terminated with unexpected exit status %d\n", exitstatus);
-      return 5;
-    }
-  return 0;
-}
-
-static int
-child_main (void)
-{
-  char buf[1024];
-
-  /* See if reading from STDIN_FILENO yields the expected contents.  */
-  if (fread (buf, 1, sizeof (buf), stdin) == 11
-      && memcmp (buf, "Halle Potta", 11) == 0)
-    return 0;
-  else
-    return 8;
-}
-
-static void
-cleanup_then_die (int sig)
-{
-  /* Clean up data file.  */
-  unlink (DATA_FILENAME);
-
-  /* Re-raise the signal and die from it.  */
-  signal (sig, SIG_DFL);
-  raise (sig);
-}
-
-int
-main (int argc, char *argv[])
-{
-  int exitstatus;
-
-  if (!(argc > 1 && strcmp (argv[1], "-child") == 0))
-    {
-      /* This is the parent process.  */
-      signal (SIGINT, cleanup_then_die);
-      signal (SIGTERM, cleanup_then_die);
-      #ifdef SIGHUP
-      signal (SIGHUP, cleanup_then_die);
-      #endif
-
-      exitstatus = parent_main ();
-    }
-  else
-    {
-      /* This is the child process.  */
-
-      exitstatus = child_main ();
-    }
-  unlink (DATA_FILENAME);
-  return exitstatus;
-}
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"
-then :
-
-else $as_nop
-  gl_cv_func_posix_spawn_works=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-       fi
-     else
-       case "$host_os" in
-         aix*) gl_cv_func_posix_spawn_works="guessing no";;
-         *)    gl_cv_func_posix_spawn_works="guessing yes";;
-       esac
-     fi
-
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_posix_spawn_works" >&5
-printf "%s\n" "$gl_cv_func_posix_spawn_works" >&6; }
-
-      case "$gl_cv_func_posix_spawn_works" in
-        *yes)
-                                                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether posix_spawnattr_setschedpolicy is supported" >&5
-printf %s "checking whether posix_spawnattr_setschedpolicy is supported... " >&6; }
-if test ${gl_cv_func_spawnattr_setschedpolicy+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <spawn.h>
-#if POSIX_SPAWN_SETSCHEDULER
- POSIX scheduling supported
-#endif
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "POSIX scheduling supported" >/dev/null 2>&1
-then :
-  gl_cv_func_spawnattr_setschedpolicy=yes
-else $as_nop
-  gl_cv_func_spawnattr_setschedpolicy=no
-fi
-rm -rf conftest*
-
-
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_spawnattr_setschedpolicy" >&5
-printf "%s\n" "$gl_cv_func_spawnattr_setschedpolicy" >&6; }
-                                                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether posix_spawnattr_setschedparam is supported" >&5
-printf %s "checking whether posix_spawnattr_setschedparam is supported... " >&6; }
-if test ${gl_cv_func_spawnattr_setschedparam+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <spawn.h>
-#if POSIX_SPAWN_SETSCHEDPARAM
- POSIX scheduling supported
-#endif
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "POSIX scheduling supported" >/dev/null 2>&1
-then :
-  gl_cv_func_spawnattr_setschedparam=yes
-else $as_nop
-  gl_cv_func_spawnattr_setschedparam=no
-fi
-rm -rf conftest*
-
-
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_spawnattr_setschedparam" >&5
-printf "%s\n" "$gl_cv_func_spawnattr_setschedparam" >&6; }
-          ;;
-        *) REPLACE_POSIX_SPAWN=1 ;;
-      esac
-    fi
-  fi
-  if test $ac_cv_func_posix_spawn != yes || test $REPLACE_POSIX_SPAWN = 1; then
-
-printf "%s\n" "#define REPLACE_POSIX_SPAWN 1" >>confdefs.h
-
-  fi
-
-
   GNULIB_PTHREAD_SIGMASK=0;
   GNULIB_RAISE=0;
   GNULIB_SIGNAL_H_SIGPIPE=0;
@@ -14133,7 +13464,7 @@ printf "%s\n" "#define gid_t int" >>confdefs.h
 
 fi
 
-
+:
 
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for stdbool.h that conforms to C99" >&5
@@ -15911,7 +15242,6 @@ printf "%s\n" "$gl_cv_next_time_h" >&6; }
        gl_next_as_first_directive=$gl_cv_next_time_h
      fi
      NEXT_AS_FIRST_DIRECTIVE_TIME_H=$gl_next_as_first_directive
-
 
 
 
@@ -18299,22 +17629,6 @@ printf "%s\n" "#define GNULIB_TEST_DUP2 1" >>confdefs.h
 
 
 
-
-
-
-
-          GNULIB_ENVIRON=1
-
-
-
-
-
-printf "%s\n" "#define GNULIB_TEST_ENVIRON 1" >>confdefs.h
-
-
-
-
-
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for error_at_line" >&5
 printf %s "checking for error_at_line... " >&6; }
 if test ${ac_cv_lib_error_at_line+y}
@@ -18368,11 +17682,6 @@ printf "%s\n" "$ac_cv_lib_error_at_line" >&6; }
 
   XGETTEXT_EXTRA_OPTIONS="$XGETTEXT_EXTRA_OPTIONS --flag=error_at_line:5:c-format"
 
-
-
-
-
-  :
 
 
 
@@ -18657,11 +17966,6 @@ printf "%s\n" "$gl_cv_next_fcntl_h" >&6; }
 
 
 
-
-
-
-
-printf "%s\n" "#define GNULIB_FD_SAFER_FLAG 1" >>confdefs.h
 
 
 
@@ -22316,565 +21620,6 @@ printf "%s\n" "#define GNULIB_TEST_OPEN 1" >>confdefs.h
 
 
 
-
-
-
-
-  if test $ac_cv_func_pipe2 != yes; then
-    HAVE_PIPE2=0
-  fi
-
-
-
-
-
-
-          GNULIB_PIPE2=1
-
-
-
-
-
-printf "%s\n" "#define GNULIB_TEST_PIPE2 1" >>confdefs.h
-
-
-
-
-
-printf "%s\n" "#define GNULIB_PIPE2_SAFER 1" >>confdefs.h
-
-
-
-
-
-
-
-
-  if test $REPLACE_POSIX_SPAWN = 1; then
-    REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE=1
-  else
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether posix_spawn_file_actions_addclose works" >&5
-printf %s "checking whether posix_spawn_file_actions_addclose works... " >&6; }
-if test ${gl_cv_func_posix_spawn_file_actions_addclose_works+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  if test "$cross_compiling" = yes
-then :
-  # Guess no on Solaris, yes otherwise.
-          case "$host_os" in
-            solaris*) gl_cv_func_posix_spawn_file_actions_addclose_works="guessing no" ;;
-                      # Guess no on native Windows.
-            mingw*)   gl_cv_func_posix_spawn_file_actions_addclose_works="guessing no" ;;
-            *)        gl_cv_func_posix_spawn_file_actions_addclose_works="guessing yes" ;;
-          esac
-
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <spawn.h>
-int main ()
-{
-  posix_spawn_file_actions_t actions;
-  if (posix_spawn_file_actions_init (&actions) != 0)
-    return 1;
-  if (posix_spawn_file_actions_addclose (&actions, 10000000) == 0)
-    return 2;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"
-then :
-  gl_cv_func_posix_spawn_file_actions_addclose_works=yes
-else $as_nop
-  gl_cv_func_posix_spawn_file_actions_addclose_works=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_posix_spawn_file_actions_addclose_works" >&5
-printf "%s\n" "$gl_cv_func_posix_spawn_file_actions_addclose_works" >&6; }
-    case "$gl_cv_func_posix_spawn_file_actions_addclose_works" in
-      *yes) ;;
-      *) REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE=1 ;;
-    esac
-  fi
-
-  if test $HAVE_POSIX_SPAWN = 0 || test $REPLACE_POSIX_SPAWN = 1 || test $REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE = 1; then
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS spawn_faction_addclose.$ac_objext"
-
-  fi
-
-
-
-
-
-          GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE=1
-
-
-
-
-
-printf "%s\n" "#define GNULIB_TEST_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE 1" >>confdefs.h
-
-
-
-
-
-
-
-
-
-  if test $REPLACE_POSIX_SPAWN = 1; then
-    REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2=1
-  else
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether posix_spawn_file_actions_adddup2 works" >&5
-printf %s "checking whether posix_spawn_file_actions_adddup2 works... " >&6; }
-if test ${gl_cv_func_posix_spawn_file_actions_adddup2_works+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  if test "$cross_compiling" = yes
-then :
-  # Guess no on Solaris, yes otherwise.
-          case "$host_os" in
-            solaris*) gl_cv_func_posix_spawn_file_actions_adddup2_works="guessing no";;
-                      # Guess no on native Windows.
-            mingw*)   gl_cv_func_posix_spawn_file_actions_adddup2_works="guessing no" ;;
-            *)        gl_cv_func_posix_spawn_file_actions_adddup2_works="guessing yes";;
-          esac
-
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <spawn.h>
-int main ()
-{
-  posix_spawn_file_actions_t actions;
-  if (posix_spawn_file_actions_init (&actions) != 0)
-    return 1;
-  if (posix_spawn_file_actions_adddup2 (&actions, 10000000, 2) == 0)
-    return 2;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"
-then :
-  gl_cv_func_posix_spawn_file_actions_adddup2_works=yes
-else $as_nop
-  gl_cv_func_posix_spawn_file_actions_adddup2_works=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_posix_spawn_file_actions_adddup2_works" >&5
-printf "%s\n" "$gl_cv_func_posix_spawn_file_actions_adddup2_works" >&6; }
-    case "$gl_cv_func_posix_spawn_file_actions_adddup2_works" in
-      *yes) ;;
-      *) REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2=1 ;;
-    esac
-  fi
-
-  if test $HAVE_POSIX_SPAWN = 0 || test $REPLACE_POSIX_SPAWN = 1 || test $REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2 = 1; then
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS spawn_faction_adddup2.$ac_objext"
-
-  fi
-
-
-
-
-
-          GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2=1
-
-
-
-
-
-printf "%s\n" "#define GNULIB_TEST_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2 1" >>confdefs.h
-
-
-
-
-
-
-
-
-
-  if test $REPLACE_POSIX_SPAWN = 1; then
-    REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN=1
-  else
-            { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether posix_spawn_file_actions_addopen works" >&5
-printf %s "checking whether posix_spawn_file_actions_addopen works... " >&6; }
-if test ${gl_cv_func_posix_spawn_file_actions_addopen_works+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  if test "$cross_compiling" = yes
-then :
-  # Guess no on Solaris, yes otherwise.
-          case "$host_os" in
-            solaris*) gl_cv_func_posix_spawn_file_actions_addopen_works="guessing no";;
-                      # Guess no on native Windows.
-            mingw*)   gl_cv_func_posix_spawn_file_actions_addopen_works="guessing no" ;;
-            *)        gl_cv_func_posix_spawn_file_actions_addopen_works="guessing yes";;
-          esac
-
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <spawn.h>
-#include <fcntl.h>
-int main ()
-{
-  posix_spawn_file_actions_t actions;
-  if (posix_spawn_file_actions_init (&actions) != 0)
-    return 1;
-  if (posix_spawn_file_actions_addopen (&actions, 10000000, "foo", 0, O_RDONLY)
-      == 0)
-    return 2;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"
-then :
-  gl_cv_func_posix_spawn_file_actions_addopen_works=yes
-else $as_nop
-  gl_cv_func_posix_spawn_file_actions_addopen_works=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_posix_spawn_file_actions_addopen_works" >&5
-printf "%s\n" "$gl_cv_func_posix_spawn_file_actions_addopen_works" >&6; }
-    case "$gl_cv_func_posix_spawn_file_actions_addopen_works" in
-      *yes) ;;
-      *) REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN=1 ;;
-    esac
-  fi
-
-  if test $HAVE_POSIX_SPAWN = 0 || test $REPLACE_POSIX_SPAWN = 1 || test $REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN = 1; then
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS spawn_faction_addopen.$ac_objext"
-
-  fi
-
-
-
-
-
-          GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN=1
-
-
-
-
-
-printf "%s\n" "#define GNULIB_TEST_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN 1" >>confdefs.h
-
-
-
-
-
-
-  if test $HAVE_POSIX_SPAWN = 0 || test $REPLACE_POSIX_SPAWN = 1; then
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS spawn_faction_destroy.$ac_objext"
-
-  fi
-
-
-
-
-
-          GNULIB_POSIX_SPAWN_FILE_ACTIONS_DESTROY=1
-
-
-
-
-
-printf "%s\n" "#define GNULIB_TEST_POSIX_SPAWN_FILE_ACTIONS_DESTROY 1" >>confdefs.h
-
-
-
-
-
-
-  if test $HAVE_POSIX_SPAWN = 0 || test $REPLACE_POSIX_SPAWN = 1; then
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS spawn_faction_init.$ac_objext"
-
-  fi
-
-
-
-
-
-          GNULIB_POSIX_SPAWN_FILE_ACTIONS_INIT=1
-
-
-
-
-
-printf "%s\n" "#define GNULIB_TEST_POSIX_SPAWN_FILE_ACTIONS_INIT 1" >>confdefs.h
-
-
-
-
-
-
-  if test $HAVE_POSIX_SPAWN = 0 || test $REPLACE_POSIX_SPAWN = 1; then
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS spawnattr_destroy.$ac_objext"
-
-  fi
-
-
-
-
-
-          GNULIB_POSIX_SPAWNATTR_DESTROY=1
-
-
-
-
-
-printf "%s\n" "#define GNULIB_TEST_POSIX_SPAWNATTR_DESTROY 1" >>confdefs.h
-
-
-
-
-
-
-  if test $HAVE_POSIX_SPAWN = 0 || test $REPLACE_POSIX_SPAWN = 1; then
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS spawnattr_init.$ac_objext"
-
-  fi
-
-
-
-
-
-          GNULIB_POSIX_SPAWNATTR_INIT=1
-
-
-
-
-
-printf "%s\n" "#define GNULIB_TEST_POSIX_SPAWNATTR_INIT 1" >>confdefs.h
-
-
-
-
-
-
-  if test $HAVE_POSIX_SPAWN = 0 || test $REPLACE_POSIX_SPAWN = 1; then
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS spawnattr_setflags.$ac_objext"
-
-  fi
-
-
-
-
-
-          GNULIB_POSIX_SPAWNATTR_SETFLAGS=1
-
-
-
-
-
-printf "%s\n" "#define GNULIB_TEST_POSIX_SPAWNATTR_SETFLAGS 1" >>confdefs.h
-
-
-
-
-
-
-  if test $HAVE_POSIX_SPAWN = 0 || test $REPLACE_POSIX_SPAWN = 1; then
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS spawnattr_setsigmask.$ac_objext"
-
-  fi
-
-
-
-
-
-          GNULIB_POSIX_SPAWNATTR_SETSIGMASK=1
-
-
-
-
-
-printf "%s\n" "#define GNULIB_TEST_POSIX_SPAWNATTR_SETSIGMASK 1" >>confdefs.h
-
-
-
-
-
-
-  if test $HAVE_POSIX_SPAWN = 0 || test $REPLACE_POSIX_SPAWN = 1; then
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS spawnp.$ac_objext"
-
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS spawni.$ac_objext"
-
-
-  ac_fn_c_check_header_compile "$LINENO" "paths.h" "ac_cv_header_paths_h" "$ac_includes_default"
-if test "x$ac_cv_header_paths_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_PATHS_H 1" >>confdefs.h
-
-fi
-
-  ac_fn_c_check_func "$LINENO" "confstr" "ac_cv_func_confstr"
-if test "x$ac_cv_func_confstr" = xyes
-then :
-  printf "%s\n" "#define HAVE_CONFSTR 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "sched_setparam" "ac_cv_func_sched_setparam"
-if test "x$ac_cv_func_sched_setparam" = xyes
-then :
-  printf "%s\n" "#define HAVE_SCHED_SETPARAM 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "sched_setscheduler" "ac_cv_func_sched_setscheduler"
-if test "x$ac_cv_func_sched_setscheduler" = xyes
-then :
-  printf "%s\n" "#define HAVE_SCHED_SETSCHEDULER 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "setegid" "ac_cv_func_setegid"
-if test "x$ac_cv_func_setegid" = xyes
-then :
-  printf "%s\n" "#define HAVE_SETEGID 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "seteuid" "ac_cv_func_seteuid"
-if test "x$ac_cv_func_seteuid" = xyes
-then :
-  printf "%s\n" "#define HAVE_SETEUID 1" >>confdefs.h
-
-fi
-ac_fn_c_check_func "$LINENO" "vfork" "ac_cv_func_vfork"
-if test "x$ac_cv_func_vfork" = xyes
-then :
-  printf "%s\n" "#define HAVE_VFORK 1" >>confdefs.h
-
-fi
-
-
-  fi
-
-
-
-
-
-          GNULIB_POSIX_SPAWNP=1
-
-
-
-
-
-printf "%s\n" "#define GNULIB_TEST_POSIX_SPAWNP 1" >>confdefs.h
-
-
-
-
-
   if test $gl_cv_func_frexp_no_libm = yes; then
 
 
@@ -23435,227 +22180,6 @@ fi
 
 
 printf "%s\n" "#define GNULIB_TEST_RAISE 1" >>confdefs.h
-
-
-
-
-
-
-
-  ac_fn_c_check_func "$LINENO" "rawmemchr" "ac_cv_func_rawmemchr"
-if test "x$ac_cv_func_rawmemchr" = xyes
-then :
-  printf "%s\n" "#define HAVE_RAWMEMCHR 1" >>confdefs.h
-
-fi
-
-  if test $ac_cv_func_rawmemchr = no; then
-    HAVE_RAWMEMCHR=0
-  fi
-
-  if test $HAVE_RAWMEMCHR = 0; then
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS rawmemchr.$ac_objext"
-
-    :
-  fi
-
-
-
-
-
-          GNULIB_RAWMEMCHR=1
-
-
-
-
-
-printf "%s\n" "#define GNULIB_TEST_RAWMEMCHR 1" >>confdefs.h
-
-
-
-
-
-
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-       #include <sched.h>
-       struct sched_param a;
-       int b[] = { SCHED_FIFO, SCHED_RR, SCHED_OTHER };
-       pid_t t1;
-
-int
-main (void)
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"
-then :
-  SCHED_H=''
-else $as_nop
-  SCHED_H='sched.h'
-     ac_fn_c_check_header_compile "$LINENO" "sched.h" "ac_cv_header_sched_h" "#if HAVE_SYS_CDEFS_H
-          #include <sys/cdefs.h>
-         #endif
-
-"
-if test "x$ac_cv_header_sched_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_SCHED_H 1" >>confdefs.h
-
-fi
-
-
-
-
-
-
-
-
-
-     if test $gl_cv_have_include_next = yes; then
-       gl_cv_next_sched_h='<'sched.h'>'
-     else
-       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking absolute name of <sched.h>" >&5
-printf %s "checking absolute name of <sched.h>... " >&6; }
-if test ${gl_cv_next_sched_h+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-
-
-
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <sched.h>
-_ACEOF
-                case "$host_os" in
-    aix*) gl_absname_cpp="$ac_cpp -C" ;;
-    *)    gl_absname_cpp="$ac_cpp" ;;
-  esac
-
-  case "$host_os" in
-    mingw*)
-                                          gl_dirsep_regex='[/\\]'
-      ;;
-    *)
-      gl_dirsep_regex='\/'
-      ;;
-  esac
-      gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
-  gl_header_literal_regex=`echo 'sched.h' \
-                           | sed -e "$gl_make_literal_regex_sed"`
-  gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
-      s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
-      s|^/[^/]|//&|
-      p
-      q
-    }'
-
-        gl_cv_absolute_sched_h=`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-  sed -n "$gl_absolute_header_sed"`
-
-           gl_header=$gl_cv_absolute_sched_h
-           gl_cv_next_sched_h='"'$gl_header'"'
-
-
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_sched_h" >&5
-printf "%s\n" "$gl_cv_next_sched_h" >&6; }
-     fi
-     NEXT_SCHED_H=$gl_cv_next_sched_h
-
-     if test $gl_cv_have_include_next = yes || test $gl_cv_have_include_next = buggy; then
-       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include_next'
-       gl_next_as_first_directive='<'sched.h'>'
-     else
-       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include'
-       gl_next_as_first_directive=$gl_cv_next_sched_h
-     fi
-     NEXT_AS_FIRST_DIRECTIVE_SCHED_H=$gl_next_as_first_directive
-
-
-
-
-
-     if test "$ac_cv_header_sched_h" = yes; then
-       HAVE_SCHED_H=1
-     else
-       HAVE_SCHED_H=0
-     fi
-
-
-     if test "$HAVE_SCHED_H" = 1; then
-       ac_fn_c_check_type "$LINENO" "struct sched_param" "ac_cv_type_struct_sched_param" "#if HAVE_SYS_CDEFS_H
-            #include <sys/cdefs.h>
-           #endif
-           #include <sched.h>
-
-"
-if test "x$ac_cv_type_struct_sched_param" = xyes
-then :
-  HAVE_STRUCT_SCHED_PARAM=1
-else $as_nop
-  HAVE_STRUCT_SCHED_PARAM=0
-fi
-
-     else
-       HAVE_STRUCT_SCHED_PARAM=0
-       case "$host_os" in
-         os2*)
-                      ac_fn_c_check_type "$LINENO" "struct sched_param" "ac_cv_type_struct_sched_param" "#include <spawn.h>
-"
-if test "x$ac_cv_type_struct_sched_param" = xyes
-then :
-  HAVE_STRUCT_SCHED_PARAM=1
-fi
-
-           ;;
-         vms)
-                      ac_fn_c_check_type "$LINENO" "struct sched_param" "ac_cv_type_struct_sched_param" "#include <pthread.h>
-"
-if test "x$ac_cv_type_struct_sched_param" = xyes
-then :
-  HAVE_STRUCT_SCHED_PARAM=1
-fi
-
-           ;;
-       esac
-     fi
-
-
-     if test "$ac_cv_header_sys_cdefs_h" = yes; then
-       HAVE_SYS_CDEFS_H=1
-     else
-       HAVE_SYS_CDEFS_H=0
-     fi
-
-
-
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-
-   if test -n "$SCHED_H"; then
-  GL_GENERATE_SCHED_H_TRUE=
-  GL_GENERATE_SCHED_H_FALSE='#'
-else
-  GL_GENERATE_SCHED_H_TRUE='#'
-  GL_GENERATE_SCHED_H_FALSE=
-fi
-
-
 
 
 
@@ -24756,141 +23280,6 @@ printf "%s\n" "#define SIZE_MAX $gl_cv_size_max" >>confdefs.h
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-     if test $gl_cv_have_include_next = yes; then
-       gl_cv_next_spawn_h='<'spawn.h'>'
-     else
-       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking absolute name of <spawn.h>" >&5
-printf %s "checking absolute name of <spawn.h>... " >&6; }
-if test ${gl_cv_next_spawn_h+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-
-             if test $ac_cv_header_spawn_h = yes; then
-
-
-
-
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <spawn.h>
-_ACEOF
-                case "$host_os" in
-    aix*) gl_absname_cpp="$ac_cpp -C" ;;
-    *)    gl_absname_cpp="$ac_cpp" ;;
-  esac
-
-  case "$host_os" in
-    mingw*)
-                                          gl_dirsep_regex='[/\\]'
-      ;;
-    *)
-      gl_dirsep_regex='\/'
-      ;;
-  esac
-      gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
-  gl_header_literal_regex=`echo 'spawn.h' \
-                           | sed -e "$gl_make_literal_regex_sed"`
-  gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
-      s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
-      s|^/[^/]|//&|
-      p
-      q
-    }'
-
-        gl_cv_absolute_spawn_h=`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-  sed -n "$gl_absolute_header_sed"`
-
-           gl_header=$gl_cv_absolute_spawn_h
-           gl_cv_next_spawn_h='"'$gl_header'"'
-          else
-               gl_cv_next_spawn_h='<'spawn.h'>'
-             fi
-
-
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_spawn_h" >&5
-printf "%s\n" "$gl_cv_next_spawn_h" >&6; }
-     fi
-     NEXT_SPAWN_H=$gl_cv_next_spawn_h
-
-     if test $gl_cv_have_include_next = yes || test $gl_cv_have_include_next = buggy; then
-       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include_next'
-       gl_next_as_first_directive='<'spawn.h'>'
-     else
-       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include'
-       gl_next_as_first_directive=$gl_cv_next_spawn_h
-     fi
-     NEXT_AS_FIRST_DIRECTIVE_SPAWN_H=$gl_next_as_first_directive
-
-
-
-
-
-  if test $ac_cv_header_spawn_h = yes; then
-    HAVE_SPAWN_H=1
-    ac_fn_c_check_type "$LINENO" "posix_spawnattr_t" "ac_cv_type_posix_spawnattr_t" "
-#include <spawn.h>
-
-"
-if test "x$ac_cv_type_posix_spawnattr_t" = xyes
-then :
-
-printf "%s\n" "#define HAVE_POSIX_SPAWNATTR_T 1" >>confdefs.h
-
-
-else $as_nop
-  HAVE_POSIX_SPAWNATTR_T=0
-fi
-
-    ac_fn_c_check_type "$LINENO" "posix_spawn_file_actions_t" "ac_cv_type_posix_spawn_file_actions_t" "
-#include <spawn.h>
-
-"
-if test "x$ac_cv_type_posix_spawn_file_actions_t" = xyes
-then :
-
-printf "%s\n" "#define HAVE_POSIX_SPAWN_FILE_ACTIONS_T 1" >>confdefs.h
-
-
-else $as_nop
-  HAVE_POSIX_SPAWN_FILE_ACTIONS_T=0
-fi
-
-  else
-    HAVE_SPAWN_H=0
-    HAVE_POSIX_SPAWNATTR_T=0
-    HAVE_POSIX_SPAWN_FILE_ACTIONS_T=0
-  fi
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ssize_t" >&5
 printf %s "checking for ssize_t... " >&6; }
 if test ${gt_cv_ssize_t+y}
@@ -25688,115 +24077,6 @@ printf "%s\n" "#define HAVE_DECL_STRNCASECMP $ac_have_decl" >>confdefs.h
   :
 
   fi
-
-
-
-
-  ac_fn_c_check_func "$LINENO" "strchrnul" "ac_cv_func_strchrnul"
-if test "x$ac_cv_func_strchrnul" = xyes
-then :
-  printf "%s\n" "#define HAVE_STRCHRNUL 1" >>confdefs.h
-
-fi
-
-  if test $ac_cv_func_strchrnul = no; then
-    HAVE_STRCHRNUL=0
-  else
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether strchrnul works" >&5
-printf %s "checking whether strchrnul works... " >&6; }
-if test ${gl_cv_func_strchrnul_works+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  if test "$cross_compiling" = yes
-then :
-           cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#if defined __CYGWIN__
- #include <cygwin/version.h>
- #if CYGWIN_VERSION_DLL_COMBINED > CYGWIN_VERSION_DLL_MAKE_COMBINED (1007, 9)
-  Lucky user
- #endif
-#else
-  Lucky user
-#endif
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "Lucky user" >/dev/null 2>&1
-then :
-  gl_cv_func_strchrnul_works="guessing yes"
-else $as_nop
-  gl_cv_func_strchrnul_works="guessing no"
-fi
-rm -rf conftest*
-
-
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <string.h> /* for strchrnul */
-
-int
-main (void)
-{
-const char *buf = "a";
-      return strchrnul (buf, 'b') != buf + 1;
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"
-then :
-  gl_cv_func_strchrnul_works=yes
-else $as_nop
-  gl_cv_func_strchrnul_works=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_strchrnul_works" >&5
-printf "%s\n" "$gl_cv_func_strchrnul_works" >&6; }
-    case "$gl_cv_func_strchrnul_works" in
-      *yes) ;;
-      *) REPLACE_STRCHRNUL=1 ;;
-    esac
-  fi
-
-  if test $HAVE_STRCHRNUL = 0 || test $REPLACE_STRCHRNUL = 1; then
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS strchrnul.$ac_objext"
-
-    :
-  fi
-
-
-
-
-
-          GNULIB_STRCHRNUL=1
-
-
-
-
-
-printf "%s\n" "#define GNULIB_TEST_STRCHRNUL 1" >>confdefs.h
-
-
-
 
 
 
@@ -26940,9 +25220,6 @@ printf "%s\n" "$gl_cv_next_unistd_h" >&6; }
 
 
 
-
-
-
   if test $ac_cv_func_vasnprintf = no; then
 
 
@@ -27350,16 +25627,6 @@ printf "%s\n" "#define REPLACE_VFPRINTF_POSIX 1" >>confdefs.h
 
 printf "%s\n" "#define GNULIB_TEST_VFPRINTF_POSIX 1" >>confdefs.h
 
-
-
-
-
-  ac_fn_c_check_func "$LINENO" "waitid" "ac_cv_func_waitid"
-if test "x$ac_cv_func_waitid" = xyes
-then :
-  printf "%s\n" "#define HAVE_WAITID 1" >>confdefs.h
-
-fi
 
 
 
@@ -36257,47 +34524,6 @@ printf "%s\n" "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
  esac
 
 
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether backslash-a works in strings" >&5
-printf %s "checking whether backslash-a works in strings... " >&6; }
-if test ${ac_cv_c_backslash_a+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main (void)
-{
-
-#if '\a' == 'a'
-      syntax error;
-#endif
-      char buf['\a' == 'a' ? -1 : 1];
-      buf[0] = '\a';
-      return buf[0] != "\a"[0];
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"
-then :
-  ac_cv_c_backslash_a=yes
-else $as_nop
-  ac_cv_c_backslash_a=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_c_backslash_a" >&5
-printf "%s\n" "$ac_cv_c_backslash_a" >&6; }
-  if test $ac_cv_c_backslash_a = yes; then
-
-printf "%s\n" "#define HAVE_C_BACKSLASH_A 1" >>confdefs.h
-
-  fi
-
-
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for log10 in -lm" >&5
 printf %s "checking for log10 in -lm... " >&6; }
 if test ${ac_cv_lib_m_log10+y}
@@ -36342,6 +34568,770 @@ then :
 else $as_nop
   as_fn_error $? "unable to find function log10" "$LINENO" 5
 fi
+
+
+
+
+
+
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+ax_pthread_ok=no
+
+# We used to check for pthread.h first, but this fails if pthread.h
+# requires special compiler flags (e.g. on Tru64 or Sequent).
+# It gets checked for in the link test anyway.
+
+# First of all, check if the user has set any of the PTHREAD_LIBS,
+# etcetera environment variables, and if threads linking works using
+# them:
+if test "x$PTHREAD_CFLAGS$PTHREAD_LIBS" != "x"; then
+        ax_pthread_save_CC="$CC"
+        ax_pthread_save_CFLAGS="$CFLAGS"
+        ax_pthread_save_LIBS="$LIBS"
+        if test "x$PTHREAD_CC" != "x"
+then :
+  CC="$PTHREAD_CC"
+fi
+        if test "x$PTHREAD_CXX" != "x"
+then :
+  CXX="$PTHREAD_CXX"
+fi
+        CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+        LIBS="$PTHREAD_LIBS $LIBS"
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for pthread_join using $CC $PTHREAD_CFLAGS $PTHREAD_LIBS" >&5
+printf %s "checking for pthread_join using $CC $PTHREAD_CFLAGS $PTHREAD_LIBS... " >&6; }
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char pthread_join ();
+int
+main (void)
+{
+return pthread_join ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ax_pthread_ok=yes
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_pthread_ok" >&5
+printf "%s\n" "$ax_pthread_ok" >&6; }
+        if test "x$ax_pthread_ok" = "xno"; then
+                PTHREAD_LIBS=""
+                PTHREAD_CFLAGS=""
+        fi
+        CC="$ax_pthread_save_CC"
+        CFLAGS="$ax_pthread_save_CFLAGS"
+        LIBS="$ax_pthread_save_LIBS"
+fi
+
+# We must check for the threads library under a number of different
+# names; the ordering is very important because some systems
+# (e.g. DEC) have both -lpthread and -lpthreads, where one of the
+# libraries is broken (non-POSIX).
+
+# Create a list of thread flags to try. Items with a "," contain both
+# C compiler flags (before ",") and linker flags (after ","). Other items
+# starting with a "-" are C compiler flags, and remaining items are
+# library names, except for "none" which indicates that we try without
+# any flags at all, and "pthread-config" which is a program returning
+# the flags for the Pth emulation library.
+
+ax_pthread_flags="pthreads none -Kthread -pthread -pthreads -mthreads pthread --thread-safe -mt pthread-config"
+
+# The ordering *is* (sometimes) important.  Some notes on the
+# individual items follow:
+
+# pthreads: AIX (must check this before -lpthread)
+# none: in case threads are in libc; should be tried before -Kthread and
+#       other compiler flags to prevent continual compiler warnings
+# -Kthread: Sequent (threads in libc, but -Kthread needed for pthread.h)
+# -pthread: Linux/gcc (kernel threads), BSD/gcc (userland threads), Tru64
+#           (Note: HP C rejects this with "bad form for `-t' option")
+# -pthreads: Solaris/gcc (Note: HP C also rejects)
+# -mt: Sun Workshop C (may only link SunOS threads [-lthread], but it
+#      doesn't hurt to check since this sometimes defines pthreads and
+#      -D_REENTRANT too), HP C (must be checked before -lpthread, which
+#      is present but should not be used directly; and before -mthreads,
+#      because the compiler interprets this as "-mt" + "-hreads")
+# -mthreads: Mingw32/gcc, Lynx/gcc
+# pthread: Linux, etcetera
+# --thread-safe: KAI C++
+# pthread-config: use pthread-config program (for GNU Pth library)
+
+case $host_os in
+
+        freebsd*)
+
+        # -kthread: FreeBSD kernel threads (preferred to -pthread since SMP-able)
+        # lthread: LinuxThreads port on FreeBSD (also preferred to -pthread)
+
+        ax_pthread_flags="-kthread lthread $ax_pthread_flags"
+        ;;
+
+        hpux*)
+
+        # From the cc(1) man page: "[-mt] Sets various -D flags to enable
+        # multi-threading and also sets -lpthread."
+
+        ax_pthread_flags="-mt -pthread pthread $ax_pthread_flags"
+        ;;
+
+        openedition*)
+
+        # IBM z/OS requires a feature-test macro to be defined in order to
+        # enable POSIX threads at all, so give the user a hint if this is
+        # not set. (We don't define these ourselves, as they can affect
+        # other portions of the system API in unpredictable ways.)
+
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#            if !defined(_OPEN_THREADS) && !defined(_UNIX03_THREADS)
+             AX_PTHREAD_ZOS_MISSING
+#            endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "AX_PTHREAD_ZOS_MISSING" >/dev/null 2>&1
+then :
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: IBM z/OS requires -D_OPEN_THREADS or -D_UNIX03_THREADS to enable pthreads support." >&5
+printf "%s\n" "$as_me: WARNING: IBM z/OS requires -D_OPEN_THREADS or -D_UNIX03_THREADS to enable pthreads support." >&2;}
+fi
+rm -rf conftest*
+
+        ;;
+
+        solaris*)
+
+        # On Solaris (at least, for some versions), libc contains stubbed
+        # (non-functional) versions of the pthreads routines, so link-based
+        # tests will erroneously succeed. (N.B.: The stubs are missing
+        # pthread_cleanup_push, or rather a function called by this macro,
+        # so we could check for that, but who knows whether they'll stub
+        # that too in a future libc.)  So we'll check first for the
+        # standard Solaris way of linking pthreads (-mt -lpthread).
+
+        ax_pthread_flags="-mt,-lpthread pthread $ax_pthread_flags"
+        ;;
+esac
+
+# Are we compiling with Clang?
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether $CC is Clang" >&5
+printf %s "checking whether $CC is Clang... " >&6; }
+if test ${ax_cv_PTHREAD_CLANG+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ax_cv_PTHREAD_CLANG=no
+     # Note that Autoconf sets GCC=yes for Clang as well as GCC
+     if test "x$GCC" = "xyes"; then
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+/* Note: Clang 2.7 lacks __clang_[a-z]+__ */
+#            if defined(__clang__) && defined(__llvm__)
+             AX_PTHREAD_CC_IS_CLANG
+#            endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "AX_PTHREAD_CC_IS_CLANG" >/dev/null 2>&1
+then :
+  ax_cv_PTHREAD_CLANG=yes
+fi
+rm -rf conftest*
+
+     fi
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_PTHREAD_CLANG" >&5
+printf "%s\n" "$ax_cv_PTHREAD_CLANG" >&6; }
+ax_pthread_clang="$ax_cv_PTHREAD_CLANG"
+
+
+# GCC generally uses -pthread, or -pthreads on some platforms (e.g. SPARC)
+
+# Note that for GCC and Clang -pthread generally implies -lpthread,
+# except when -nostdlib is passed.
+# This is problematic using libtool to build C++ shared libraries with pthread:
+# [1] https://gcc.gnu.org/bugzilla/show_bug.cgi?id=25460
+# [2] https://bugzilla.redhat.com/show_bug.cgi?id=661333
+# [3] https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=468555
+# To solve this, first try -pthread together with -lpthread for GCC
+
+if test "x$GCC" = "xyes"
+then :
+  ax_pthread_flags="-pthread,-lpthread -pthread -pthreads $ax_pthread_flags"
+fi
+
+# Clang takes -pthread (never supported any other flag), but we'll try with -lpthread first
+
+if test "x$ax_pthread_clang" = "xyes"
+then :
+  ax_pthread_flags="-pthread,-lpthread -pthread"
+fi
+
+
+# The presence of a feature test macro requesting re-entrant function
+# definitions is, on some systems, a strong hint that pthreads support is
+# correctly enabled
+
+case $host_os in
+        darwin* | hpux* | linux* | osf* | solaris*)
+        ax_pthread_check_macro="_REENTRANT"
+        ;;
+
+        aix*)
+        ax_pthread_check_macro="_THREAD_SAFE"
+        ;;
+
+        *)
+        ax_pthread_check_macro="--"
+        ;;
+esac
+if test "x$ax_pthread_check_macro" = "x--"
+then :
+  ax_pthread_check_cond=0
+else $as_nop
+  ax_pthread_check_cond="!defined($ax_pthread_check_macro)"
+fi
+
+
+if test "x$ax_pthread_ok" = "xno"; then
+for ax_pthread_try_flag in $ax_pthread_flags; do
+
+        case $ax_pthread_try_flag in
+                none)
+                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether pthreads work without any flags" >&5
+printf %s "checking whether pthreads work without any flags... " >&6; }
+                ;;
+
+                *,*)
+                PTHREAD_CFLAGS=`echo $ax_pthread_try_flag | sed "s/^\(.*\),\(.*\)$/\1/"`
+                PTHREAD_LIBS=`echo $ax_pthread_try_flag | sed "s/^\(.*\),\(.*\)$/\2/"`
+                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether pthreads work with \"$PTHREAD_CFLAGS\" and \"$PTHREAD_LIBS\"" >&5
+printf %s "checking whether pthreads work with \"$PTHREAD_CFLAGS\" and \"$PTHREAD_LIBS\"... " >&6; }
+                ;;
+
+                -*)
+                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether pthreads work with $ax_pthread_try_flag" >&5
+printf %s "checking whether pthreads work with $ax_pthread_try_flag... " >&6; }
+                PTHREAD_CFLAGS="$ax_pthread_try_flag"
+                ;;
+
+                pthread-config)
+                # Extract the first word of "pthread-config", so it can be a program name with args.
+set dummy pthread-config; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_prog_ax_pthread_config+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  if test -n "$ax_pthread_config"; then
+  ac_cv_prog_ax_pthread_config="$ax_pthread_config" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_prog_ax_pthread_config="yes"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_ax_pthread_config" && ac_cv_prog_ax_pthread_config="no"
+fi
+fi
+ax_pthread_config=$ac_cv_prog_ax_pthread_config
+if test -n "$ax_pthread_config"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_pthread_config" >&5
+printf "%s\n" "$ax_pthread_config" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
+                if test "x$ax_pthread_config" = "xno"
+then :
+  continue
+fi
+                PTHREAD_CFLAGS="`pthread-config --cflags`"
+                PTHREAD_LIBS="`pthread-config --ldflags` `pthread-config --libs`"
+                ;;
+
+                *)
+                { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for the pthreads library -l$ax_pthread_try_flag" >&5
+printf %s "checking for the pthreads library -l$ax_pthread_try_flag... " >&6; }
+                PTHREAD_LIBS="-l$ax_pthread_try_flag"
+                ;;
+        esac
+
+        ax_pthread_save_CFLAGS="$CFLAGS"
+        ax_pthread_save_LIBS="$LIBS"
+        CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+        LIBS="$PTHREAD_LIBS $LIBS"
+
+        # Check for various functions.  We must include pthread.h,
+        # since some functions may be macros.  (On the Sequent, we
+        # need a special flag -Kthread to make this header compile.)
+        # We check for pthread_join because it is in -lpthread on IRIX
+        # while pthread_create is in libc.  We check for pthread_attr_init
+        # due to DEC craziness with -lpthreads.  We check for
+        # pthread_cleanup_push because it is one of the few pthread
+        # functions on Solaris that doesn't have a non-functional libc stub.
+        # We try pthread_create on general principles.
+
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <pthread.h>
+#                       if $ax_pthread_check_cond
+#                        error "$ax_pthread_check_macro must be defined"
+#                       endif
+                        static void *some_global = NULL;
+                        static void routine(void *a)
+                          {
+                             /* To avoid any unused-parameter or
+                                unused-but-set-parameter warning.  */
+                             some_global = a;
+                          }
+                        static void *start_routine(void *a) { return a; }
+int
+main (void)
+{
+pthread_t th; pthread_attr_t attr;
+                        pthread_create(&th, 0, start_routine, 0);
+                        pthread_join(th, 0);
+                        pthread_attr_init(&attr);
+                        pthread_cleanup_push(routine, 0);
+                        pthread_cleanup_pop(0) /* ; */
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ax_pthread_ok=yes
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+
+        CFLAGS="$ax_pthread_save_CFLAGS"
+        LIBS="$ax_pthread_save_LIBS"
+
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_pthread_ok" >&5
+printf "%s\n" "$ax_pthread_ok" >&6; }
+        if test "x$ax_pthread_ok" = "xyes"
+then :
+  break
+fi
+
+        PTHREAD_LIBS=""
+        PTHREAD_CFLAGS=""
+done
+fi
+
+
+# Clang needs special handling, because older versions handle the -pthread
+# option in a rather... idiosyncratic way
+
+if test "x$ax_pthread_clang" = "xyes"; then
+
+        # Clang takes -pthread; it has never supported any other flag
+
+        # (Note 1: This will need to be revisited if a system that Clang
+        # supports has POSIX threads in a separate library.  This tends not
+        # to be the way of modern systems, but it's conceivable.)
+
+        # (Note 2: On some systems, notably Darwin, -pthread is not needed
+        # to get POSIX threads support; the API is always present and
+        # active.  We could reasonably leave PTHREAD_CFLAGS empty.  But
+        # -pthread does define _REENTRANT, and while the Darwin headers
+        # ignore this macro, third-party headers might not.)
+
+        # However, older versions of Clang make a point of warning the user
+        # that, in an invocation where only linking and no compilation is
+        # taking place, the -pthread option has no effect ("argument unused
+        # during compilation").  They expect -pthread to be passed in only
+        # when source code is being compiled.
+        #
+        # Problem is, this is at odds with the way Automake and most other
+        # C build frameworks function, which is that the same flags used in
+        # compilation (CFLAGS) are also used in linking.  Many systems
+        # supported by AX_PTHREAD require exactly this for POSIX threads
+        # support, and in fact it is often not straightforward to specify a
+        # flag that is used only in the compilation phase and not in
+        # linking.  Such a scenario is extremely rare in practice.
+        #
+        # Even though use of the -pthread flag in linking would only print
+        # a warning, this can be a nuisance for well-run software projects
+        # that build with -Werror.  So if the active version of Clang has
+        # this misfeature, we search for an option to squash it.
+
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether Clang needs flag to prevent \"argument unused\" warning when linking with -pthread" >&5
+printf %s "checking whether Clang needs flag to prevent \"argument unused\" warning when linking with -pthread... " >&6; }
+if test ${ax_cv_PTHREAD_CLANG_NO_WARN_FLAG+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ax_cv_PTHREAD_CLANG_NO_WARN_FLAG=unknown
+             # Create an alternate version of $ac_link that compiles and
+             # links in two steps (.c -> .o, .o -> exe) instead of one
+             # (.c -> exe), because the warning occurs only in the second
+             # step
+             ax_pthread_save_ac_link="$ac_link"
+             ax_pthread_sed='s/conftest\.\$ac_ext/conftest.$ac_objext/g'
+             ax_pthread_link_step=`printf "%s\n" "$ac_link" | sed "$ax_pthread_sed"`
+             ax_pthread_2step_ac_link="($ac_compile) && (echo ==== >&5) && ($ax_pthread_link_step)"
+             ax_pthread_save_CFLAGS="$CFLAGS"
+             for ax_pthread_try in '' -Qunused-arguments -Wno-unused-command-line-argument unknown; do
+                if test "x$ax_pthread_try" = "xunknown"
+then :
+  break
+fi
+                CFLAGS="-Werror -Wunknown-warning-option $ax_pthread_try -pthread $ax_pthread_save_CFLAGS"
+                ac_link="$ax_pthread_save_ac_link"
+                cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+int main(void){return 0;}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_link="$ax_pthread_2step_ac_link"
+                     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+int main(void){return 0;}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  break
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+             done
+             ac_link="$ax_pthread_save_ac_link"
+             CFLAGS="$ax_pthread_save_CFLAGS"
+             if test "x$ax_pthread_try" = "x"
+then :
+  ax_pthread_try=no
+fi
+             ax_cv_PTHREAD_CLANG_NO_WARN_FLAG="$ax_pthread_try"
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_PTHREAD_CLANG_NO_WARN_FLAG" >&5
+printf "%s\n" "$ax_cv_PTHREAD_CLANG_NO_WARN_FLAG" >&6; }
+
+        case "$ax_cv_PTHREAD_CLANG_NO_WARN_FLAG" in
+                no | unknown) ;;
+                *) PTHREAD_CFLAGS="$ax_cv_PTHREAD_CLANG_NO_WARN_FLAG $PTHREAD_CFLAGS" ;;
+        esac
+
+fi # $ax_pthread_clang = yes
+
+
+
+# Various other checks:
+if test "x$ax_pthread_ok" = "xyes"; then
+        ax_pthread_save_CFLAGS="$CFLAGS"
+        ax_pthread_save_LIBS="$LIBS"
+        CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+        LIBS="$PTHREAD_LIBS $LIBS"
+
+        # Detect AIX lossage: JOINABLE attribute is called UNDETACHED.
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for joinable pthread attribute" >&5
+printf %s "checking for joinable pthread attribute... " >&6; }
+if test ${ax_cv_PTHREAD_JOINABLE_ATTR+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ax_cv_PTHREAD_JOINABLE_ATTR=unknown
+             for ax_pthread_attr in PTHREAD_CREATE_JOINABLE PTHREAD_CREATE_UNDETACHED; do
+                 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <pthread.h>
+int
+main (void)
+{
+int attr = $ax_pthread_attr; return attr /* ; */
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ax_cv_PTHREAD_JOINABLE_ATTR=$ax_pthread_attr; break
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+             done
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_PTHREAD_JOINABLE_ATTR" >&5
+printf "%s\n" "$ax_cv_PTHREAD_JOINABLE_ATTR" >&6; }
+        if test "x$ax_cv_PTHREAD_JOINABLE_ATTR" != "xunknown" && \
+               test "x$ax_cv_PTHREAD_JOINABLE_ATTR" != "xPTHREAD_CREATE_JOINABLE" && \
+               test "x$ax_pthread_joinable_attr_defined" != "xyes"
+then :
+
+printf "%s\n" "#define PTHREAD_CREATE_JOINABLE $ax_cv_PTHREAD_JOINABLE_ATTR" >>confdefs.h
+
+               ax_pthread_joinable_attr_defined=yes
+
+fi
+
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether more special flags are required for pthreads" >&5
+printf %s "checking whether more special flags are required for pthreads... " >&6; }
+if test ${ax_cv_PTHREAD_SPECIAL_FLAGS+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ax_cv_PTHREAD_SPECIAL_FLAGS=no
+             case $host_os in
+             solaris*)
+             ax_cv_PTHREAD_SPECIAL_FLAGS="-D_POSIX_PTHREAD_SEMANTICS"
+             ;;
+             esac
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_PTHREAD_SPECIAL_FLAGS" >&5
+printf "%s\n" "$ax_cv_PTHREAD_SPECIAL_FLAGS" >&6; }
+        if test "x$ax_cv_PTHREAD_SPECIAL_FLAGS" != "xno" && \
+               test "x$ax_pthread_special_flags_added" != "xyes"
+then :
+  PTHREAD_CFLAGS="$ax_cv_PTHREAD_SPECIAL_FLAGS $PTHREAD_CFLAGS"
+               ax_pthread_special_flags_added=yes
+fi
+
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for PTHREAD_PRIO_INHERIT" >&5
+printf %s "checking for PTHREAD_PRIO_INHERIT... " >&6; }
+if test ${ax_cv_PTHREAD_PRIO_INHERIT+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <pthread.h>
+int
+main (void)
+{
+int i = PTHREAD_PRIO_INHERIT;
+                                               return i;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ax_cv_PTHREAD_PRIO_INHERIT=yes
+else $as_nop
+  ax_cv_PTHREAD_PRIO_INHERIT=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_PTHREAD_PRIO_INHERIT" >&5
+printf "%s\n" "$ax_cv_PTHREAD_PRIO_INHERIT" >&6; }
+        if test "x$ax_cv_PTHREAD_PRIO_INHERIT" = "xyes" && \
+               test "x$ax_pthread_prio_inherit_defined" != "xyes"
+then :
+
+printf "%s\n" "#define HAVE_PTHREAD_PRIO_INHERIT 1" >>confdefs.h
+
+               ax_pthread_prio_inherit_defined=yes
+
+fi
+
+        CFLAGS="$ax_pthread_save_CFLAGS"
+        LIBS="$ax_pthread_save_LIBS"
+
+        # More AIX lossage: compile with *_r variant
+        if test "x$GCC" != "xyes"; then
+            case $host_os in
+                aix*)
+                case "x/$CC" in #(
+  x*/c89|x*/c89_128|x*/c99|x*/c99_128|x*/cc|x*/cc128|x*/xlc|x*/xlc_v6|x*/xlc128|x*/xlc128_v6) :
+    #handle absolute path differently from PATH based program lookup
+                     case "x$CC" in #(
+  x/*) :
+
+			   if as_fn_executable_p ${CC}_r
+then :
+  PTHREAD_CC="${CC}_r"
+fi
+			   if test "x${CXX}" != "x"
+then :
+  if as_fn_executable_p ${CXX}_r
+then :
+  PTHREAD_CXX="${CXX}_r"
+fi
+fi
+			  ;; #(
+  *) :
+
+			   for ac_prog in ${CC}_r
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_prog_PTHREAD_CC+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  if test -n "$PTHREAD_CC"; then
+  ac_cv_prog_PTHREAD_CC="$PTHREAD_CC" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_prog_PTHREAD_CC="$ac_prog"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+PTHREAD_CC=$ac_cv_prog_PTHREAD_CC
+if test -n "$PTHREAD_CC"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $PTHREAD_CC" >&5
+printf "%s\n" "$PTHREAD_CC" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
+  test -n "$PTHREAD_CC" && break
+done
+test -n "$PTHREAD_CC" || PTHREAD_CC="$CC"
+
+			   if test "x${CXX}" != "x"
+then :
+  for ac_prog in ${CXX}_r
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_prog_PTHREAD_CXX+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  if test -n "$PTHREAD_CXX"; then
+  ac_cv_prog_PTHREAD_CXX="$PTHREAD_CXX" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_prog_PTHREAD_CXX="$ac_prog"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+PTHREAD_CXX=$ac_cv_prog_PTHREAD_CXX
+if test -n "$PTHREAD_CXX"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $PTHREAD_CXX" >&5
+printf "%s\n" "$PTHREAD_CXX" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
+  test -n "$PTHREAD_CXX" && break
+done
+test -n "$PTHREAD_CXX" || PTHREAD_CXX="$CXX"
+
+fi
+
+                      ;;
+esac
+                     ;; #(
+  *) :
+     ;;
+esac
+                ;;
+            esac
+        fi
+fi
+
+test -n "$PTHREAD_CC" || PTHREAD_CC="$CC"
+test -n "$PTHREAD_CXX" || PTHREAD_CXX="$CXX"
+
+
+
+
+
+
+# Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
+if test "x$ax_pthread_ok" = "xyes"; then
+
+printf "%s\n" "#define HAVE_PTHREAD 1" >>confdefs.h
+
+        :
+else
+        ax_pthread_ok=no
+        as_fn_error $? "thread support is required to compile tate" "$LINENO" 5
+fi
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
 
 
 # The cast to long int works around a bug in the HP C Compiler
@@ -36752,10 +35742,6 @@ fi
 
 if test -z "${GL_GENERATE_LIMITS_H_TRUE}" && test -z "${GL_GENERATE_LIMITS_H_FALSE}"; then
   as_fn_error $? "conditional \"GL_GENERATE_LIMITS_H\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${GL_GENERATE_SCHED_H_TRUE}" && test -z "${GL_GENERATE_SCHED_H_FALSE}"; then
-  as_fn_error $? "conditional \"GL_GENERATE_SCHED_H\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${GL_GENERATE_STDBOOL_H_TRUE}" && test -z "${GL_GENERATE_STDBOOL_H_FALSE}"; then
