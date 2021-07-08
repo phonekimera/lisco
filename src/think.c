@@ -20,21 +20,40 @@
 # include <config.h>
 #endif
 
-#include <time.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "state.h"
 
 #define MATE -10000
+#define INF ((-(MATE)) << 1)
+#define MOVEMAX 512
+
+typedef struct Line {
+	chi_move moves[MOVEMAX];
+	unsigned int num_moves;
+} Line;
+
+typedef struct Tree {
+	chi_pos position;
+	chi_move bestmove;
+	int depth;
+	unsigned long nodes;
+	unsigned long evals;
+} Tree;
 
 static int
-evaluate(chi_pos *position)
+evaluate(Tree *tree)
 {
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move *move_ptr;
+	chi_pos *position = &tree->position;
 	int score = 100 * chi_material(position);
-	int factor = chi_on_move(position) ? -1 : +1;
+	int mobility_factor = chi_on_move(position) ? +1 : -1;
 	chi_result result;
 	int num_moves;
+
+	++tree->evals;
 
 	if (chi_game_over(position, &result)) {
 		if (chi_result_is_white_win(result)) {
@@ -48,56 +67,113 @@ evaluate(chi_pos *position)
 
 	move_ptr = chi_legal_moves(position, moves);
 	num_moves = move_ptr - moves;
-	score += num_moves * factor;
+	score += num_moves * mobility_factor;
 
 	// Try a "null move".
 	position->flags.on_move = !position->flags.on_move;
 	move_ptr = chi_legal_moves(position, moves);
 	num_moves = move_ptr - moves;
-	score -= num_moves * factor;
+	score -= num_moves * mobility_factor;
 	position->flags.on_move = !position->flags.on_move;
 
 	return score;
 }
 
-static int seeded = 0;
+/*
+static void
+print_pv(chi_pos *position, Line *line)
+{
+	FILE *out = stderr;
+	char *buf = NULL;
+	unsigned int bufsize;
+	chi_move move;
+
+	fprintf(out, "pv");
+	for (int i = 0; i < line->cmove; ++i) {
+		move = line->moves[i];
+		(void) chi_coordinate_notation(move, chi_on_move(position), &buf, &bufsize);
+		fprintf(out, " %s", buf);
+	}
+	fprintf(out, "\n");
+
+	if (buf)
+		free(buf);
+}
+*/
+
+static int
+minimax(Tree *tree, int depth, chi_bool maximize)
+{
+	chi_move moves[CHI_MAX_MOVES];
+	chi_move *move_ptr;
+	chi_pos *position = &tree->position;
+	int bestvalue, value;
+
+	++tree->nodes;
+
+	if (depth == 0) {
+		return evaluate(tree);
+	}
+
+	move_ptr = chi_legal_moves(position, moves);
+	if (move_ptr == moves) {
+		// FIXME! It's not as simple as that. We also have to considers draws.
+		return evaluate(tree);
+	}
+
+	if (maximize) {
+		value = +INF;
+	} else {
+		value = -INF;
+	}
+
+	while (move_ptr-- > moves) {
+		chi_move move = *move_ptr;
+
+		chi_apply_move(position, move);
+
+		if (maximize) {
+			value = minimax(tree, depth - 1, chi_false);
+			if (value > bestvalue) {
+				bestvalue = value;
+				if (depth == tree->depth)
+					tree->bestmove = move;
+			}
+		} else {
+			value = minimax(tree, depth - 1, chi_true);
+			if (value < bestvalue) {
+				bestvalue = value;
+				if (depth == tree->depth)
+					tree->bestmove = move;
+			}
+		}
+
+		chi_unapply_move(position, move);
+	}
+
+	return value;
+}
 
 void
 think(void)
 {
-	chi_move moves[CHI_MAX_MOVES];
-	chi_move *move_ptr;
-	int bestscore, score;
 	chi_color_t on_move;
-	chi_pos position;
-	chi_move move;
+	Tree tree;
 
 	if (chi_game_over(&tate.position, NULL)) return;
 
-	position = tate.position;
+	memset(&tree, 0, sizeof tree);
 
-	on_move = chi_on_move(&position);
-	bestscore = on_move == chi_white ? MATE : -MATE;
+	tree.position = tate.position;
+	tree.depth = 1;
+	on_move = chi_on_move(&tree.position);
 
-	if (!seeded) {
-		srand(time(NULL));
-		seeded = 1;
-	}
-
-	move_ptr = chi_legal_moves(&tate.position, moves);
-	while (move_ptr-- > moves) {
-		move = *move_ptr;
-		chi_apply_move(&position, move);
-		score = evaluate(&position);
-
-		if ((on_move == chi_white && score >= bestscore)
-			|| (on_move == chi_black && score <= bestscore)) {
-			bestscore = score;
-			tate.bestmove = move;
-			tate.bestmove_found = 1;
-		}
-		chi_unapply_move(&position, move);
-	}
+	(void) minimax(&tree, tree.depth, on_move == chi_white);
+	tate.bestmove = tree.bestmove;
+	tate.bestmove_found = 1;
 
 	tate.pondermove_found = 0;
+
+	fprintf(stderr, "info nodes searched: %lu\n", tree.nodes);
+	fprintf(stderr, "info nodes evaluated: %lu\n", tree.evals);
 }
