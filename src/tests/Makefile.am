@@ -19,9 +19,12 @@
 
 noinst_PROGRAMS = check_common check_tate check_tateplay
 
-TESTS = ./check_common ./check_tate ./check_tateplay
+TESTS = ./check_common \
+	./check_tate \
+	./check_tateplay
+
 if HAS_PERL
-        TESTS += ./check_mates
+        TESTS += ./check_mates ./check_dm1 ./check_dm2 ./check_dm3
 endif
 
 check_common_SOURCES = \
