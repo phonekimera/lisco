@@ -243,8 +243,8 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/config.h.in \
 	$(top_srcdir)/build-aux/install-sh \
 	$(top_srcdir)/build-aux/ltmain.sh \
 	$(top_srcdir)/build-aux/missing AUTHORS COPYING ChangeLog \
-	INSTALL NEWS README THANKS TODO acconfig.h build-aux/compile \
-	build-aux/config.guess build-aux/config.sub \
+	INSTALL NEWS README THANKS TODO build-aux/compile \
+	build-aux/config.guess build-aux/config.sub build-aux/depcomp \
 	build-aux/install-sh build-aux/ltmain.sh build-aux/mdate-sh \
 	build-aux/missing build-aux/texinfo.tex config.guess \
 	config.sub depcomp install-sh ltmain.sh missing mkinstalldirs
@@ -1486,7 +1486,7 @@ config.h: stamp-h1
 stamp-h1: $(srcdir)/config.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
 	cd $(top_builddir) && $(SHELL) ./config.status config.h
-$(srcdir)/config.h.in:  $(am__configure_deps) $(top_srcdir)/acconfig.h
+$(srcdir)/config.h.in:  $(am__configure_deps) 
 	($(am__cd) $(top_srcdir) && $(AUTOHEADER))
 	rm -f stamp-h1
 	touch $@
