@@ -138,7 +138,10 @@ uci_handle_position(UCIEngineOptions *options, char *args, FILE *out)
 {
 	char *rest;
 	const char *type;
+	const char *command;
 	int errnum;
+	chi_move move;
+	const char *movestr;
 
 	if (!args) {
 		fprintf(out, "info Command 'position' requires an argument.\n");
@@ -165,6 +168,40 @@ uci_handle_position(UCIEngineOptions *options, char *args, FILE *out)
 		fprintf(out, "info Command 'position' requires one of 'startpos' or"
 			" 'fen' as an argument.\n");
 		return 1;
+	}
+
+	rest = trim(rest);
+	if (!rest || !*rest)
+		return 1;
+
+	command = strsep(&rest, DELIM);
+	if (strcmp("moves", command)) {
+		fprintf(out, "info Expected 'moves' after position, not '%s'.\n",
+		        command);
+		return 1;
+	}
+
+	while (rest) {
+		movestr = strsep(&rest, DELIM);
+		if (*movestr) {
+			errnum = chi_parse_move(&tate.position, &move, movestr);
+			if (errnum) {
+				fprintf(out, "info Invalid move '%s'.\n", movestr);
+				return 1;
+			}
+
+			errnum = chi_check_legality(&tate.position, move);
+			if (errnum) {
+				fprintf(out, "info Illegal move '%s'.\n", movestr);
+				return 1;
+			}
+
+			errnum = chi_apply_move(&tate.position, move);
+			if (errnum) {
+				fprintf(out, "info Cannot apply move '%s'.\n", movestr);
+				return 1;
+			}
+		}
 	}
 
 	return 1;

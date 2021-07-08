@@ -150,6 +150,22 @@ START_TEST(test_uci_position)
 	ck_assert_str_eq(current_fen, IDIOT_MATE_FEN);
 	free((void *) current_fen);
 
+	command = xstrdup("startpos \tmoves f2f3 \te7e5 g2g4 d8h4 \t \n");
+	status = uci_handle_position(&engine_options, command, engine_out);
+	free(command);
+	ck_assert_int_eq(status, 1);
+	current_fen = chi_fen(&tate.position);
+	ck_assert_str_eq(current_fen, IDIOT_MATE_FEN);
+	free((void *) current_fen);
+
+	command = xstrdup("fen " START_FEN " moves f2f3 e7e5 g2g4 d8h4");
+	status = uci_handle_position(&engine_options, command, engine_out);
+	free(command);
+	ck_assert_int_eq(status, 1);
+	current_fen = chi_fen(&tate.position);
+	ck_assert_str_eq(current_fen, IDIOT_MATE_FEN);
+	free((void *) current_fen);
+
 	ck_assert_str_eq(output, "");
 }
 END_TEST
