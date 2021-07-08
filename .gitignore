@@ -17,8 +17,6 @@ lib*.a
 .libs/
 *.la
 /stamp-h
-src/tate
-src/tateplay
 /config.h.in
 /configure
 /lib
