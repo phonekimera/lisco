@@ -48,8 +48,8 @@ evaluate(Tree *tree)
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move *move_ptr;
 	chi_pos *position = &tree->position;
-	int score = 100 * chi_material(position);
-	int mobility_factor = chi_on_move(position) ? +1 : -1;
+	int factor = chi_on_move(position) ? +1 : -1;
+	int score = factor * 100 * chi_material(position);
 	chi_result result;
 	int num_moves;
 
@@ -67,13 +67,13 @@ evaluate(Tree *tree)
 
 	move_ptr = chi_legal_moves(position, moves);
 	num_moves = move_ptr - moves;
-	score += num_moves * mobility_factor;
+	score -= num_moves;
 
 	// Try a "null move".
 	position->flags.on_move = !position->flags.on_move;
 	move_ptr = chi_legal_moves(position, moves);
 	num_moves = move_ptr - moves;
-	score -= num_moves * mobility_factor;
+	score += num_moves;
 	position->flags.on_move = !position->flags.on_move;
 
 	return score;
@@ -102,7 +102,7 @@ print_pv(chi_pos *position, Line *line)
 */
 
 static int
-minimax(Tree *tree, int depth, chi_bool maximize)
+minimax(Tree *tree, int depth)
 {
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move *move_ptr;
@@ -121,34 +121,22 @@ minimax(Tree *tree, int depth, chi_bool maximize)
 		return evaluate(tree);
 	}
 
-	if (maximize) {
-		value = +INF;
-	} else {
-		value = -INF;
-	}
+	value = -INF;
 
 	while (move_ptr-- > moves) {
 		chi_move move = *move_ptr;
 
 		chi_apply_move(position, move);
 
-		if (maximize) {
-			value = minimax(tree, depth - 1, chi_false);
-			if (value > bestvalue) {
-				bestvalue = value;
-				if (depth == tree->depth)
-					tree->bestmove = move;
-			}
-		} else {
-			value = minimax(tree, depth - 1, chi_true);
-			if (value < bestvalue) {
-				bestvalue = value;
-				if (depth == tree->depth)
-					tree->bestmove = move;
-			}
-		}
+		value = -minimax(tree, depth - 1);
 
 		chi_unapply_move(position, move);
+
+		if (value > bestvalue) {
+			bestvalue = value;
+			if (depth == tree->depth)
+				tree->bestmove = move;
+		}
 	}
 
 	return value;
@@ -165,10 +153,10 @@ think(void)
 	memset(&tree, 0, sizeof tree);
 
 	tree.position = tate.position;
-	tree.depth = 1;
+	tree.depth = 4;
 	on_move = chi_on_move(&tree.position);
 
-	(void) minimax(&tree, tree.depth, on_move == chi_white);
+	(void) minimax(&tree, tree.depth);
 	tate.bestmove = tree.bestmove;
 	tate.bestmove_found = 1;
 
