@@ -143,6 +143,7 @@ minimax(Tree *tree, int depth)
 
 #if DEBUG_SEARCH
 		debug_end_search(tree, move);
+		fprintf(stderr, "\tvalue: %d (best: %d)\n", value, bestvalue);
 #endif
 
 		if (value > bestvalue) {
@@ -167,7 +168,7 @@ think(void)
 	memset(&tree, 0, sizeof tree);
 
 	tree.position = tate.position;
-	tree.depth = 1;
+	tree.depth = 5;
 
 	on_move = chi_on_move(&tree.position);
 
