@@ -25,6 +25,8 @@
 
 #include "state.h"
 
+#define DEBUG_SEARCH 0
+
 #define MATE -10000
 #define INF ((-(MATE)) << 1)
 #define MAXDEPTH 512
@@ -43,8 +45,6 @@ typedef struct Tree {
 
 	Line line;
 } Tree;
-
-#define DEBUG_SEARCH 0
 
 #if DEBUG_SEARCH
 static void
@@ -104,7 +104,6 @@ minimax(Tree *tree, int depth)
 	++tree->nodes;
 
 	if (chi_game_over(position, &result)) {
-		// FIXME! Consider depth!
 		if (chi_result_is_white_win(result) || chi_result_is_black_win(result)) {
 			return MATE + (tree->depth - depth);
 		} else {
@@ -163,6 +162,41 @@ minimax(Tree *tree, int depth)
 	return bestvalue;
 }
 
+
+static void
+root_search(Tree *tree, int max_depth)
+{
+	int depth, score;
+	chi_bool forced_mate = chi_false;
+
+	// Iterative deepening.
+	for (depth = 1; depth <= max_depth; ++depth) {
+#if DEBUG_SEARCH
+		fprintf(stderr, "Deepening search to maximum %d plies.\n", depth);
+#endif
+		tree->depth = depth;
+		score = minimax(tree, depth);
+		
+		forced_mate = score == -MATE - depth;
+
+		if (chi_on_move(&tate.position) == chi_black)
+			score = -score;
+
+		char *buf = NULL;
+		unsigned int bufsize;
+		chi_print_move(&tate.position, tree->bestmove, &buf, &bufsize, 0);
+		fprintf(stderr, "Best move at depth %d is %s with score %d.\n", depth, buf, score);
+		free(buf);
+		tate.bestmove = tree->bestmove;
+		tate.bestmove_found = 1;
+		tate.pondermove_found = 0;
+
+		if (forced_mate) {
+			break;
+		}
+	}
+}
+
 void
 think(void)
 {
@@ -178,12 +212,7 @@ think(void)
 
 	on_move = chi_on_move(&tree.position);
 
-	(void) minimax(&tree, tree.depth);
-
-	tate.bestmove = tree.bestmove;
-	tate.bestmove_found = 1;
-
-	tate.pondermove_found = 0;
+	(void) root_search(&tree, 5);
 
 	fprintf(stderr, "info nodes searched: %lu\n", tree.nodes);
 	fprintf(stderr, "info nodes evaluated: %lu\n", tree.evals);
