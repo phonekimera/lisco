@@ -27,10 +27,10 @@
 
 #define MATE -10000
 #define INF ((-(MATE)) << 1)
-#define MOVEMAX 512
+#define MAXDEPTH 512
 
 typedef struct Line {
-	chi_move moves[MOVEMAX];
+	chi_move moves[MAXDEPTH];
 	unsigned int num_moves;
 } Line;
 
@@ -40,66 +40,30 @@ typedef struct Tree {
 	int depth;
 	unsigned long nodes;
 	unsigned long evals;
+
+	Line current_line;
 } Tree;
+
+#define DEBUG_SEARCH 1
+
+#if DEBUG_SEARCH
+static void
+debug_start_search(Tree *tree, chi_move move)
+{
+
+}
+#endif
 
 static int
 evaluate(Tree *tree)
 {
-	chi_move moves[CHI_MAX_MOVES];
-	chi_move *move_ptr;
 	chi_pos *position = &tree->position;
-	int factor = chi_on_move(position) ? +1 : -1;
-	int score = factor * 100 * chi_material(position);
-	chi_result result;
-	int num_moves;
+	int score = 100 * chi_material(position);
 
 	++tree->evals;
-
-	if (chi_game_over(position, &result)) {
-		if (chi_result_is_white_win(result)) {
-			return -MATE;
-		} else if (chi_result_is_black_win(result)) {
-			return +MATE;
-		} else {
-			return 0;
-		}
-	}
-
-	move_ptr = chi_legal_moves(position, moves);
-	num_moves = move_ptr - moves;
-	score -= num_moves;
-
-	// Try a "null move".
-	position->flags.on_move = !position->flags.on_move;
-	move_ptr = chi_legal_moves(position, moves);
-	num_moves = move_ptr - moves;
-	score += num_moves;
-	position->flags.on_move = !position->flags.on_move;
-
+	
 	return score;
 }
-
-/*
-static void
-print_pv(chi_pos *position, Line *line)
-{
-	FILE *out = stderr;
-	char *buf = NULL;
-	unsigned int bufsize;
-	chi_move move;
-
-	fprintf(out, "pv");
-	for (int i = 0; i < line->cmove; ++i) {
-		move = line->moves[i];
-		(void) chi_coordinate_notation(move, chi_on_move(position), &buf, &bufsize);
-		fprintf(out, " %s", buf);
-	}
-	fprintf(out, "\n");
-
-	if (buf)
-		free(buf);
-}
-*/
 
 static int
 minimax(Tree *tree, int depth)
@@ -108,22 +72,33 @@ minimax(Tree *tree, int depth)
 	chi_move *move_ptr;
 	chi_pos *position = &tree->position;
 	int bestvalue, value;
+	chi_result result;
 
 	++tree->nodes;
 
+	if (chi_game_over(position, &result)) {
+		// FIXME! Consider depth!
+		if (chi_result_is_white_win(result)
+		    || chi_result_is_black_win(result)) {
+			return MATE;
+		} else {
+			return 0;
+		}
+	}
+
 	if (depth == 0) {
-		return evaluate(tree);
+		if (chi_on_move(position) == chi_white) {
+			return evaluate(tree);
+		} else {
+			return -evaluate(tree);
+		}
 	}
 
 	move_ptr = chi_legal_moves(position, moves);
-	if (move_ptr == moves) {
-		// FIXME! It's not as simple as that. We also have to considers draws.
-		return evaluate(tree);
-	}
 
-	value = -INF;
+	bestvalue = -INF;
 
-	while (move_ptr-- > moves) {
+	while (move_ptr-- >= moves) {
 		chi_move move = *move_ptr;
 
 		chi_apply_move(position, move);
@@ -139,7 +114,7 @@ minimax(Tree *tree, int depth)
 		}
 	}
 
-	return value;
+	return bestvalue;
 }
 
 void
@@ -154,9 +129,11 @@ think(void)
 
 	tree.position = tate.position;
 	tree.depth = 4;
+
 	on_move = chi_on_move(&tree.position);
 
 	(void) minimax(&tree, tree.depth);
+
 	tate.bestmove = tree.bestmove;
 	tate.bestmove_found = 1;
 
