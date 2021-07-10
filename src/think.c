@@ -44,7 +44,7 @@ typedef struct Tree {
 	Line line;
 } Tree;
 
-#define DEBUG_SEARCH 1
+#define DEBUG_SEARCH 0
 
 #if DEBUG_SEARCH
 static void
@@ -63,7 +63,7 @@ print_line(FILE *stream, chi_pos *start, Line *line)
 	}
 
 	free(buf);
-	fprintf(stream, "\n");
+	fprintf(stream, "<\n");
 }
 
 static void
@@ -105,9 +105,8 @@ minimax(Tree *tree, int depth)
 
 	if (chi_game_over(position, &result)) {
 		// FIXME! Consider depth!
-		if (chi_result_is_white_win(result)
-		    || chi_result_is_black_win(result)) {
-			return MATE;
+		if (chi_result_is_white_win(result) || chi_result_is_black_win(result)) {
+			return MATE + (tree->depth - depth);
 		} else {
 			return 0;
 		}
@@ -148,8 +147,15 @@ minimax(Tree *tree, int depth)
 
 		if (value > bestvalue) {
 			bestvalue = value;
-			if (depth == tree->depth)
+#if DEBUG_SEARCH
+				fprintf(stderr, "\tNew best move with best value %d.\n", bestvalue);
+#endif
+			if (depth == tree->depth) {
+#if DEBUG_SEARCH
+				fprintf(stderr, "\tNew best root move with best value %d.\n", bestvalue);
+#endif
 				tree->bestmove = move;
+			}
 		}
 	}
 	--tree->line.num_moves;
