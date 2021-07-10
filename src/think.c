@@ -41,16 +41,43 @@ typedef struct Tree {
 	unsigned long nodes;
 	unsigned long evals;
 
-	Line current_line;
+	Line line;
 } Tree;
 
 #define DEBUG_SEARCH 1
 
 #if DEBUG_SEARCH
 static void
+print_line(FILE *stream, chi_pos *start, Line *line)
+{
+	chi_pos position = *start;
+	char *buf = NULL;
+	unsigned int bufsize;
+	int errnum;
+
+	for (int i = 0; i < line->num_moves; ++i) {
+		chi_move move = line->moves[i];
+		errnum = chi_print_move(&position, line->moves[i], &buf, &bufsize, 0);
+		chi_apply_move(&position, move);
+		fprintf(stream, " %s", buf);
+	}
+
+	free(buf);
+	fprintf(stream, "\n");
+}
+
+static void
 debug_start_search(Tree *tree, chi_move move)
 {
+	fprintf(stderr, "considering");
+	print_line(stderr, &tate.position, &tree->line);
+}
 
+static void
+debug_end_search(Tree *tree, chi_move move)
+{
+	fprintf(stderr, "done considering");
+	print_line(stderr, &tate.position, &tree->line);
 }
 #endif
 
@@ -98,14 +125,25 @@ minimax(Tree *tree, int depth)
 
 	bestvalue = -INF;
 
-	while (move_ptr-- >= moves) {
+	++tree->line.num_moves;
+	while (move_ptr-- > moves) {
 		chi_move move = *move_ptr;
 
-		chi_apply_move(position, move);
+		tree->line.moves[tree->line.num_moves - 1] = move;
 
+#if DEBUG_SEARCH
+		debug_start_search(tree, move);
+#endif
+
+		chi_apply_move(position, move);
+		
 		value = -minimax(tree, depth - 1);
 
 		chi_unapply_move(position, move);
+
+#if DEBUG_SEARCH
+		debug_end_search(tree, move);
+#endif
 
 		if (value > bestvalue) {
 			bestvalue = value;
@@ -113,6 +151,7 @@ minimax(Tree *tree, int depth)
 				tree->bestmove = move;
 		}
 	}
+	--tree->line.num_moves;
 
 	return bestvalue;
 }
@@ -128,7 +167,7 @@ think(void)
 	memset(&tree, 0, sizeof tree);
 
 	tree.position = tate.position;
-	tree.depth = 4;
+	tree.depth = 1;
 
 	on_move = chi_on_move(&tree.position);
 
