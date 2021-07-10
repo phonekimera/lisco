@@ -162,7 +162,7 @@ uci_handle_position(UCIEngineOptions *options, char *args, FILE *out)
 		rest = trim(rest);
 		errnum = chi_extract_position(&tate.position, rest, (const char **) &rest);
 		if (errnum) {
-			fprintf(out, "info Invalid FEN string.\n");
+			fprintf(out, "info Invalid FEN string (%d).\n", errnum);
 			return 1;
 		}
 	} else if (strcmp("startpos", type) == 0) {

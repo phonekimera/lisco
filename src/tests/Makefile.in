@@ -90,7 +90,6 @@ build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = check_common$(EXEEXT) check_tate$(EXEEXT) \
 	check_tateplay$(EXEEXT)
-@HAS_PERL_TRUE@am__append_1 = ./check_mates ./check_dm1 ./check_dm2 ./check_dm3
 subdir = src/tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
@@ -1612,7 +1611,14 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-TESTS = ./check_common ./check_tate ./check_tateplay $(am__append_1)
+TESTS = ./check_common \
+	./check_tate \
+	./check_tateplay
+
+
+#if HAS_PERL
+#        TESTS += ./check_mates ./check_dm1 ./check_dm2 ./check_dm3
+#endif
 check_common_SOURCES = \
 		../util.c \
 		test_util.c \
@@ -2239,34 +2245,6 @@ recheck: all
 ./check_tateplay.log: ./check_tateplay
 	@p='./check_tateplay'; \
 	b='./check_tateplay'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-./check_mates.log: ./check_mates
-	@p='./check_mates'; \
-	b='./check_mates'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-./check_dm1.log: ./check_dm1
-	@p='./check_dm1'; \
-	b='./check_dm1'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-./check_dm2.log: ./check_dm2
-	@p='./check_dm2'; \
-	b='./check_dm2'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-./check_dm3.log: ./check_dm3
-	@p='./check_dm3'; \
-	b='./check_dm3'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

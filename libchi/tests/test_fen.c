@@ -100,6 +100,44 @@ START_TEST(test_immortal_game)
 }
 END_TEST
 
+START_TEST(test_missing_fullmove_number)
+{
+	const char *input =
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0";
+	const char *wanted =
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+	chi_pos pos;
+	int errnum = chi_set_position(&pos, input);
+	char *got;
+
+	ck_assert_int_eq(errnum, 0);
+
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+
+	free(got);
+}
+END_TEST
+
+START_TEST(test_missing_halfmove_clock)
+{
+	const char *input =
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -";
+	const char *wanted =
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+	chi_pos pos;
+	int errnum = chi_set_position(&pos, input);
+	char *got;
+
+	ck_assert_int_eq(errnum, 0);
+
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+
+	free(got);
+}
+END_TEST
+
 Suite *
 fen_suite(void)
 {
@@ -111,6 +149,8 @@ fen_suite(void)
 	tc_basic = tcase_create("Basic");
 	tcase_add_test(tc_basic, test_initial_e4);
 	tcase_add_test(tc_basic, test_immortal_game);
+	tcase_add_test(tc_basic, test_missing_fullmove_number);
+	tcase_add_test(tc_basic, test_missing_halfmove_clock);
 	suite_add_tcase(suite, tc_basic);
 
 	return suite;

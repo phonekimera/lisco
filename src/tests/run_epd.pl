@@ -12,8 +12,8 @@ if (!defined $epdfile || !length $epdfile) {
 }
 
 # Find tate executable.
-my $tate = "../tate";
-$tate = "../tate.exe" unless -e $tate;
+my $tate = "../tateold";
+$tate = "../tateold.exe" unless -e $tate;
 
 open STDERR, ">&STDOUT";
 

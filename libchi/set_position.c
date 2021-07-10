@@ -155,18 +155,28 @@ chi_set_position_internal(chi_pos *argpos, const char *fen,
 	while (*ptr == ' ' || *ptr == '\t')
 		++ptr;
 
-	num = strtoul (ptr, &num_end_ptr, 10);
-	if (num_end_ptr == ptr)
-		return CHI_ERR_ILLEGAL_FEN;
-	pos->half_move_clock = num;
-	ptr = num_end_ptr;
+	if (*ptr) {
+		num = strtoul (ptr, &num_end_ptr, 10);
+		if (num_end_ptr == ptr)
+			return CHI_ERR_ILLEGAL_FEN;
+		pos->half_move_clock = num;
+		ptr = num_end_ptr;
 
-	while (*ptr == ' ' || *ptr == '\t')
-		++ptr;
+		while (*ptr == ' ' || *ptr == '\t')
+			++ptr;
+	} else {
+		pos->half_move_clock = 0;
+		num_end_ptr = (char *) ptr;
+	}
 
-	num = strtoul (ptr, &num_end_ptr, 10);
-	if (num_end_ptr == ptr)
-		return CHI_ERR_ILLEGAL_FEN;
+	if (*ptr) {
+		num = strtoul (ptr, &num_end_ptr, 10);
+		if (num_end_ptr == ptr)
+			return CHI_ERR_ILLEGAL_FEN;
+	} else {
+		num = 1;
+		num_end_ptr = (char *) ptr;
+	}
 
 	if (chi_on_move(pos) == chi_white)
 		pos->half_moves = (num - 1) << 1;
