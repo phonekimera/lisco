@@ -186,9 +186,9 @@ root_search(Tree *tree, int max_depth)
 		tate.bestmove_found = 1;
 		tate.pondermove_found = 0;
 
-		if (forced_mate) {
-			break;
-		}
+		//if (forced_mate) {
+		//	break;
+		//}
 	}
 }
 
