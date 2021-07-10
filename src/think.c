@@ -182,11 +182,6 @@ root_search(Tree *tree, int max_depth)
 		if (chi_on_move(&tate.position) == chi_black)
 			score = -score;
 
-		char *buf = NULL;
-		unsigned int bufsize;
-		chi_print_move(&tate.position, tree->bestmove, &buf, &bufsize, 0);
-		fprintf(stderr, "Best move at depth %d is %s with score %d.\n", depth, buf, score);
-		free(buf);
 		tate.bestmove = tree->bestmove;
 		tate.bestmove_found = 1;
 		tate.pondermove_found = 0;
