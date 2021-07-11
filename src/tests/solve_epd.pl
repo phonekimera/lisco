@@ -37,7 +37,10 @@ while (my $line = <$epd>) {
 		fmvc => 1,
 	);
 
-	my @tags = split /[ ]*;[ ]*/, $line;
+	my @tagspecs = split /[ ]*;[ ]*/, $line;
+	foreach my $tagspec (@tagspecs) {
+		my ($tag, $value) = @_;
+	}
 
 	my $fen = "$task{position} $task{hmvc} $task{fmvc}";
 }
