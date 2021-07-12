@@ -115,6 +115,21 @@ START_TEST(test_legal_moves_bug_1)
 }
 END_TEST
 
+START_TEST(test_en_passant)
+{
+	const char *fen = 
+			"1B1Q3N/pn3n2/p2N2RP/P1pKpPPb/5kP1/8/2P2P2/3B2R1 w - e6";
+	const char *wanted[] = {
+			"d1e2", "d1f3", "g1h1", "g1g2", "g1g3", "g1f1", "g1e1", "c2c3",
+			"c2c4", "f2f3", "g4h5", "d5c6", "d5e6", "d5c4", "f5f6", "f5e6",
+			"d6c8", "d6e8", "d6b7", "d6f7", "d6b5", "d6c4", "d6e4", "g6g7",
+			"g6g8", "g6f6", "g6e6", "h6h7", "b8c7", "b8a7", "d8e8", "d8f8",
+			"d8g8", "d8d7", "d8c8", "d8e7", "d8f6", "d8c7", "d8b6", "h8f7"
+	};
+
+	TEST_MOVE_GEN(fen, wanted)
+}
+
 Suite *
 legal_moves_suite(void)
 {
@@ -126,6 +141,7 @@ legal_moves_suite(void)
 	tc_legal_moves = tcase_create("Legal Moves");
 	tcase_add_test(tc_legal_moves, test_start_position);
 	tcase_add_test(tc_legal_moves, test_legal_moves_bug_1);
+	tcase_add_test(tc_legal_moves, test_en_passant);
 	suite_add_tcase(suite, tc_legal_moves);
 
 	return suite;
