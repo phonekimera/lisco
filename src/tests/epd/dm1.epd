@@ -12,7 +12,7 @@
 1b1B1Nb1/rR1p1kPp/1p5P/8/2N2qp1/p4R2/B3Q3/2K5 w - - bm Nd2#; ce 32766; dm 1; id "line #12";
 1b1B1Nb1/rRqp1kPp/1p5P/8/2N2P2/p4p2/B3Q3/2K5 w - - bm Qe7#; ce 32766; dm 1; id "line #13";
 1b1B1NR1/1K2Rprp/1p1N2rq/6kp/3Q3n/7B/8/8 w - - bm Re5#; ce 32766; dm 1; id "line #14";
-1B1b1Q1K/1pr1r3/nN1k4/3B1P2/P4Pp1/1N3p2/3R4/2R5 w - - bm Be4+; ce 32766; dm 1; id "line #15";
+1B1b1Q1K/1pr1r3/nN1k4/3B1P2/P4Pp1/1N3p2/3R4/2R5 w - - bm Be4# Bxf3#; ce 32766; dm 1; id "line #15";
 1B1b1Q2/5B2/8/1pP1P3/3k2P1/nR3K2/2p4N/8 w - - bm Qd6#; ce 32766; dm 1; id "line #16";
 1B1b1Q2/8/4B3/1pP1P3/3k2P1/nR3K2/2p4N/8 w - - bm Qd6#; ce 32766; dm 1; id "line #17";
 1B1b1QB1/8/8/1pP1P3/3k2P1/nR3K2/2p4N/8 w - - bm Qd6#; ce 32766; dm 1; id "line #18";
@@ -41,7 +41,7 @@
 1B1b2Q1/1B6/8/1pP1P3/3k2P1/nR3K2/2p4N/8 w - - bm Qd5#; ce 32766; dm 1; id "line #41";
 1B1b2Q1/8/2B5/1pP1P3/3k2P1/nR3K2/2p4N/8 w - - bm Qd5#; ce 32766; dm 1; id "line #42";
 1B1b2Q1/8/8/1pP1P3/3kB1P1/nR3K2/2p4N/8 w - - bm Qd5#; ce 32766; dm 1; id "line #43";
-1b1B3K/1p5R/1QbpN1k1/3p4/2pN1PP1/5p2/5r2/5r2 w - - bm f5+; ce 32766; dm 1; id "line #44";
+1b1B3K/1p5R/1QbpN1k1/3p4/2pN1PP1/5p2/5r2/5r2 w - - bm f5+ Nf8+; ce 32766; dm 1; id "line #44";
 1B1b3k/p2P1ppp/3Qq1B1/1p4N1/2p3RB/6PP/P4P1K/8 w - - bm Qf8#; ce 32766; dm 1; id "line #45";
 1B1b3k/p2P1ppp/4q1B1/1p4N1/1Qp3RB/6PP/P4P1K/8 w - - bm Qf8#; ce 32766; dm 1; id "line #46";
 1B1b3k/p2P1ppp/4q1B1/1p4N1/2p3RB/Q5PP/P4P1K/8 w - - bm Qf8#; ce 32766; dm 1; id "line #47";
