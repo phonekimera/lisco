@@ -172,6 +172,7 @@ am_check_libchi_OBJECTS =  \
 	check_libchi-test_coordinate_notation.$(OBJEXT) \
 	check_libchi-test_fen.$(OBJEXT) \
 	check_libchi-test_game_over.$(OBJEXT) \
+	check_libchi-test_legal_moves.$(OBJEXT) \
 	check_libchi-test_move_making.$(OBJEXT) \
 	check_libchi-test_move_making_pgn.$(OBJEXT) \
 	check_libchi-test_parsers.$(OBJEXT) \
@@ -207,6 +208,7 @@ am__depfiles_remade = ./$(DEPDIR)/check_libchi-check_libchi.Po \
 	./$(DEPDIR)/check_libchi-test_coordinate_notation.Po \
 	./$(DEPDIR)/check_libchi-test_fen.Po \
 	./$(DEPDIR)/check_libchi-test_game_over.Po \
+	./$(DEPDIR)/check_libchi-test_legal_moves.Po \
 	./$(DEPDIR)/check_libchi-test_move_making.Po \
 	./$(DEPDIR)/check_libchi-test_move_making_pgn.Po \
 	./$(DEPDIR)/check_libchi-test_parsers.Po \
@@ -1579,6 +1581,7 @@ check_libchi_SOURCES = \
 		test_coordinate_notation.c \
 		test_fen.c \
 		test_game_over.c \
+		test_legal_moves.c \
 		test_move_making.c \
 		test_move_making_pgn.c \
 		test_parsers.c \
@@ -1647,6 +1650,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_libchi-test_coordinate_notation.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_libchi-test_fen.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_libchi-test_game_over.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_libchi-test_legal_moves.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_libchi-test_move_making.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_libchi-test_move_making_pgn.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_libchi-test_parsers.Po@am__quote@ # am--include-marker
@@ -1723,6 +1727,20 @@ check_libchi-test_game_over.obj: test_game_over.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test_game_over.c' object='check_libchi-test_game_over.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_libchi_CFLAGS) $(CFLAGS) -c -o check_libchi-test_game_over.obj `if test -f 'test_game_over.c'; then $(CYGPATH_W) 'test_game_over.c'; else $(CYGPATH_W) '$(srcdir)/test_game_over.c'; fi`
+
+check_libchi-test_legal_moves.o: test_legal_moves.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_libchi_CFLAGS) $(CFLAGS) -MT check_libchi-test_legal_moves.o -MD -MP -MF $(DEPDIR)/check_libchi-test_legal_moves.Tpo -c -o check_libchi-test_legal_moves.o `test -f 'test_legal_moves.c' || echo '$(srcdir)/'`test_legal_moves.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/check_libchi-test_legal_moves.Tpo $(DEPDIR)/check_libchi-test_legal_moves.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test_legal_moves.c' object='check_libchi-test_legal_moves.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_libchi_CFLAGS) $(CFLAGS) -c -o check_libchi-test_legal_moves.o `test -f 'test_legal_moves.c' || echo '$(srcdir)/'`test_legal_moves.c
+
+check_libchi-test_legal_moves.obj: test_legal_moves.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_libchi_CFLAGS) $(CFLAGS) -MT check_libchi-test_legal_moves.obj -MD -MP -MF $(DEPDIR)/check_libchi-test_legal_moves.Tpo -c -o check_libchi-test_legal_moves.obj `if test -f 'test_legal_moves.c'; then $(CYGPATH_W) 'test_legal_moves.c'; else $(CYGPATH_W) '$(srcdir)/test_legal_moves.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/check_libchi-test_legal_moves.Tpo $(DEPDIR)/check_libchi-test_legal_moves.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test_legal_moves.c' object='check_libchi-test_legal_moves.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_libchi_CFLAGS) $(CFLAGS) -c -o check_libchi-test_legal_moves.obj `if test -f 'test_legal_moves.c'; then $(CYGPATH_W) 'test_legal_moves.c'; else $(CYGPATH_W) '$(srcdir)/test_legal_moves.c'; fi`
 
 check_libchi-test_move_making.o: test_move_making.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_libchi_CFLAGS) $(CFLAGS) -MT check_libchi-test_move_making.o -MD -MP -MF $(DEPDIR)/check_libchi-test_move_making.Tpo -c -o check_libchi-test_move_making.o `test -f 'test_move_making.c' || echo '$(srcdir)/'`test_move_making.c
@@ -2096,6 +2114,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/check_libchi-test_coordinate_notation.Po
 	-rm -f ./$(DEPDIR)/check_libchi-test_fen.Po
 	-rm -f ./$(DEPDIR)/check_libchi-test_game_over.Po
+	-rm -f ./$(DEPDIR)/check_libchi-test_legal_moves.Po
 	-rm -f ./$(DEPDIR)/check_libchi-test_move_making.Po
 	-rm -f ./$(DEPDIR)/check_libchi-test_move_making_pgn.Po
 	-rm -f ./$(DEPDIR)/check_libchi-test_parsers.Po
@@ -2149,6 +2168,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/check_libchi-test_coordinate_notation.Po
 	-rm -f ./$(DEPDIR)/check_libchi-test_fen.Po
 	-rm -f ./$(DEPDIR)/check_libchi-test_game_over.Po
+	-rm -f ./$(DEPDIR)/check_libchi-test_legal_moves.Po
 	-rm -f ./$(DEPDIR)/check_libchi-test_move_making.Po
 	-rm -f ./$(DEPDIR)/check_libchi-test_move_making_pgn.Po
 	-rm -f ./$(DEPDIR)/check_libchi-test_parsers.Po

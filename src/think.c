@@ -163,11 +163,11 @@ minimax(Tree *tree, int depth)
 }
 
 
-static void
+static int
 root_search(Tree *tree, int max_depth)
 {
 	int depth, score;
-	chi_bool forced_mate = chi_false;
+	chi_bool forced_mate;
 
 	// Iterative deepening.
 	for (depth = 1; depth <= max_depth; ++depth) {
@@ -177,7 +177,7 @@ root_search(Tree *tree, int max_depth)
 		tree->depth = depth;
 		score = minimax(tree, depth);
 		
-		forced_mate = score == -MATE - depth;
+		forced_mate = score == -MATE -depth;
 
 		if (chi_on_move(&tate.position) == chi_black)
 			score = -score;
@@ -185,11 +185,12 @@ root_search(Tree *tree, int max_depth)
 		tate.bestmove = tree->bestmove;
 		tate.bestmove_found = 1;
 		tate.pondermove_found = 0;
-
-		//if (forced_mate) {
-		//	break;
-		//}
+		if (forced_mate) {
+			break;
+		}
 	}
+
+	return score;
 }
 
 void
@@ -197,18 +198,19 @@ think(void)
 {
 	chi_color_t on_move;
 	Tree tree;
+	int score;
 
 	if (chi_game_over(&tate.position, NULL)) return;
 
 	memset(&tree, 0, sizeof tree);
 
 	tree.position = tate.position;
-	tree.depth = 5;
 
 	on_move = chi_on_move(&tree.position);
 
-	(void) root_search(&tree, 5);
+	score = root_search(&tree, 1);
 
+	fprintf(stderr, "score: %d\n", score);
 	fprintf(stderr, "info nodes searched: %lu\n", tree.nodes);
 	fprintf(stderr, "info nodes evaluated: %lu\n", tree.evals);
 }

@@ -311,9 +311,9 @@ typedef enum chi_result {
 #define chi_value2pawns(v) (((double) (v)) / 100)
 
 /* The minimum number of a move array (must be capable of storing all
-   legal moves from one position.  I think the theoretical maximum is 76, 
-   the practical will be only half of it.  */
-#define CHI_MAX_MOVES 80
+ * legal moves from one position.
+ */
+#define CHI_MAX_MOVES 273
 
 #define chi_white (0)
 #define chi_black (1)

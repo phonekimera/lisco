@@ -32,6 +32,7 @@ extern Suite *move_making_suite();
 extern Suite *move_making_suite_pgn();
 extern Suite *fen_suite();
 extern Suite *coordinate_notation_suite();
+extern Suite *legal_moves_suite();
 
 int
 main(int argc, char *argv[])
@@ -46,6 +47,7 @@ main(int argc, char *argv[])
 	srunner_add_suite(runner, move_making_suite_pgn());
 	srunner_add_suite(runner, fen_suite());
 	srunner_add_suite(runner, coordinate_notation_suite());
+	srunner_add_suite(runner, legal_moves_suite());
 
 	srunner_run_all(runner, CK_NORMAL);
 	failed = srunner_ntests_failed(runner);
