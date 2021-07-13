@@ -24,6 +24,48 @@
 
 #include "libchi.h"
 
+
+START_TEST(test_initial)
+{
+	const char *wanted =
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | r | n | b | q | k | b | n | r | En not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: yes.
+ 7 | p | p | p | p | p | p | p | p | White queen castle: yes.
+   +---+---+---+---+---+---+---+---+ Black king castle: yes.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: yes.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 0.
+   +---+---+---+---+---+---+---+---+ Next move: black.
+ 4 |   |   |   |   |   |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 | P | P | P | P | P | P | P | P |
+   +---+---+---+---+---+---+---+---+
+ 1 | R | N | B | Q | K | B | N | R |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+*/
+	chi_pos pos, startpos;
+	int errnum = chi_set_position(&pos, wanted);
+	char *got;
+
+	ck_assert_int_eq(errnum, 0);
+
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+
+	free(got);
+
+	chi_init_position(&startpos);
+	ck_assert_int_eq(chi_cmp_pos(&pos, &startpos), 0);
+}
+END_TEST
+
 START_TEST(test_initial_e4)
 {
 	const char *wanted =
@@ -147,6 +189,7 @@ fen_suite(void)
 	suite = suite_create("Forsyth-Edwards Notation (FEN)");
 
 	tc_basic = tcase_create("Basic");
+	tcase_add_test(tc_basic, test_initial);
 	tcase_add_test(tc_basic, test_initial_e4);
 	tcase_add_test(tc_basic, test_immortal_game);
 	tcase_add_test(tc_basic, test_missing_fullmove_number);
