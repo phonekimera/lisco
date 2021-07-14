@@ -246,7 +246,10 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 				         token);
 				return 1;
 			}
-			return perft(perft_depth, out);
+			chi_pos position;
+			chi_copy_pos(&position, &tate.position);
+			(void) perft(&position, perft_depth, out);
+			return 1;
 		} else {
 			fprintf(out, "info unknown or unsupported go option '%s'.\n",
 			        token);

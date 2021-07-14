@@ -25,6 +25,7 @@
 #include "libchi.h"
 
 extern Suite *uci_engine_suite();
+extern Suite *perft_suite();
 
 #ifdef DEBUG_XMALLOC
 # include "../xmalloc-debug.c"
@@ -42,6 +43,7 @@ main(int argc, char *argv[])
 
 	runner = srunner_create(uci_engine_suite());
 	srunner_add_suite(runner, uci_engine_suite());
+	srunner_add_suite(runner, perft_suite());
 
 	srunner_run_all(runner, CK_NORMAL);
 	failed = srunner_ntests_failed(runner);

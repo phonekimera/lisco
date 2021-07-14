@@ -31,7 +31,7 @@
 extern "C" {
 #endif
 
-extern int perft(unsigned int depth, FILE *out);
+extern unsigned long int perft(chi_pos *position, unsigned int depth, FILE *out);
 
 #ifdef __cplusplus
 }

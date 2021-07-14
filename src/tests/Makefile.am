@@ -50,6 +50,7 @@ check_tate_SOURCES = \
 		../uci-engine.c \
 		../util.c \
 		test_uci_engine.c \
+		test_perft.c \
 		check_tate.c
 
 check_common_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)

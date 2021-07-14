@@ -29,30 +29,29 @@
 
 static unsigned long do_perft(chi_pos *pos, unsigned int depth);
 
-int
-perft(unsigned int depth, FILE *out)
+unsigned long int
+perft(chi_pos *position, unsigned int depth, FILE *out)
 {
 	rtime_t start;
 	unsigned long int elapsed;
 	unsigned long int nodes;
-	chi_pos position;
 
 	if (depth == 0) {
 		fprintf(out, "info error: zero-depth argument to perft.\n");
 		return 1;
 	}
 
-	chi_copy_pos(&position, &tate.position);
-
 	start = rtime();
-	nodes = do_perft(&position, depth);
+	nodes = do_perft(position, depth);
 	elapsed = rdifftime (rtime (), start);
 
-	fprintf (stdout, "info nodes: %lu (%lu.%02lu s, nps: %lu)\n",
-			 nodes, elapsed / 100, elapsed % 100,
-			 (100 * nodes) / (elapsed ? elapsed : 1));
+	if (out) {
+		fprintf (out, "info nodes: %lu (%lu.%02lu s, nps: %lu)\n",
+				nodes, elapsed / 100, elapsed % 100,
+				(100 * nodes) / (elapsed ? elapsed : 1));
+	}
 
-	return 1;
+	return nodes;
 }
 
 static unsigned long
