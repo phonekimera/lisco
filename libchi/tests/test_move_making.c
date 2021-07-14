@@ -105,6 +105,43 @@ START_TEST(test_ep_bug_1)
 }
 END_TEST;
 
+#include <stdio.h>
+START_TEST(test_knight_opening)
+{
+	chi_pos pos, start;
+
+	const char *fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+	chi_move move;
+	const char *wanted;
+	char *got;
+	int errnum;
+
+	chi_init_position(&pos);
+	chi_init_position(&start);
+
+	errnum = chi_parse_move(&pos, &move, "Nf3");
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = "rnbqkbnr/pppppppp/8/8/8/2N5/PPPPPPPP/R1BQKBNR b KQkq - 0 1";
+	got = chi_fen(&pos);
+fprintf(stderr, "got before: %p (%s)\n", got, got);
+	ck_assert_str_eq(got, wanted);
+fprintf(stderr, "got after : %p (%s)\n", got, got);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = fen;
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	ck_assert_int_eq(chi_cmp_pos(&pos, &start), 0);
+}
+END_TEST;
+
 START_TEST(test_pawn_moves)
 {
 	chi_pos pos;
@@ -1091,6 +1128,7 @@ move_making_suite(void)
 
 	tc_bugs = tcase_create("Bugs");
 	tcase_add_test(tc_bugs, test_ep_bug_1);
+	tcase_add_test(tc_bugs, test_knight_opening);
 	suite_add_tcase(suite, tc_bugs);
 
 	tc_pawn = tcase_create("Pawn Moves");

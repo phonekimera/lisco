@@ -29,7 +29,7 @@
  * of irreversible moves (captures, castlings, losing castling rights), check
  * again.
  */
-/* FIXME! Check the size of the array irreversible.
+/* FIXME! Check the size of the array.
  */
 /*
  * FIXME! There is no need to clean the arrays double_pawn_moves, ep_files,
