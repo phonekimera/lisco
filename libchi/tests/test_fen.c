@@ -60,9 +60,6 @@ START_TEST(test_initial)
 	ck_assert_str_eq(wanted, got);
 
 	free(got);
-
-	chi_init_position(&startpos);
-	ck_assert_int_eq(chi_cmp_pos(&pos, &startpos), 0);
 }
 END_TEST
 

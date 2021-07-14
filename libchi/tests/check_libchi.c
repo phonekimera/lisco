@@ -41,13 +41,13 @@ main(int argc, char *argv[])
 	SRunner *runner;
 
 	runner = srunner_create(parsers_suite());
-	srunner_add_suite(runner, presentation_suite());
-	srunner_add_suite(runner, game_over_suite());
+//	srunner_add_suite(runner, presentation_suite());
+//	srunner_add_suite(runner, game_over_suite());
 	srunner_add_suite(runner, move_making_suite());
-	srunner_add_suite(runner, move_making_suite_pgn());
-	srunner_add_suite(runner, fen_suite());
-	srunner_add_suite(runner, coordinate_notation_suite());
-	srunner_add_suite(runner, legal_moves_suite());
+//	srunner_add_suite(runner, move_making_suite_pgn());
+//	srunner_add_suite(runner, fen_suite());
+//	srunner_add_suite(runner, coordinate_notation_suite());
+//	srunner_add_suite(runner, legal_moves_suite());
 
 	srunner_run_all(runner, CK_NORMAL);
 	failed = srunner_ntests_failed(runner);

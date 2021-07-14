@@ -183,15 +183,20 @@ chi_set_position_internal(chi_pos *argpos, const char *fen,
 	else
 		pos->half_moves = ((num - 1) << 1) + 1;
 
-	pos->irreversible_count = 0;
-
 	if (chi_ep(pos)) {
+		/* If the en passant square was set, the last move must have been a 
+			* double pawn step, and that means that the half move clock must
+			* be 0. But this is a common error, and so we just correct it by
+			* adjusting the half move clock.
+			*/
+		pos->half_move_clock = 0;
 		pos->ep_files[0] = chi_ep_file(pos);
-		pos->irreversible[0] = pos->half_moves;
-		pos->irreversible_count = 1;
 		pos->double_pawn_moves[0] = pos->half_moves;
 		pos->double_pawn_move_count = 1;
 	}
+
+	pos->irreversible[0] = pos->half_moves - pos->half_move_clock;
+	pos->irreversible_count = 1;
 
 	ptr = num_end_ptr;
 

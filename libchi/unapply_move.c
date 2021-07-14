@@ -41,22 +41,15 @@
 int
 chi_unapply_move(chi_pos *pos, chi_move move)
 {
-	if (pos->irreversible_count
-	    && pos->irreversible[pos->irreversible_count - 1] == pos->half_moves) {
+	if (pos->irreversible[pos->irreversible_count - 1] == pos->half_moves) {
 		--pos->irreversible_count;
 		/* This is only needed for chi_cmp_pos and should be removed.  */
 		pos->irreversible[pos->irreversible_count] = 0;
 	}
 
-	/* FIXME! Is it faster to move that into the if condition above? */
-	if (pos->irreversible_count) {
-		pos->half_move_clock = pos->half_moves
+	pos->half_move_clock = pos->half_moves
 			- pos->irreversible[pos->irreversible_count - 1] - 1;
-	} else {
-		pos->half_move_clock = 0;
-	}
 
-	chi_ep(pos) = 0;
 	if (pos->double_pawn_move_count
 	    && pos->double_pawn_moves[pos->double_pawn_move_count - 1]
 		== pos->half_moves) {
@@ -71,6 +64,9 @@ chi_unapply_move(chi_pos *pos, chi_move move)
 	== pos->half_moves - 1) {
 		chi_ep(pos) = 1;
 		chi_ep_file(pos) = pos->ep_files[pos->double_pawn_move_count - 1];
+	} else {
+		chi_ep(pos) = 0;
+		chi_ep_file(pos) = 0;
 	}
 
 	chi_on_move(pos) = !chi_on_move(pos);

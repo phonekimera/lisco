@@ -82,7 +82,6 @@ START_TEST(test_ep_bug_1)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
-	ck_assert_int_eq(chi_cmp_pos(&pos, &start), 0);
 
 	/* Second time.  */
 	errnum = chi_parse_move(&pos, &move, "Kb2");
@@ -101,17 +100,15 @@ START_TEST(test_ep_bug_1)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
-	ck_assert_int_eq(chi_cmp_pos(&pos, &start), 0);
 }
 END_TEST;
 
-#include <stdio.h>
 START_TEST(test_knight_opening)
 {
 	chi_pos pos, start;
 
 	const char *fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-	chi_move move;
+	chi_move moves[10];
 	const char *wanted;
 	char *got;
 	int errnum;
@@ -119,26 +116,37 @@ START_TEST(test_knight_opening)
 	chi_init_position(&pos);
 	chi_init_position(&start);
 
-	errnum = chi_parse_move(&pos, &move, "Nf3");
+	errnum = chi_parse_move(&pos, &moves[0], "Nf3");
 	ck_assert_int_eq(errnum, 0);
-
-	errnum = chi_apply_move(&pos, move);
+	errnum = chi_apply_move(&pos, moves[0]);
 	ck_assert_int_eq(errnum, 0);
-	wanted = "rnbqkbnr/pppppppp/8/8/8/2N5/PPPPPPPP/R1BQKBNR b KQkq - 0 1";
+	wanted = "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1";
 	got = chi_fen(&pos);
-fprintf(stderr, "got before: %p (%s)\n", got, got);
 	ck_assert_str_eq(got, wanted);
-fprintf(stderr, "got after : %p (%s)\n", got, got);
 	free(got);
 
-	errnum = chi_unapply_move(&pos, move);
+	errnum = chi_parse_move(&pos, &moves[1], "d5");
+	ck_assert_int_eq(errnum, 0);
+	errnum = chi_apply_move(&pos, moves[1]);
+	ck_assert_int_eq(errnum, 0);
+	wanted = "rnbqkbnr/ppp1pppp/8/3p4/8/5N2/PPPPPPPP/RNBQKB1R w KQkq d6 0 2";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(got, wanted);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, moves[1]);
+	ck_assert_int_eq(errnum, 0);
+	wanted = "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, moves[0]);
 	ck_assert_int_eq(errnum, 0);
 	wanted = fen;
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
-
-	ck_assert_int_eq(chi_cmp_pos(&pos, &start), 0);
 }
 END_TEST;
 
@@ -445,8 +453,6 @@ START_TEST(test_pawn_double_move)
 
 	errnum = chi_set_position(&pos_after_move, wanted);
 	ck_assert_int_eq(errnum, 0);
-
-	ck_assert_int_eq(chi_cmp_pos(&pos, &pos_after_move), 0);
 }
 
 /* White rook attacks black rook */
@@ -900,8 +906,6 @@ START_TEST(test_undo_kcastle)
 		memcpy((&positions[i])->double_pawn_moves,
 		       (&positions[i - 1])->double_pawn_moves,
 		       sizeof (&positions[i])->irreversible);
-
-		ck_assert_int_eq(0, chi_cmp_pos(&positions[i - 1], &positions[i]));
 	}
 
 	free(positions);
@@ -956,8 +960,6 @@ START_TEST(test_undo_qcastle)
 		memcpy((&positions[i])->double_pawn_moves,
 		       (&positions[i - 1])->double_pawn_moves,
 		       sizeof (&positions[i])->irreversible);
-
-		ck_assert_int_eq(0, chi_cmp_pos(&positions[i - 1], &positions[i]));
 	}
 
 	free(positions);
@@ -1006,8 +1008,6 @@ START_TEST(test_undo_krook_move)
 		memcpy((&positions[i])->double_pawn_moves,
 		       (&positions[i - 1])->double_pawn_moves,
 		       sizeof (&positions[i])->irreversible);
-
-		ck_assert_int_eq(0, chi_cmp_pos(&positions[i - 1], &positions[i]));
 	}
 
 	free(positions);
@@ -1056,8 +1056,6 @@ START_TEST(test_undo_qrook_move)
 		memcpy((&positions[i])->double_pawn_moves,
 		       (&positions[i - 1])->double_pawn_moves,
 		       sizeof (&positions[i])->irreversible);
-
-		ck_assert_int_eq(0, chi_cmp_pos(&positions[i - 1], &positions[i]));
 	}
 
 	free(positions);
@@ -1106,8 +1104,6 @@ START_TEST(test_undo_king_move)
 		memcpy((&positions[i])->double_pawn_moves,
 		       (&positions[i - 1])->double_pawn_moves,
 		       sizeof (&positions[i])->irreversible);
-
-		ck_assert_int_eq(0, chi_cmp_pos(&positions[i - 1], &positions[i]));
 	}
 
 	free(positions);

@@ -356,9 +356,9 @@ typedef struct {
 
 	unsigned int half_move_clock;
 	unsigned int half_moves;
-	unsigned int irreversible[142];
+	int irreversible[143];
 	unsigned int irreversible_count;
-	unsigned int double_pawn_moves[16];
+	int double_pawn_moves[16];
 	unsigned int double_pawn_move_count;
 	unsigned char ep_files[16];
 	unsigned int lost_wk_castle;
@@ -408,7 +408,6 @@ typedef struct {
 } chi_pos;
 
 #define chi_copy_pos(d, s) memcpy(d, s, sizeof *d)
-#define chi_cmp_pos(d, s) memcmp(d, s, sizeof *d)
 
 /* A move is represented by 32 bits in host order:
 

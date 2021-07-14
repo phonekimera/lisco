@@ -66,6 +66,9 @@ chi_init_position (pos)
 
 	pos->half_move_clock = pos->half_moves = 0;
 
+	pos->irreversible_count = 1;
+	pos->irreversible[0] = 0;
+
 	chi_on_move (pos) = chi_white;
 }
 
