@@ -45,13 +45,13 @@ START_TEST(test_pawn_moves)
 	ck_assert_str_eq(wanted, got);
 	free(got);
 
-	errnum = chi_parse_move(&pos, &move2, "e5");
+	errnum = chi_parse_move(&pos, &move2, "c5");
 	ck_assert_int_eq(errnum, 0);
 
 	errnum = chi_apply_move(&pos, move2);
 	ck_assert_int_eq(errnum, 0);
 
-	wanted = "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2";
+	wanted = "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2";
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
@@ -212,7 +212,7 @@ START_TEST(test_white_ep_capture)
 	errnum = chi_set_position(&pos, fen);
 	ck_assert_int_eq(errnum, 0);
 
-	errnum = chi_parse_move(&pos, &move, "exf6");
+	errnum = chi_parse_move(&pos, &move, "exf");
 	ck_assert_int_eq(errnum, 0);
 
 	errnum = chi_apply_move(&pos, move);
@@ -265,7 +265,7 @@ START_TEST(test_black_ep_capture)
 	errnum = chi_set_position(&pos, fen);
 	ck_assert_int_eq(errnum, 0);
 
-	errnum = chi_parse_move(&pos, &move, "gxf3");
+	errnum = chi_parse_move(&pos, &move, "gxf");
 	ck_assert_int_eq(errnum, 0);
 
 	errnum = chi_apply_move(&pos, move);
@@ -281,6 +281,133 @@ START_TEST(test_black_ep_capture)
 	got = chi_fen(&pos);
 	ck_assert_str_eq(wanted, got);
 	free(got);
+}
+END_TEST;
+
+START_TEST(test_pawn_double_move)
+{
+	chi_pos pos, pos_after_move;
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | k |   |   |   |   |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   | p |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   | P |   |   | Half moves: 1.
+   +---+---+---+---+---+---+---+---+ Next move: b.
+ 4 |   |   |   |   |   |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+
+ 3 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 | K |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ */
+	const char *fen = "k7/4p3/8/5P2/8/8/8/K7 b - - 0 1";
+	chi_move move;
+	const char *wanted;
+	char *got;
+	int errnum;
+
+	errnum = chi_set_position(&pos, fen);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&pos, &move, "e5");
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = "k7/8/8/4pP2/8/8/8/K7 w - e6 0 2";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	errnum = chi_set_position(&pos_after_move, wanted);
+	ck_assert_int_eq(errnum, 0);
+
+	ck_assert_int_eq(chi_cmp_pos(&pos, &pos_after_move), 0);
+}
+
+/*
+ * Doing and undoing a move from a position where en passant is possible only
+ * worked once. The second time, the en passant square was not restored.
+ */
+START_TEST(test_ep_bug_1)
+{
+	chi_pos pos, start;
+/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | k |   |   |   |   |   |   |   | En passant possible on file e.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   | p | P |   |   | Half moves: 1.
+   +---+---+---+---+---+---+---+---+ Next move: w.
+ 4 |   |   |   |   |   |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+
+ 3 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 | K |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ */
+
+	const char *fen = "k7/8/8/4pP2/8/8/8/K7 w - e6 0 1";
+	chi_move move;
+	const char *wanted;
+	char *got;
+	int errnum;
+
+	errnum = chi_set_position(&pos, fen);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_set_position(&start, fen);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&pos, &move, "Kb2");
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = "k7/8/8/4pP2/8/8/1K6/8 b - - 1 1";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = fen;
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+	ck_assert_int_eq(chi_cmp_pos(&pos, &start), 0);
+
+	/* Second time.  */
+	errnum = chi_parse_move(&pos, &move, "Kb2");
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_apply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = "k7/8/8/4pP2/8/8/1K6/8 b - - 1 1";
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+
+	errnum = chi_unapply_move(&pos, move);
+	ck_assert_int_eq(errnum, 0);
+	wanted = fen;
+	got = chi_fen(&pos);
+	ck_assert_str_eq(wanted, got);
+	free(got);
+	ck_assert_int_eq(chi_cmp_pos(&pos, &start), 0);
 }
 END_TEST;
 
@@ -965,7 +1092,9 @@ move_making_suite(void)
 	tcase_add_test(tc_pawn, test_white_capture);
 	tcase_add_test(tc_pawn, test_black_capture);
 	tcase_add_test(tc_pawn, test_white_ep_capture);
-    tcase_add_test(tc_pawn, test_black_ep_capture);
+	tcase_add_test(tc_pawn, test_black_ep_capture);
+	tcase_add_test(tc_pawn, test_pawn_double_move);
+	tcase_add_test(tc_pawn, test_ep_bug_1);
 	suite_add_tcase(suite, tc_pawn);
 
     tc_rook = tcase_create("Castling States");

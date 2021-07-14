@@ -44,6 +44,7 @@ chi_apply_move(chi_pos *pos, chi_move move)
 	++pos->half_moves;
 
 	chi_ep(pos) = 0;
+	/* FIXME! Reset chi_ep_file(pos)? */
 
 	if (chi_move_victim(move) || attacker == pawn) {
 		/* Irreversible move.  Reset half-move clock.  */
@@ -57,8 +58,6 @@ chi_apply_move(chi_pos *pos, chi_move move)
 				pos->half_moves;
 			pos->ep_files[pos->double_pawn_move_count++] = file;
 		}
-#define INITIAL_ROOKS_MASK (CHI_A1_MASK | CHI_H1_MASK \
-                            | CHI_A8_MASK | CHI_H8_MASK)
 	} else {
 		++pos->half_move_clock;
 	}
@@ -109,6 +108,8 @@ chi_apply_move(chi_pos *pos, chi_move move)
 	}
 	
 	/* If a rook was captured, the castling right is also lost.  */
+#define INITIAL_ROOKS_MASK (CHI_A1_MASK | CHI_H1_MASK \
+                            | CHI_A8_MASK | CHI_H8_MASK)
 	if (chi_move_victim(move) == rook
 	         && (to_mask & INITIAL_ROOKS_MASK)) {
 		if (chi_on_move(pos) == chi_white) {

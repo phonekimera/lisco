@@ -25,7 +25,7 @@
 
 #include "state.h"
 
-#define DEBUG_SEARCH 0
+#define DEBUG_SEARCH 1
 
 #define MATE -10000
 #define INF ((-(MATE)) << 1)
@@ -50,11 +50,12 @@ typedef struct Tree {
 static void
 print_line(FILE *stream, chi_pos *start, Line *line)
 {
-	chi_pos position = *start;
+	chi_pos position;
 	char *buf = NULL;
 	unsigned int bufsize;
 	int errnum;
 
+	chi_copy_pos(&position, start);
 	for (int i = 0; i < line->num_moves; ++i) {
 		chi_move move = line->moves[i];
 		errnum = chi_print_move(&position, line->moves[i], &buf, &bufsize, 0);
@@ -84,7 +85,7 @@ debug_end_search(Tree *tree, chi_move move)
 static int
 evaluate(Tree *tree)
 {
-	chi_pos *position = &tree->position;
+	const chi_pos *position = &tree->position;
 	int score = 100 * chi_material(position);
 
 	++tree->evals;
@@ -120,6 +121,10 @@ minimax(Tree *tree, int depth)
 	}
 
 	move_ptr = chi_legal_moves(position, moves);
+
+if (depth == tree->depth) {
+	fprintf(stderr, "number of root moves: %lu\n", move_ptr - moves);
+}
 
 	bestvalue = -INF;
 
@@ -204,13 +209,14 @@ think(void)
 
 	memset(&tree, 0, sizeof tree);
 
-	tree.position = tate.position;
+	chi_copy_pos(&tree.position, &tate.position);
 
 	on_move = chi_on_move(&tree.position);
 
-	score = root_search(&tree, 1);
+	score = root_search(&tree, 5);
 
-	fprintf(stderr, "score: %d\n", score);
-	fprintf(stderr, "info nodes searched: %lu\n", tree.nodes);
-	fprintf(stderr, "info nodes evaluated: %lu\n", tree.evals);
+	// Only print that to the real output channel.
+	//fprintf(stderr, "score: %d\n", score);
+	//fprintf(stderr, "info nodes searched: %lu\n", tree.nodes);
+	//fprintf(stderr, "info nodes evaluated: %lu\n", tree.evals);
 }

@@ -359,8 +359,8 @@ typedef struct {
 	unsigned int irreversible[142];
 	unsigned int irreversible_count;
 	unsigned int double_pawn_moves[16];
-	unsigned char ep_files[16];
 	unsigned int double_pawn_move_count;
+	unsigned char ep_files[16];
 	unsigned int lost_wk_castle;
 	unsigned int lost_wq_castle;
 	unsigned int lost_bk_castle;

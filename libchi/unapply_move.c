@@ -22,35 +22,55 @@
 
 #include <libchi.h>
 
+/*
+ * FIXME! We can save space and probably time (test!) by distinguishing between
+ * pawn double steps and other irreversible moves.  When undoing a pawn double
+ * step update the half move clock as well, and only for the other cases
+ * of irreversible moves (captures, castlings, losing castling rights), check
+ * again.
+ */
+/* FIXME! Check the size of the array irreversible.
+ */
+/*
+ * FIXME! There is no need to clean the arrays double_pawn_moves, ep_files,
+ * and irreversible after their respective counters have been decreasee.
+ * Instead, write a function that does this cleanup outside of
+ * chi_unapply_move() and call this function before calling chi_cmp_pos() in
+ * the tests.
+ */
 int
 chi_unapply_move(chi_pos *pos, chi_move move)
 {
-	if (chi_move_victim(move) || chi_move_attacker(move) == pawn) {
-		if (pos->irreversible_count > 1) {
-			pos->half_move_clock = pos->half_moves - 1
-				- pos->irreversible[--pos->irreversible_count - 1];
-		} else {
-			pos->irreversible_count = 0;
-			pos->half_move_clock = pos->irreversible[0] - 1;
-		}
-	} else {
-		--pos->half_move_clock;
+	if (pos->irreversible_count
+	    && pos->irreversible[pos->irreversible_count - 1] == pos->half_moves) {
+		--pos->irreversible_count;
+		/* This is only needed for chi_cmp_pos and should be removed.  */
+		pos->irreversible[pos->irreversible_count] = 0;
 	}
 
+	/* FIXME! Is it faster to move that into the if condition above? */
+	if (pos->irreversible_count) {
+		pos->half_move_clock = pos->half_moves
+			- pos->irreversible[pos->irreversible_count - 1] - 1;
+	} else {
+		pos->half_move_clock = 0;
+	}
+
+	chi_ep(pos) = 0;
 	if (pos->double_pawn_move_count
 	    && pos->double_pawn_moves[pos->double_pawn_move_count - 1]
 		== pos->half_moves) {
 		--pos->double_pawn_move_count;
+		/* This is only needed for chi_cmp_pos and should be removed.  */
+		pos->double_pawn_moves[pos->double_pawn_move_count] = 0;
+		pos->ep_files[pos->double_pawn_move_count] = 0;
 	}
 
 	if (pos->double_pawn_move_count
-	    && pos->double_pawn_moves[pos->double_pawn_move_count - 1]
-	    == pos->half_moves - 1) {
-		--pos->double_pawn_move_count;
+		&& pos->double_pawn_moves[pos->double_pawn_move_count - 1]
+	== pos->half_moves - 1) {
 		chi_ep(pos) = 1;
-		chi_ep_file(pos) = pos->ep_files[pos->double_pawn_move_count];
-	} else {
-		chi_ep(pos) = 0;
+		chi_ep_file(pos) = pos->ep_files[pos->double_pawn_move_count - 1];
 	}
 
 	chi_on_move(pos) = !chi_on_move(pos);
