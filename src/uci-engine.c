@@ -30,8 +30,19 @@
 #include "state.h"
 #include "think.h"
 #include "util.h"
+#include "perft.h"
 
 #define DELIM " \n\t\v\f\r"
+
+static char *
+next_token(char **string)
+{
+	if (!*string)
+		return NULL;
+
+	*string = (char *) ltrim(*string);
+	return strsep(string, DELIM);
+}
 
 void
 uci_init(UCIEngineOptions *options)
@@ -217,6 +228,30 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 	char *pondermove = NULL;
 	unsigned int bufsize;
 	int errnum;
+	char *token;
+	char *argptr = args;
+	unsigned long perft_depth = 0;
+	char *endptr;
+
+	while ((token = next_token(&argptr)) != NULL) {
+		if (strcmp("perft", token) == 0) {
+			token = next_token(&argptr);
+			if (!token) {
+				fprintf(out, "info usage: perft DEPTH.\n");
+				return 1;
+			}
+			perft_depth = strtoul (token, &endptr, 10);
+			if (perft_depth == 0 && endptr == token) {
+				fprintf (out, "info error: illegal perft depth: %s.\n",
+				         token);
+				return 1;
+			}
+			return perft(perft_depth, out);
+		} else {
+			fprintf(out, "info unknown or unsupported go option '%s'.\n",
+			        token);
+		}
+	}
 
 	think();
 

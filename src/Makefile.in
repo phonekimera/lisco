@@ -172,7 +172,8 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_tate_OBJECTS = tate.$(OBJEXT) uci-engine.$(OBJEXT) util.$(OBJEXT) \
-	think.$(OBJEXT) state.$(OBJEXT)
+	think.$(OBJEXT) state.$(OBJEXT) perft.$(OBJEXT) \
+	rtime.$(OBJEXT)
 tate_OBJECTS = $(am_tate_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -209,7 +210,8 @@ am__depfiles_remade = ./$(DEPDIR)/board.Po ./$(DEPDIR)/book.Po \
 	./$(DEPDIR)/brain.Po ./$(DEPDIR)/display-board.Po \
 	./$(DEPDIR)/edit.Po ./$(DEPDIR)/epd.Po ./$(DEPDIR)/ev_hash.Po \
 	./$(DEPDIR)/evaluate.Po ./$(DEPDIR)/log.Po \
-	./$(DEPDIR)/qtt_hash.Po ./$(DEPDIR)/search.Po \
+	./$(DEPDIR)/perft.Po ./$(DEPDIR)/qtt_hash.Po \
+	./$(DEPDIR)/rtime.Po ./$(DEPDIR)/search.Po \
 	./$(DEPDIR)/state.Po ./$(DEPDIR)/tate.Po \
 	./$(DEPDIR)/tateold.Po ./$(DEPDIR)/tateplay-engine.Po \
 	./$(DEPDIR)/tateplay-game.Po ./$(DEPDIR)/tateplay-loop.Po \
@@ -1427,6 +1429,8 @@ noinst_HEADERS = \
 	brain.h \
 	edit.h \
 	log.h \
+	perft.h \
+	rtime.h \
 	search.h \
 	state.h \
 	tate.h \
@@ -1443,7 +1447,9 @@ noinst_HEADERS = \
 	xboard-feature.h \
 	xmalloca-debug.h
 
-tate_SOURCES = tate.c uci-engine.c util.c think.c state.c
+tate_SOURCES = tate.c uci-engine.c util.c think.c state.c perft.c \
+	rtime.c
+
 tateold_SOURCES = tateold.c board.c brain.c edit.c book.c time-control.c \
 	evaluate.c search.c time-limits.c time-management.c \
 	tt_hash.c epd.c ev_hash.c qtt_hash.c
@@ -1572,7 +1578,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ev_hash.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/evaluate.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/perft.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/qtt_hash.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rtime.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/search.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/state.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tate.Po@am__quote@ # am--include-marker
@@ -1837,7 +1845,9 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/ev_hash.Po
 	-rm -f ./$(DEPDIR)/evaluate.Po
 	-rm -f ./$(DEPDIR)/log.Po
+	-rm -f ./$(DEPDIR)/perft.Po
 	-rm -f ./$(DEPDIR)/qtt_hash.Po
+	-rm -f ./$(DEPDIR)/rtime.Po
 	-rm -f ./$(DEPDIR)/search.Po
 	-rm -f ./$(DEPDIR)/state.Po
 	-rm -f ./$(DEPDIR)/tate.Po
@@ -1910,7 +1920,9 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/ev_hash.Po
 	-rm -f ./$(DEPDIR)/evaluate.Po
 	-rm -f ./$(DEPDIR)/log.Po
+	-rm -f ./$(DEPDIR)/perft.Po
 	-rm -f ./$(DEPDIR)/qtt_hash.Po
+	-rm -f ./$(DEPDIR)/rtime.Po
 	-rm -f ./$(DEPDIR)/search.Po
 	-rm -f ./$(DEPDIR)/state.Po
 	-rm -f ./$(DEPDIR)/tate.Po

@@ -26,6 +26,8 @@ noinst_HEADERS = \
 	brain.h \
 	edit.h \
 	log.h \
+	perft.h \
+	rtime.h \
 	search.h \
 	state.h \
 	tate.h \
@@ -42,7 +44,8 @@ noinst_HEADERS = \
 	xboard-feature.h \
 	xmalloca-debug.h
 
-tate_SOURCES = tate.c uci-engine.c util.c think.c state.c
+tate_SOURCES = tate.c uci-engine.c util.c think.c state.c perft.c \
+	rtime.c
 tateold_SOURCES = tateold.c board.c brain.c edit.c book.c time-control.c \
 	evaluate.c search.c time-limits.c time-management.c \
 	tt_hash.c epd.c ev_hash.c qtt_hash.c

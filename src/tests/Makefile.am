@@ -44,6 +44,8 @@ check_tateplay_SOURCES = \
 
 check_tate_SOURCES = \
 		../state.c \
+		../perft.c \
+		../rtime.c \
 		../think.c \
 		../uci-engine.c \
 		../util.c \

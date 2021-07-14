@@ -186,6 +186,7 @@ check_common_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(check_common_CFLAGS) \
 	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_check_tate_OBJECTS = ../check_tate-state.$(OBJEXT) \
+	../check_tate-perft.$(OBJEXT) ../check_tate-rtime.$(OBJEXT) \
 	../check_tate-think.$(OBJEXT) \
 	../check_tate-uci-engine.$(OBJEXT) \
 	../check_tate-util.$(OBJEXT) \
@@ -230,6 +231,8 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/build-aux/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ../$(DEPDIR)/check_common-util.Po \
+	../$(DEPDIR)/check_tate-perft.Po \
+	../$(DEPDIR)/check_tate-rtime.Po \
 	../$(DEPDIR)/check_tate-state.Po \
 	../$(DEPDIR)/check_tate-think.Po \
 	../$(DEPDIR)/check_tate-uci-engine.Po \
@@ -1636,6 +1639,8 @@ check_tateplay_SOURCES = \
 
 check_tate_SOURCES = \
 		../state.c \
+		../perft.c \
+		../rtime.c \
 		../think.c \
 		../uci-engine.c \
 		../util.c \
@@ -1713,6 +1718,10 @@ check_common$(EXEEXT): $(check_common_OBJECTS) $(check_common_DEPENDENCIES) $(EX
 	$(AM_V_CCLD)$(check_common_LINK) $(check_common_OBJECTS) $(check_common_LDADD) $(LIBS)
 ../check_tate-state.$(OBJEXT): ../$(am__dirstamp) \
 	../$(DEPDIR)/$(am__dirstamp)
+../check_tate-perft.$(OBJEXT): ../$(am__dirstamp) \
+	../$(DEPDIR)/$(am__dirstamp)
+../check_tate-rtime.$(OBJEXT): ../$(am__dirstamp) \
+	../$(DEPDIR)/$(am__dirstamp)
 ../check_tate-think.$(OBJEXT): ../$(am__dirstamp) \
 	../$(DEPDIR)/$(am__dirstamp)
 ../check_tate-uci-engine.$(OBJEXT): ../$(am__dirstamp) \
@@ -1744,6 +1753,8 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@../$(DEPDIR)/check_common-util.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../$(DEPDIR)/check_tate-perft.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../$(DEPDIR)/check_tate-rtime.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../$(DEPDIR)/check_tate-state.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../$(DEPDIR)/check_tate-think.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../$(DEPDIR)/check_tate-uci-engine.Po@am__quote@ # am--include-marker
@@ -1846,6 +1857,34 @@ check_common-check_common.obj: check_common.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../state.c' object='../check_tate-state.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_tate_CFLAGS) $(CFLAGS) -c -o ../check_tate-state.obj `if test -f '../state.c'; then $(CYGPATH_W) '../state.c'; else $(CYGPATH_W) '$(srcdir)/../state.c'; fi`
+
+../check_tate-perft.o: ../perft.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_tate_CFLAGS) $(CFLAGS) -MT ../check_tate-perft.o -MD -MP -MF ../$(DEPDIR)/check_tate-perft.Tpo -c -o ../check_tate-perft.o `test -f '../perft.c' || echo '$(srcdir)/'`../perft.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../$(DEPDIR)/check_tate-perft.Tpo ../$(DEPDIR)/check_tate-perft.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../perft.c' object='../check_tate-perft.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_tate_CFLAGS) $(CFLAGS) -c -o ../check_tate-perft.o `test -f '../perft.c' || echo '$(srcdir)/'`../perft.c
+
+../check_tate-perft.obj: ../perft.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_tate_CFLAGS) $(CFLAGS) -MT ../check_tate-perft.obj -MD -MP -MF ../$(DEPDIR)/check_tate-perft.Tpo -c -o ../check_tate-perft.obj `if test -f '../perft.c'; then $(CYGPATH_W) '../perft.c'; else $(CYGPATH_W) '$(srcdir)/../perft.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../$(DEPDIR)/check_tate-perft.Tpo ../$(DEPDIR)/check_tate-perft.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../perft.c' object='../check_tate-perft.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_tate_CFLAGS) $(CFLAGS) -c -o ../check_tate-perft.obj `if test -f '../perft.c'; then $(CYGPATH_W) '../perft.c'; else $(CYGPATH_W) '$(srcdir)/../perft.c'; fi`
+
+../check_tate-rtime.o: ../rtime.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_tate_CFLAGS) $(CFLAGS) -MT ../check_tate-rtime.o -MD -MP -MF ../$(DEPDIR)/check_tate-rtime.Tpo -c -o ../check_tate-rtime.o `test -f '../rtime.c' || echo '$(srcdir)/'`../rtime.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../$(DEPDIR)/check_tate-rtime.Tpo ../$(DEPDIR)/check_tate-rtime.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../rtime.c' object='../check_tate-rtime.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_tate_CFLAGS) $(CFLAGS) -c -o ../check_tate-rtime.o `test -f '../rtime.c' || echo '$(srcdir)/'`../rtime.c
+
+../check_tate-rtime.obj: ../rtime.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_tate_CFLAGS) $(CFLAGS) -MT ../check_tate-rtime.obj -MD -MP -MF ../$(DEPDIR)/check_tate-rtime.Tpo -c -o ../check_tate-rtime.obj `if test -f '../rtime.c'; then $(CYGPATH_W) '../rtime.c'; else $(CYGPATH_W) '$(srcdir)/../rtime.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ../$(DEPDIR)/check_tate-rtime.Tpo ../$(DEPDIR)/check_tate-rtime.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='../rtime.c' object='../check_tate-rtime.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_tate_CFLAGS) $(CFLAGS) -c -o ../check_tate-rtime.obj `if test -f '../rtime.c'; then $(CYGPATH_W) '../rtime.c'; else $(CYGPATH_W) '$(srcdir)/../rtime.c'; fi`
 
 ../check_tate-think.o: ../think.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_tate_CFLAGS) $(CFLAGS) -MT ../check_tate-think.o -MD -MP -MF ../$(DEPDIR)/check_tate-think.Tpo -c -o ../check_tate-think.o `test -f '../think.c' || echo '$(srcdir)/'`../think.c
@@ -2344,6 +2383,8 @@ clean-am: clean-generic clean-libtool clean-noinstPROGRAMS \
 
 distclean: distclean-am
 		-rm -f ../$(DEPDIR)/check_common-util.Po
+	-rm -f ../$(DEPDIR)/check_tate-perft.Po
+	-rm -f ../$(DEPDIR)/check_tate-rtime.Po
 	-rm -f ../$(DEPDIR)/check_tate-state.Po
 	-rm -f ../$(DEPDIR)/check_tate-think.Po
 	-rm -f ../$(DEPDIR)/check_tate-uci-engine.Po
@@ -2406,6 +2447,8 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ../$(DEPDIR)/check_common-util.Po
+	-rm -f ../$(DEPDIR)/check_tate-perft.Po
+	-rm -f ../$(DEPDIR)/check_tate-rtime.Po
 	-rm -f ../$(DEPDIR)/check_tate-state.Po
 	-rm -f ../$(DEPDIR)/check_tate-think.Po
 	-rm -f ../$(DEPDIR)/check_tate-uci-engine.Po
