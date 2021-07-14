@@ -27,6 +27,8 @@
 #include "perft.h"
 #include "rtime.h"
 
+static unsigned long do_perft(chi_pos *pos, unsigned int depth);
+
 int
 perft(unsigned int depth, FILE *out)
 {
@@ -43,7 +45,7 @@ perft(unsigned int depth, FILE *out)
 	chi_copy_pos(&position, &tate.position);
 
 	start = rtime();
-	nodes = chi_perft(&position, depth, 0);
+	nodes = do_perft(&position, depth);
 	elapsed = rdifftime (rtime (), start);
 
 	fprintf (stdout, "info nodes: %lu (%lu.%02lu s, nps: %lu)\n",
@@ -51,4 +53,24 @@ perft(unsigned int depth, FILE *out)
 			 (100 * nodes) / (elapsed ? elapsed : 1));
 
 	return 1;
+}
+
+static unsigned long
+do_perft(chi_pos *pos, unsigned int depth)
+{
+	chi_move moves[CHI_MAX_MOVES];
+	chi_move *mv;
+	chi_move *move_end = chi_legal_moves (pos, moves);
+	unsigned long nodes = 0;
+
+	for (mv = moves; mv < move_end; ++mv) {
+		chi_apply_move(pos, *mv);
+		if (depth > 1)
+			nodes += do_perft(pos, depth - 1);
+		else
+			++nodes;
+		chi_unapply_move(pos, *mv);
+	}
+
+	return nodes;
 }
