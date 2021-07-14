@@ -7262,7 +7262,7 @@ test_game(const char *strings[])
 		if (errnum) {
 			report_failure(&game, i - 1, movestr,
                            fens[i], fens[i - 1], NULL,
-                           "applying move failed: %s\n",
+                           "unapplying move failed: %s\n",
                            chi_strerror(errnum));
 		}
 
