@@ -22,6 +22,7 @@
 
 #include <check.h>
 
+#include "xalloc.h"
 #include "xmalloca.h"
 
 #include "util.h"
