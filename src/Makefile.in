@@ -89,7 +89,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = tate$(EXEEXT) tateplay$(EXEEXT) tateold$(EXEEXT)
+bin_PROGRAMS = tate$(EXEEXT) tateplay$(EXEEXT)
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
@@ -179,12 +179,6 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-am_tateold_OBJECTS = tateold.$(OBJEXT) board.$(OBJEXT) brain.$(OBJEXT) \
-	edit.$(OBJEXT) book.$(OBJEXT) time-control.$(OBJEXT) \
-	evaluate.$(OBJEXT) search.$(OBJEXT) time-limits.$(OBJEXT) \
-	time-management.$(OBJEXT) tt_hash.$(OBJEXT) epd.$(OBJEXT) \
-	ev_hash.$(OBJEXT) qtt_hash.$(OBJEXT)
-tateold_OBJECTS = $(am_tateold_OBJECTS)
 am_tateplay_OBJECTS = tateplay.$(OBJEXT) tateplay-engine.$(OBJEXT) \
 	log.$(OBJEXT) tateplay-game.$(OBJEXT) tateplay-loop.$(OBJEXT) \
 	util.$(OBJEXT) tateplay-option.$(OBJEXT) \
@@ -206,20 +200,13 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/build-aux/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/board.Po ./$(DEPDIR)/book.Po \
-	./$(DEPDIR)/brain.Po ./$(DEPDIR)/display-board.Po \
-	./$(DEPDIR)/edit.Po ./$(DEPDIR)/epd.Po ./$(DEPDIR)/ev_hash.Po \
-	./$(DEPDIR)/evaluate.Po ./$(DEPDIR)/log.Po \
-	./$(DEPDIR)/perft.Po ./$(DEPDIR)/qtt_hash.Po \
-	./$(DEPDIR)/rtime.Po ./$(DEPDIR)/search.Po \
-	./$(DEPDIR)/state.Po ./$(DEPDIR)/tate.Po \
-	./$(DEPDIR)/tateold.Po ./$(DEPDIR)/tateplay-engine.Po \
+am__depfiles_remade = ./$(DEPDIR)/display-board.Po ./$(DEPDIR)/log.Po \
+	./$(DEPDIR)/perft.Po ./$(DEPDIR)/rtime.Po ./$(DEPDIR)/state.Po \
+	./$(DEPDIR)/tate.Po ./$(DEPDIR)/tateplay-engine.Po \
 	./$(DEPDIR)/tateplay-game.Po ./$(DEPDIR)/tateplay-loop.Po \
 	./$(DEPDIR)/tateplay-option.Po \
 	./$(DEPDIR)/tateplay-time-control.Po ./$(DEPDIR)/tateplay.Po \
-	./$(DEPDIR)/think.Po ./$(DEPDIR)/time-control.Po \
-	./$(DEPDIR)/time-limits.Po ./$(DEPDIR)/time-management.Po \
-	./$(DEPDIR)/tt_hash.Po ./$(DEPDIR)/uci-engine.Po \
+	./$(DEPDIR)/think.Po ./$(DEPDIR)/uci-engine.Po \
 	./$(DEPDIR)/util.Po ./$(DEPDIR)/xboard-feature.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -240,8 +227,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(tate_SOURCES) $(tateold_SOURCES) $(tateplay_SOURCES)
-DIST_SOURCES = $(tate_SOURCES) $(tateold_SOURCES) $(tateplay_SOURCES)
+SOURCES = $(tate_SOURCES) $(tateplay_SOURCES)
+DIST_SOURCES = $(tate_SOURCES) $(tateplay_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -1450,10 +1437,6 @@ noinst_HEADERS = \
 tate_SOURCES = tate.c uci-engine.c util.c think.c state.c perft.c \
 	rtime.c
 
-tateold_SOURCES = tateold.c board.c brain.c edit.c book.c time-control.c \
-	evaluate.c search.c time-limits.c time-management.c \
-	tt_hash.c epd.c ev_hash.c qtt_hash.c
-
 # FIXME! Remove tateplay. Can be replaced with cutechess-cli.
 tateplay_SOURCES = tateplay.c tateplay-engine.c log.c tateplay-game.c \
 	tateplay-loop.c util.c tateplay-option.c xboard-feature.c display-board.c \
@@ -1461,8 +1444,6 @@ tateplay_SOURCES = tateplay.c tateplay-engine.c log.c tateplay-game.c \
 
 tate_LDADD = ../lib/libtate.la ../libchi/libchi.la
 tate_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
-tateold_LDADD = ../lib/libtate.la ../libchi/libchi.la
-tateold_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
 tateplay_LDADD = ../lib/libtate.la ../libchi/libchi.la
 tateplay_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
 AM_CPPFLAGS = -I. -I$(srcdir) -I.. -I$(top_srcdir)/lib -I../lib \
@@ -1555,10 +1536,6 @@ tate$(EXEEXT): $(tate_OBJECTS) $(tate_DEPENDENCIES) $(EXTRA_tate_DEPENDENCIES)
 	@rm -f tate$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(tate_OBJECTS) $(tate_LDADD) $(LIBS)
 
-tateold$(EXEEXT): $(tateold_OBJECTS) $(tateold_DEPENDENCIES) $(EXTRA_tateold_DEPENDENCIES) 
-	@rm -f tateold$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(tateold_OBJECTS) $(tateold_LDADD) $(LIBS)
-
 tateplay$(EXEEXT): $(tateplay_OBJECTS) $(tateplay_DEPENDENCIES) $(EXTRA_tateplay_DEPENDENCIES) 
 	@rm -f tateplay$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(tateplay_OBJECTS) $(tateplay_LDADD) $(LIBS)
@@ -1569,22 +1546,12 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/board.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/book.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/brain.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/display-board.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/edit.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/epd.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ev_hash.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/evaluate.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/perft.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/qtt_hash.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rtime.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/search.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/state.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tate.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tateold.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tateplay-engine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tateplay-game.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tateplay-loop.Po@am__quote@ # am--include-marker
@@ -1592,10 +1559,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tateplay-time-control.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tateplay.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/think.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/time-control.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/time-limits.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/time-management.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tt_hash.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/uci-engine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xboard-feature.Po@am__quote@ # am--include-marker
@@ -1836,22 +1799,12 @@ clean: clean-recursive
 clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-recursive
-		-rm -f ./$(DEPDIR)/board.Po
-	-rm -f ./$(DEPDIR)/book.Po
-	-rm -f ./$(DEPDIR)/brain.Po
-	-rm -f ./$(DEPDIR)/display-board.Po
-	-rm -f ./$(DEPDIR)/edit.Po
-	-rm -f ./$(DEPDIR)/epd.Po
-	-rm -f ./$(DEPDIR)/ev_hash.Po
-	-rm -f ./$(DEPDIR)/evaluate.Po
+		-rm -f ./$(DEPDIR)/display-board.Po
 	-rm -f ./$(DEPDIR)/log.Po
 	-rm -f ./$(DEPDIR)/perft.Po
-	-rm -f ./$(DEPDIR)/qtt_hash.Po
 	-rm -f ./$(DEPDIR)/rtime.Po
-	-rm -f ./$(DEPDIR)/search.Po
 	-rm -f ./$(DEPDIR)/state.Po
 	-rm -f ./$(DEPDIR)/tate.Po
-	-rm -f ./$(DEPDIR)/tateold.Po
 	-rm -f ./$(DEPDIR)/tateplay-engine.Po
 	-rm -f ./$(DEPDIR)/tateplay-game.Po
 	-rm -f ./$(DEPDIR)/tateplay-loop.Po
@@ -1859,10 +1812,6 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/tateplay-time-control.Po
 	-rm -f ./$(DEPDIR)/tateplay.Po
 	-rm -f ./$(DEPDIR)/think.Po
-	-rm -f ./$(DEPDIR)/time-control.Po
-	-rm -f ./$(DEPDIR)/time-limits.Po
-	-rm -f ./$(DEPDIR)/time-management.Po
-	-rm -f ./$(DEPDIR)/tt_hash.Po
 	-rm -f ./$(DEPDIR)/uci-engine.Po
 	-rm -f ./$(DEPDIR)/util.Po
 	-rm -f ./$(DEPDIR)/xboard-feature.Po
@@ -1911,22 +1860,12 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-recursive
-		-rm -f ./$(DEPDIR)/board.Po
-	-rm -f ./$(DEPDIR)/book.Po
-	-rm -f ./$(DEPDIR)/brain.Po
-	-rm -f ./$(DEPDIR)/display-board.Po
-	-rm -f ./$(DEPDIR)/edit.Po
-	-rm -f ./$(DEPDIR)/epd.Po
-	-rm -f ./$(DEPDIR)/ev_hash.Po
-	-rm -f ./$(DEPDIR)/evaluate.Po
+		-rm -f ./$(DEPDIR)/display-board.Po
 	-rm -f ./$(DEPDIR)/log.Po
 	-rm -f ./$(DEPDIR)/perft.Po
-	-rm -f ./$(DEPDIR)/qtt_hash.Po
 	-rm -f ./$(DEPDIR)/rtime.Po
-	-rm -f ./$(DEPDIR)/search.Po
 	-rm -f ./$(DEPDIR)/state.Po
 	-rm -f ./$(DEPDIR)/tate.Po
-	-rm -f ./$(DEPDIR)/tateold.Po
 	-rm -f ./$(DEPDIR)/tateplay-engine.Po
 	-rm -f ./$(DEPDIR)/tateplay-game.Po
 	-rm -f ./$(DEPDIR)/tateplay-loop.Po
@@ -1934,10 +1873,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/tateplay-time-control.Po
 	-rm -f ./$(DEPDIR)/tateplay.Po
 	-rm -f ./$(DEPDIR)/think.Po
-	-rm -f ./$(DEPDIR)/time-control.Po
-	-rm -f ./$(DEPDIR)/time-limits.Po
-	-rm -f ./$(DEPDIR)/time-management.Po
-	-rm -f ./$(DEPDIR)/tt_hash.Po
 	-rm -f ./$(DEPDIR)/uci-engine.Po
 	-rm -f ./$(DEPDIR)/util.Po
 	-rm -f ./$(DEPDIR)/xboard-feature.Po

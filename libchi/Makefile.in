@@ -208,7 +208,7 @@ am_libchi_la_OBJECTS = dump_pieces.lo strerror.lo make_move.lo \
 	check_legality.lo illegal_move.lo closest_prime.lo zk_init.lo \
 	zk_finish.lo zk_signature.lo zk_update_signature.lo \
 	zk_change_side.lo update_material.lo set_position.lo \
-	parse_fen_position.lo parse_epd.lo perft.lo char2figurine.lo \
+	parse_fen_position.lo parse_epd.lo char2figurine.lo \
 	game_over.lo fen.lo stringbuf.lo unapply_move.lo \
 	unmake_move.lo coordinate_notation.lo free.lo magicmoves.lo \
 	mm_init.lo
@@ -253,14 +253,14 @@ am__depfiles_remade = ./$(DEPDIR)/apply_move.Plo \
 	./$(DEPDIR)/make_move.Plo ./$(DEPDIR)/mm_init.Plo \
 	./$(DEPDIR)/movegen.Plo ./$(DEPDIR)/parse_epd.Plo \
 	./$(DEPDIR)/parse_fen_position.Plo ./$(DEPDIR)/parse_move.Plo \
-	./$(DEPDIR)/perft.Plo ./$(DEPDIR)/piece2char.Plo \
-	./$(DEPDIR)/print_move.Plo ./$(DEPDIR)/set_piece.Plo \
-	./$(DEPDIR)/set_position.Plo ./$(DEPDIR)/shift2label.Plo \
-	./$(DEPDIR)/showfen.Po ./$(DEPDIR)/strerror.Plo \
-	./$(DEPDIR)/stringbuf.Plo ./$(DEPDIR)/unapply_move.Plo \
-	./$(DEPDIR)/unmake_move.Plo ./$(DEPDIR)/update_material.Plo \
-	./$(DEPDIR)/zk_change_side.Plo ./$(DEPDIR)/zk_finish.Plo \
-	./$(DEPDIR)/zk_init.Plo ./$(DEPDIR)/zk_signature.Plo \
+	./$(DEPDIR)/piece2char.Plo ./$(DEPDIR)/print_move.Plo \
+	./$(DEPDIR)/set_piece.Plo ./$(DEPDIR)/set_position.Plo \
+	./$(DEPDIR)/shift2label.Plo ./$(DEPDIR)/showfen.Po \
+	./$(DEPDIR)/strerror.Plo ./$(DEPDIR)/stringbuf.Plo \
+	./$(DEPDIR)/unapply_move.Plo ./$(DEPDIR)/unmake_move.Plo \
+	./$(DEPDIR)/update_material.Plo ./$(DEPDIR)/zk_change_side.Plo \
+	./$(DEPDIR)/zk_finish.Plo ./$(DEPDIR)/zk_init.Plo \
+	./$(DEPDIR)/zk_signature.Plo \
 	./$(DEPDIR)/zk_update_signature.Plo
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -1472,7 +1472,7 @@ libchi_la_SOURCES = libchi.h dump_pieces.c strerror.c make_move.c \
 	check_legality.c illegal_move.c closest_prime.c \
 	zk_init.c zk_finish.c zk_signature.c zk_update_signature.c \
 	zk_change_side.c update_material.c set_position.c \
-	parse_fen_position.c parse_epd.c perft.c \
+	parse_fen_position.c parse_epd.c \
 	char2figurine.c game_over.c fen.c stringbuf.c \
 	unapply_move.c unmake_move.c coordinate_notation.c free.c \
 	magicmoves.c mm_init.c
@@ -1605,7 +1605,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_epd.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_fen_position.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_move.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/perft.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/piece2char.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/print_move.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/set_piece.Plo@am__quote@ # am--include-marker
@@ -1884,7 +1883,6 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/parse_epd.Plo
 	-rm -f ./$(DEPDIR)/parse_fen_position.Plo
 	-rm -f ./$(DEPDIR)/parse_move.Plo
-	-rm -f ./$(DEPDIR)/perft.Plo
 	-rm -f ./$(DEPDIR)/piece2char.Plo
 	-rm -f ./$(DEPDIR)/print_move.Plo
 	-rm -f ./$(DEPDIR)/set_piece.Plo
@@ -1969,7 +1967,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/parse_epd.Plo
 	-rm -f ./$(DEPDIR)/parse_fen_position.Plo
 	-rm -f ./$(DEPDIR)/parse_move.Plo
-	-rm -f ./$(DEPDIR)/perft.Plo
 	-rm -f ./$(DEPDIR)/piece2char.Plo
 	-rm -f ./$(DEPDIR)/print_move.Plo
 	-rm -f ./$(DEPDIR)/set_piece.Plo

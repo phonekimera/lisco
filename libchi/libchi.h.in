@@ -503,6 +503,29 @@ typedef struct {
 /* A handle for creating Zobrist keys.  */
 typedef @BITV64@* chi_zk_handle;
 
+/* Internal! */
+typedef struct {
+	int from;
+	@BITV64@ mask;
+} chi_attack_mask;
+
+/* Internal! */
+typedef struct {
+	/* Occupied fields.  */
+	@BITV64@ occupancy;
+
+	/* Empty fields.  */
+	@BITV64@ empty;
+
+	/* 2 rooks + 1 queen + 8 pawns = 11.  */
+	chi_attack_mask rook_attack_masks[11];
+	size_t num_rook_attack_masks;
+
+	/* 2 bishops + 1 queen + 8 pawns = 11.  */
+	chi_attack_mask bishop_attack_masks[11];
+	size_t num_bishop_attack_masks;
+} chi_position_context;
+
 /* Function like macros.  */
 #define chi_file2char(f) ((f) + 'a')
 #define chi_rank2char(r) ((r) + '1')
@@ -613,13 +636,21 @@ extern int chi_unmake_move(chi_pos* chi_arg_pos, chi_move chi_arg_move);
 /* Undoes the effect of chi_apply_move().  */
 extern int chi_unapply_move(chi_pos* chi_arg_pos, chi_move chi_arg_move);
 
-/* Generate all pseudo-legal captures for a given position.  */
-extern chi_move* chi_generate_captures(chi_pos* chi_arg_pos, 
-				       chi_move* chi_arg_movestack);
+/* Internal: Pre-compute attack masks etc.  */
+void chi_init_white_position_context(chi_pos *pos, chi_position_context *ctx);
+void chi_init_black_position_context(chi_pos *pos, chi_position_context *ctx);
 
-/* Generate all pseudo-legal non-captures for a given position.  */
-extern chi_move* chi_generate_non_captures(chi_pos* chi_arg_pos, 
-					   chi_move* chi_arg_movestack);
+/* Internal: Generate all pseudo-legal captures for a given position.  */
+extern chi_move* chi_generate_captures(
+	chi_pos* chi_arg_pos,
+	chi_position_context *ctx,
+	chi_move* chi_arg_movestack);
+
+/* Internal: Generate all pseudo-legal non-captures for a given position.  */
+extern chi_move* chi_generate_non_captures(
+	chi_pos* chi_arg_pos, 
+	chi_position_context *ctx,
+	chi_move* chi_arg_movestack);
 
 /* Generate all legal moves for a given position.  */
 extern chi_move* chi_legal_moves(chi_pos* chi_arg_pos, 
@@ -632,21 +663,6 @@ extern chi_move* chi_legal_moves(chi_pos* chi_arg_pos,
  */
 extern chi_bool chi_game_over(chi_pos *pos, chi_result *result);
 
-/* Generate and count all legal moves from a given position to a fixed
-   depth.  If the third argument is non-zero, pseudo-legal moves are
-   generated that are later checked for legality with chi_illegal_move().
-   Returns the number of moves generated.  */
-extern unsigned long int chi_perft(chi_pos* chi_arg_pos,
-				   unsigned int chi_arg_depth,
-				   int chi_arg_post_check);
-
-/* Check whether the move is illegal (will lead into a check or when
-   castling, will cross attacked squares.  In case of legality, the
-   move is also applied to the position.  */
-extern int chi_illegal_move(chi_pos* chi_arg_pos, 
-			    chi_move chi_arg_move,
-			    int chi_arg_ext_check);
-
 /* Check if a given move is legal (done by generating all legal moves
    and trying to find it there.  */
 extern int chi_check_legality(chi_pos* chi_arg_pos, 
@@ -655,42 +671,68 @@ extern int chi_check_legality(chi_pos* chi_arg_pos,
 /* Check if the side to move is in check.  */
 extern int chi_check_check(chi_pos* chi_arg_pos);
 
-extern chi_move* chi_generate_white_captures(chi_pos*, chi_move*);
-extern chi_move* chi_generate_black_captures(chi_pos*, chi_move*);
+/* Internal. */
+extern chi_move* chi_generate_white_captures(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_black_captures(
+		chi_pos*, chi_position_context *ctx, chi_move*);
 
-extern chi_move* chi_generate_white_non_captures(chi_pos*, chi_move*);
-extern chi_move* chi_generate_black_non_captures(chi_pos*, chi_move*);
+/* Internal. */
+extern chi_move* chi_generate_white_non_captures(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_black_non_captures(
+		chi_pos*, chi_position_context *ctx, chi_move*);
 
-/* A whole bunch of functions that let you generate (potentially
-   expansive to generate) moves step by step.  */
-extern chi_move* chi_generate_pawn_double_steps(chi_pos*, chi_move*);
-extern chi_move* chi_generate_white_pawn_double_steps(chi_pos*, chi_move*);
-extern chi_move* chi_generate_black_pawn_double_steps(chi_pos*, chi_move*);
+/* Internal: A whole bunch of functions that let you generate (potentially
+   expensive to generate) moves step by step.  */
+extern chi_move* chi_generate_pawn_double_steps(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_white_pawn_double_steps(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_black_pawn_double_steps(
+		chi_pos*, chi_position_context *ctx, chi_move*);
 
-extern chi_move* chi_generate_pawn_single_steps(chi_pos*, chi_move*);
-extern chi_move* chi_generate_white_pawn_single_steps(chi_pos*, chi_move*);
-extern chi_move* chi_generate_black_pawn_single_steps(chi_pos*, chi_move*);
+extern chi_move* chi_generate_pawn_single_steps(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_white_pawn_single_steps(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_black_pawn_single_steps(
+		chi_pos*, chi_position_context *ctx, chi_move*);
 
-extern chi_move* chi_generate_knight_moves(chi_pos*, chi_move*);
-extern chi_move* chi_generate_white_knight_moves(chi_pos*, chi_move*);
-extern chi_move* chi_generate_black_knight_moves(chi_pos*, chi_move*);
+extern chi_move* chi_generate_knight_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_white_knight_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_black_knight_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
 
-extern chi_move* chi_generate_bishop_moves(chi_pos*, chi_move*);
-extern chi_move* chi_generate_white_bishop_moves(chi_pos*, chi_move*);
-extern chi_move* chi_generate_black_bishop_moves(chi_pos*, chi_move*);
+extern chi_move* chi_generate_bishop_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_white_bishop_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_black_bishop_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
 
-extern chi_move* chi_generate_rook_moves(chi_pos*, chi_move*);
-extern chi_move* chi_generate_white_rook_moves(chi_pos*, chi_move*);
-extern chi_move* chi_generate_black_rook_moves(chi_pos*, chi_move*);
+extern chi_move* chi_generate_rook_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_white_rook_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_black_rook_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
 
-extern chi_move* chi_generate_king_castling_moves(chi_pos*, chi_move*);
-extern chi_move* chi_generate_white_king_castling_moves(chi_pos*, chi_move*);
-extern chi_move* chi_generate_black_king_castling_moves(chi_pos*, chi_move*);
+extern chi_move* chi_generate_king_castling_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_white_king_castling_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_black_king_castling_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
 
-extern chi_move* chi_generate_king_moves(chi_pos*, chi_move*);
-extern chi_move* chi_generate_white_king_moves(chi_pos*, chi_move*);
-extern chi_move* chi_generate_black_king_moves(chi_pos*, chi_move*);
-
+extern chi_move* chi_generate_king_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_white_king_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
+extern chi_move* chi_generate_black_king_moves(
+		chi_pos*, chi_position_context *ctx, chi_move*);
 
 extern int chi_white_check_check(chi_pos*);
 extern int chi_black_check_check(chi_pos*);

@@ -17,7 +17,7 @@
 
 SUBDIRS = . tests
 
-bin_PROGRAMS = tate tateplay tateold
+bin_PROGRAMS = tate tateplay
 
 noinst_HEADERS = \
 	basename.h \
@@ -46,9 +46,6 @@ noinst_HEADERS = \
 
 tate_SOURCES = tate.c uci-engine.c util.c think.c state.c perft.c \
 	rtime.c
-tateold_SOURCES = tateold.c board.c brain.c edit.c book.c time-control.c \
-	evaluate.c search.c time-limits.c time-management.c \
-	tt_hash.c epd.c ev_hash.c qtt_hash.c
 # FIXME! Remove tateplay. Can be replaced with cutechess-cli.
 tateplay_SOURCES = tateplay.c tateplay-engine.c log.c tateplay-game.c \
 	tateplay-loop.c util.c tateplay-option.c xboard-feature.c display-board.c \
@@ -56,8 +53,6 @@ tateplay_SOURCES = tateplay.c tateplay-engine.c log.c tateplay-game.c \
 
 tate_LDADD = ../lib/libtate.la ../libchi/libchi.la
 tate_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
-tateold_LDADD = ../lib/libtate.la ../libchi/libchi.la
-tateold_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
 tateplay_LDADD = ../lib/libtate.la ../libchi/libchi.la
 tateplay_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
 

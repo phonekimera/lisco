@@ -26,6 +26,8 @@
 #include "libchi.h"
 
 #include <stdio.h>
+
+#if 0
 static void
 print_bitboard(bitv64 b)
 {
@@ -58,46 +60,7 @@ print_bitboard(bitv64 b)
 	bitstring[64] = '\0';
 	fprintf(stderr, "%s\n", bitstring);
 }
-
-#include "../magicmoves.h"
-START_TEST(test_magic_moves_basic)
-{
-	const char *fen = "k7/3p4/8/8/p2R2P1/8/8/K7 w - - 0 1";
-/*
-     a   b   c   d   e   f   g   h
-   +---+---+---+---+---+---+---+---+
- 8 | k |   |   |   |   |   |   |   | En passant not possible.
-   +---+---+---+---+---+---+---+---+ White king castle: no.
- 7 |   |   |   | p |   |   |   |   | White queen castle: no.
-   +---+---+---+---+---+---+---+---+ Black king castle: no.
- 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
-   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
- 5 |   |   |   |   |   |   |   |   | Half moves: 0.
-   +---+---+---+---+---+---+---+---+ Next move: white.
- 4 | p |   |   | R |   |   | P |   | Material: +4.
-   +---+---+---+---+---+---+---+---+ Black has castled: no.
- 3 |   |   |   |   |   |   |   |   | White has castled: no.
-   +---+---+---+---+---+---+---+---+
- 2 |   |   |   |   |   |   |   |   |
-   +---+---+---+---+---+---+---+---+
- 1 | K |   |   |   |   |   |   |   |
-   +---+---+---+---+---+---+---+---+
-     a   b   c   d   e   f   g   h
- */
-	chi_pos position;
-
-	int errnum = chi_set_position(&position, fen);
-	ck_assert_int_eq(errnum, 0);
-
-	int square = 28;
-	print_bitboard(position.w_pieces | position.b_pieces);
-	bitv64 occupied = 1ULL << 7 | 1ULL << 25 | 1ULL << 28 | 1ULL << 31 | 1ULL << 52 | 1ULL << 63;
-	fprintf(stderr, "correct: %c\n", ((occupied == position.w_pieces) | position.b_pieces) ? 'y' : 'n');
-	//occupied = position.b_pieces90 | position.w_pieces90;
-	print_bitboard(occupied);
-	bitv64 rook_moves = Rmagic(square, occupied);
-	print_bitboard(rook_moves);
-}
+#endif
 
 /*
  * Doing and undoing a move from a position where en passant is possible only
@@ -1193,10 +1156,6 @@ move_making_suite(void)
 	TCase *tc_undo;
 
 	suite = suite_create("Make/Unmake Moves");
-
-	TCase *tc_magic = tcase_create("Magic Move Generation");
-	tcase_add_test(tc_magic, test_magic_moves_basic);
-	suite_add_tcase(suite, tc_magic);
 
 	tc_bugs = tcase_create("Bugs");
 	tcase_add_test(tc_bugs, test_ep_bug_1);

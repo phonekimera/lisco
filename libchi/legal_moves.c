@@ -29,11 +29,15 @@ chi_legal_moves(chi_pos *pos, chi_move *move_stack)
 	chi_move* move_ptr;
 	chi_move* m;
 
-	if (!pos || !move_stack)
-		return move_stack;
+	chi_position_context ctx;
 
-	move_ptr = chi_generate_captures(pos, moves);
-	move_ptr = chi_generate_non_captures(pos, move_ptr);
+	if (chi_on_move(pos) == chi_white)
+		chi_init_white_position_context(pos, &ctx);
+	else
+		chi_init_black_position_context(pos, &ctx);
+
+	move_ptr = chi_generate_captures(pos, &ctx, moves);
+	move_ptr = chi_generate_non_captures(pos, &ctx, move_ptr);
 
 	for (m = moves; m < move_ptr; ++m) {
 		chi_pos tmp_pos;

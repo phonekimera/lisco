@@ -135,6 +135,9 @@ START_TEST(test_perft)
 			fprintf (stderr, " (nodes: %lu, %lu.%02lu s, nps: %lu)\n",
 				nodes, elapsed / 100, elapsed % 100,
 				(100 * nodes) / (elapsed ? elapsed : 1));
+const char *fen = chi_fen(&pos);
+fprintf(stderr, "        fen: %s\n", fen);
+free((void *) fen);
 
 			if (nodes != test->nodes[depth - 1])
 				report_failure(nodes, depth, test);

@@ -93,6 +93,28 @@ START_TEST(test_legal_moves_bug_1)
 {
 	const char *fen = 
 			"1B3b1R/2q4b/2nn1Kp1/3p2p1/r7/k6r/p1p1p1p1/2RN1B1N b - - 0 1";
+	/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   | B |   |   |   | b |   | R | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   | q |   |   |   |   | b | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   | n | n |   | K | p |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   | p |   |   | p |   | Half moves: 1.
+   +---+---+---+---+---+---+---+---+ Next move: black.
+ 4 | r |   |   |   |   |   |   |   | Material: -16.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 | k |   |   |   |   |   |   | r | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 | p |   | p |   | p |   | p |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   | R | N |   | B |   | N |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+	*/
+
 	const char *wanted[] = {
 		"a2a1q", "a2a1r", "a2a1b", "a2a1n", "c2d1q", "c2d1r",
 		"c2d1b", "c2d1n", "e2e1q", "e2e1r", "e2e1b", "e2e1n",
