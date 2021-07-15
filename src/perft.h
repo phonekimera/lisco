@@ -24,6 +24,7 @@
 #endif
 
 #include <stdio.h>
+#include <sys/types.h>
 
 #include "libchi.h"
 
@@ -31,7 +32,8 @@
 extern "C" {
 #endif
 
-extern unsigned long int perft(chi_pos *position, unsigned int depth, FILE *out);
+extern unsigned long long perft(chi_pos *position, unsigned int depth,
+	unsigned long long *counts, FILE *out);
 
 #ifdef __cplusplus
 }

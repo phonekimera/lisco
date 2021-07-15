@@ -23,18 +23,23 @@
 #include <stdio.h>
 #include <time.h>
 
+#include <libchi.h>
+
 #include "state.h"
 #include "perft.h"
 #include "rtime.h"
 
-static unsigned long do_perft(chi_pos *pos, unsigned int depth);
+static unsigned long long do_perft(chi_pos *pos, unsigned int depth);
 
-unsigned long int
-perft(chi_pos *position, unsigned int depth, FILE *out)
+unsigned long long
+perft(chi_pos *position, unsigned int depth, unsigned long long *counts,
+		FILE *out)
 {
 	rtime_t start;
 	unsigned long int elapsed;
-	unsigned long int nodes;
+	unsigned long long nodes = 0;
+	chi_move moves[CHI_MAX_MOVES];
+	chi_move *move_end = chi_legal_moves(position, moves);
 
 	if (depth == 0) {
 		fprintf(out, "info error: zero-depth argument to perft.\n");
@@ -42,11 +47,42 @@ perft(chi_pos *position, unsigned int depth, FILE *out)
 	}
 
 	start = rtime();
-	nodes = do_perft(position, depth);
+
+	for (chi_move *mv = moves; mv < move_end; ++mv) {
+		if (out) {
+			char *buf = NULL;
+			unsigned int bufsize;
+
+			chi_coordinate_notation(*mv, chi_on_move(position), &buf, &bufsize);
+			fprintf(out, "%s: ", buf);
+			free(buf);
+			fflush(out);
+		}
+
+		chi_apply_move(position, *mv);
+
+		unsigned long long nodes_here;
+		if (depth > 1)
+			nodes_here = do_perft(position, depth - 1);
+		else
+			nodes_here = 1;
+
+		if (counts)
+			*counts++ = nodes_here;
+
+		nodes += nodes_here;
+
+		if (out) {
+			fprintf(out, "%llu\n", nodes_here);
+		}
+
+		chi_unapply_move(position, *mv);
+	}
+
 	elapsed = rdifftime (rtime (), start);
 
 	if (out) {
-		fprintf (out, "info nodes: %lu (%lu.%02lu s, nps: %lu)\n",
+		fprintf (out, "info nodes: %llu (%lu.%02lu s, nps: %llu)\n",
 				nodes, elapsed / 100, elapsed % 100,
 				(100 * nodes) / (elapsed ? elapsed : 1));
 	}
@@ -54,13 +90,13 @@ perft(chi_pos *position, unsigned int depth, FILE *out)
 	return nodes;
 }
 
-static unsigned long
+static unsigned long long
 do_perft(chi_pos *pos, unsigned int depth)
 {
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move *mv;
 	chi_move *move_end = chi_legal_moves (pos, moves);
-	unsigned long nodes = 0;
+	unsigned long long nodes = 0;
 
 	for (mv = moves; mv < move_end; ++mv) {
 		chi_apply_move(pos, *mv);

@@ -98,6 +98,7 @@ START_TEST(test_perft)
 {
 	unsigned long num_tests = sizeof tests / sizeof tests[0];
 	long maxnodes = 50000000L;
+	unsigned long long counts[CHI_MAX_MOVES];
 	
 	if (getenv("TATE_STRESS_TEST") != NULL) {
 		fprintf(stderr, "Unset the environment variable TATE_STRESS_TEST"
@@ -130,7 +131,8 @@ START_TEST(test_perft)
 				chi_init_position(&pos);
 
 			rtime_t start = rtime();
-			unsigned long nodes = perft(&pos, depth, NULL);
+			unsigned long nodes = perft(&pos, depth,
+					(unsigned long long *) &counts, NULL);
 			unsigned long int elapsed = rdifftime (rtime (), start);
 			fprintf (stderr, " (nodes: %lu, %lu.%02lu s, nps: %lu)\n",
 				nodes, elapsed / 100, elapsed % 100,
@@ -151,6 +153,8 @@ perft_suite(void)
 {
 	Suite *suite;
 	TCase *tc_perft;
+
+	chi_mm_init();
 
 	suite = suite_create("Perft");
 
