@@ -340,6 +340,10 @@ typedef struct {
 	bitv64 w_pieces;
 	bitv64 b_pieces;
 
+	/* FIXME! The masks for the two colors can be condensed into one.  They
+	 * can always be separated again by ANDing them with the w_pieces and
+	 * b_pieces bitboard respectively.
+	 */
 	bitv64 w_pawns;
 	bitv64 w_knights;
 	bitv64 w_bishops;
@@ -356,6 +360,7 @@ typedef struct {
 	unsigned int half_moves;
 	int irreversible[143];
 	unsigned int irreversible_count;
+	/* FIXME! Double pawn moves are a special case of irreversible moves.  */
 	int double_pawn_moves[16];
 	unsigned int double_pawn_move_count;
 	unsigned char ep_files[16];
