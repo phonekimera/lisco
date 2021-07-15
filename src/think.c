@@ -25,7 +25,7 @@
 
 #include "state.h"
 
-#define DEBUG_SEARCH 1
+#define DEBUG_SEARCH 0
 
 #define MATE -10000
 #define INF ((-(MATE)) << 1)
