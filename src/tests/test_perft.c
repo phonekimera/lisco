@@ -154,8 +154,6 @@ perft_suite(void)
 	Suite *suite;
 	TCase *tc_perft;
 
-	chi_mm_init();
-
 	suite = suite_create("Perft");
 
 	tc_perft = tcase_create("Perft");

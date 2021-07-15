@@ -41,6 +41,8 @@ main(int argc, char *argv[])
 	init_xmalloc_debug();
 #endif
 
+	chi_mm_init();
+
 	runner = srunner_create(uci_engine_suite());
 	srunner_add_suite(runner, uci_engine_suite());
 	srunner_add_suite(runner, perft_suite());
