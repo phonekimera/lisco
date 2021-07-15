@@ -89,6 +89,8 @@ START_TEST(test_start_position)
 }
 END_TEST
 
+#include <stdio.h>
+#include "../magicmoves.h"
 START_TEST(test_legal_moves_bug_1)
 {
 	const char *fen = 

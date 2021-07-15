@@ -74,6 +74,7 @@ chi_init_color_position_context(chi_pos *pos, chi_position_context *ctx)
 	ctx->empty = ~ctx->occupancy;
 
 	bitv64 piece_mask;
+
 	piece_mask = MY_ROOKS(pos);
 	while(piece_mask) {
 		int from = chi_bitv2shift(chi_clear_but_least_set(piece_mask));
@@ -90,7 +91,7 @@ chi_init_color_position_context(chi_pos *pos, chi_position_context *ctx)
 	piece_mask = MY_BISHOPS(pos);
 	while(piece_mask) {
 		int from = chi_bitv2shift(chi_clear_but_least_set(piece_mask));
-		bitv64 attack_mask = Rmagic(from, occupancy);
+		bitv64 attack_mask = Bmagic(from, occupancy);
 		ctx->bishop_attack_masks[ctx->num_bishop_attack_masks++] =
 				(chi_attack_mask) {
 					from,
@@ -106,9 +107,7 @@ chi_generate_color_captures(chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	bitv64 her_squares = HER_PIECES(pos);
-	bitv64 occ_squares = pos->w_pieces | pos->b_pieces;
-	bitv64 empty_squares = ~occ_squares;
-	bitv64 occ90_squares = pos->w_pieces90 | pos->b_pieces90;
+	bitv64 empty_squares = ctx->empty;
 
 	bitv64 piece_mask = MY_PAWNS(pos);
 
@@ -267,196 +266,6 @@ chi_generate_color_captures(chi_pos *pos, chi_position_context *ctx,
 		piece_mask = chi_clear_least_set(piece_mask);
 	}
 
-	/* Bishop attacks.  */
-	piece_mask = MY_BISHOPS(pos);
-	while (piece_mask) {
-		bitv64 isol_mask = chi_clear_but_least_set(piece_mask);
-		unsigned int from = chi_bitv2shift(isol_mask);
-		unsigned int to;
-		chi_piece_t piece = ((((bitv64) 1) << from) & MY_ROOKS(pos)) ?
-			(~queen & 0x7) : (~bishop & 0x7);
-
-		bitv64 dest_mask = (isol_mask & ~(CHI_A_MASK | CHI_8_MASK)) << 9;
-
-		to = from;
-		while (dest_mask) {
-			to += 9;
-
-			if (dest_mask & her_squares) {
-				int material = 1;
-				chi_piece_t victim = pawn;
-
-				if (dest_mask & HER_KNIGHTS(pos)) {
-					material = 3;
-					victim = knight;
-				} else if (dest_mask & HER_BISHOPS(pos)) {
-					material = 3;
-					victim = bishop;
-					if (dest_mask & HER_ROOKS(pos)) {
-						material = 9;
-						victim = queen;
-					}
-				} else if (dest_mask & HER_ROOKS(pos)) {
-					material = 5;
-					victim = rook;
-				}
-
-				*moves++ = from | (to << 6) | (piece << 13) | (victim << 16)
-						| (material << 22);
-				break;
-			}
-
-			dest_mask = ((dest_mask & empty_squares
-					& ~(CHI_A_MASK | CHI_8_MASK)) << 9);
-		}
-
-		dest_mask = (isol_mask & ~(CHI_H_MASK | CHI_8_MASK)) << 7;
-		to = from;
-		while (dest_mask) {
-			to += 7;
-
-			if (dest_mask & her_squares) {
-				int material = 1;
-				chi_piece_t victim = pawn;
-
-				if (dest_mask & HER_KNIGHTS(pos)) {
-					material = 3;
-					victim = knight;
-				} else if (dest_mask & HER_BISHOPS(pos)) {
-					material = 3;
-				victim = bishop;
-				if (dest_mask & HER_ROOKS(pos)) {
-					material = 9;
-					victim = queen;
-				}
-			} else if (dest_mask & HER_ROOKS(pos)) {
-				material = 5;
-				victim = rook;
-			}
-
-			*moves++ = from | (to << 6) | (piece << 13) | (victim << 16)
-					| (material << 22);
-			break;
-		}
-
-		dest_mask = ((dest_mask & empty_squares
-				& ~(CHI_H_MASK | CHI_8_MASK)) << 7);
-	}
-
-	dest_mask = (isol_mask & ~(CHI_A_MASK | CHI_1_MASK)) >> 7;
-	to = from;
-	while (dest_mask) {
-		to -= 7;
-
-		if (dest_mask & her_squares) {
-			int material = 1;
-			chi_piece_t victim = pawn;
-
-			if (dest_mask & HER_KNIGHTS(pos)) {
-				material = 3;
-				victim = knight;
-			} else if (dest_mask & HER_BISHOPS(pos)) {
-				material = 3;
-				victim = bishop;
-				if (dest_mask & HER_ROOKS(pos)) {
-					material = 9;
-					victim = queen;
-				}
-			} else if (dest_mask & HER_ROOKS(pos)) {
-				material = 5;
-				victim = rook;
-			}
-
-			*moves++ = from | (to << 6) | (piece << 13) | (victim << 16)
-					| (material << 22);
-			break;
-		}
-
-		dest_mask = ((dest_mask & empty_squares
-				& ~(CHI_A_MASK | CHI_1_MASK)) >> 7);
-	}
-
-	dest_mask = (isol_mask & ~(CHI_H_MASK | CHI_1_MASK)) >> 9;
-	to = from;
-	while (dest_mask) {
-		to -= 9;
-
-		if (dest_mask & her_squares) {
-			int material = 1;
-			chi_piece_t victim = pawn;
-
-			if (dest_mask & HER_KNIGHTS(pos)) {
-				material = 3;
-				victim = knight;
-			} else if (dest_mask & HER_BISHOPS(pos)) {
-				material = 3;
-				victim = bishop;
-				if (dest_mask & HER_ROOKS(pos)) {
-					material = 9;
-					victim = queen;
-				}
-			} else if (dest_mask & HER_ROOKS(pos)) {
-				material = 5;
-				victim = rook;
-			}
-
-			*moves++ = from | (to << 6) | (piece << 13) | (victim << 16)
-					| (material << 22);
-			break;
-		}
-
-		dest_mask = ((dest_mask & empty_squares
-				& ~(CHI_H_MASK | CHI_1_MASK)) >> 9);
-		}
-
-		piece_mask = chi_clear_least_set(piece_mask);
-	}
-
-	piece_mask = MY_ROOKS(pos);
-	while (piece_mask) {
-		int from = chi_bitv2shift(chi_clear_but_least_set(piece_mask));
-		bitv64 state = (rank_masks[from] & occ_squares) >> ((from >> 3) << 3);
-		bitv64 state90 = (file_masks[from] & occ90_squares) >>
-			((rotate90[from] >> 3) << 3);
-		bitv64 hor_attack_mask = rook_hor_attack_masks[from][state];
-		bitv64 ver_attack_mask = rook_ver_attack_masks[from][state90];
-		chi_piece_t piece = ((((bitv64) 1) << from) & MY_BISHOPS(pos)) ?
-				(~queen & 0x7) : (~rook & 0x7);
-
-		bitv64 attack_mask = hor_attack_mask | ver_attack_mask;
-		attack_mask &= her_squares;
-
-		while (attack_mask) {
-			unsigned int to =
-					chi_bitv2shift(chi_clear_but_least_set(attack_mask));
-			bitv64 dest_mask = ((bitv64) 1) << to;
-			int material = 1;
-			chi_piece_t victim = pawn;
-
-			if (dest_mask & HER_KNIGHTS(pos)) {
-				material = 3;
-				victim = knight;
-			} else if (dest_mask & HER_BISHOPS(pos)) {
-				material = 3;
-				victim = bishop;
-				if (dest_mask & HER_ROOKS(pos)) {
-					material = 9;
-					victim = queen;
-				}
-			} else if (dest_mask & HER_ROOKS(pos)) {
-				material = 5;
-				victim = rook;
-			}
-
-			*moves++ = from | (to << 6) | (piece << 13) | (victim << 16)
-					| (material << 22);
-
-			attack_mask = chi_clear_least_set(attack_mask);
-		}
-	
-		piece_mask = chi_clear_least_set(piece_mask);
-	}
-
 	/* King captures.  */
 	piece_mask = MY_KINGS(pos);
 	while (piece_mask) {
@@ -585,61 +394,51 @@ chi_move *
 chi_generate_color_bishop_moves(chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
-	bitv64 piece_mask = MY_BISHOPS(pos);
+	for (size_t i = 0; i < ctx->num_bishop_attack_masks; ++i) {
+		chi_attack_mask *attack_mask = &ctx->bishop_attack_masks[i];
+		int from = attack_mask->from;
+		bitv64 mask = attack_mask->mask & (ctx->empty | HER_PIECES(pos));
+		chi_piece_t piece = ((((bitv64) 1) << from) & MY_ROOKS(pos)) ?
+				(~queen & 0x7) : (~bishop & 0x7);
 
-	if (piece_mask) {
-		bitv64 occ_squares = pos->w_pieces | pos->b_pieces;
-		bitv64 empty_squares = ~occ_squares;
+		while (mask) {
+			int to = chi_bitv2shift(chi_clear_but_least_set(mask));
 
-		while (piece_mask) {
-			bitv64 isol_mask = chi_clear_but_least_set(piece_mask);
-			unsigned int from = chi_bitv2shift(isol_mask);
-			chi_piece_t piece = ((((bitv64) 1) << from) & MY_ROOKS(pos)) ?
-					(~queen & 0x7) : (~bishop & 0x7);
-			unsigned int to;
+			chi_move move = (from | (to << 6) | (piece << 13));
+			bitv64 to_mask = 1ULL << to;
 
-			bitv64 dest_mask = empty_squares
-					& ((isol_mask & ~(CHI_A_MASK | CHI_8_MASK)) << 9);
+			/* FIXME! It is probably smarter to go over all moves at once
+			 * and fill victims and values.  That will also make it possible
+			 * to omit that step altogether, for example when evading a
+			 * check or when doing a perft test.
+			 */
+			if (HER_PIECES(pos) & to_mask) {
+				unsigned int material = CHI_VALUE_PAWN / 100;
+				chi_piece_t victim = pawn;
 
-			to = from;
-			while (dest_mask) {
-				to += 9;
-				*moves++ = from | (to << 6) | (piece << 13);		
-				dest_mask = empty_squares
-						& ((dest_mask & ~(CHI_A_MASK | CHI_8_MASK)) << 9);
+				/* FIXME! The first if should be a pawn capture because this
+				 * is the most likely one.
+				 */
+				if (to_mask & HER_KNIGHTS(pos)) {
+					material = 3;
+					victim = knight;
+				} else if (to_mask & HER_BISHOPS(pos)) {
+					material = 3;
+					victim = bishop;
+					if (to_mask & HER_ROOKS(pos)) {
+						material = 9;
+						victim = queen;
+					}
+				} else if (to_mask & HER_ROOKS(pos)) {
+					material = 5;
+					victim = rook;
+				}
+
+				move |= (victim << 16) | (material << 22);
 			}
 
-			dest_mask = empty_squares
-					& ((isol_mask & ~(CHI_H_MASK | CHI_8_MASK)) << 7);
-			to = from;
-			while (dest_mask) {
-				to += 7;
-				*moves++ = from | (to << 6) | (piece << 13);
-				dest_mask = empty_squares
-						& ((dest_mask & ~(CHI_H_MASK | CHI_8_MASK)) << 7);
-			}
-			
-			dest_mask = empty_squares
-					& ((isol_mask & ~(CHI_A_MASK | CHI_1_MASK)) >> 7);
-			to = from;
-			while (dest_mask) {
-				to -= 7;
-				*moves++ = from | (to << 6) | (piece << 13);		
-				dest_mask = empty_squares
-						& ((dest_mask & ~(CHI_A_MASK | CHI_1_MASK)) >> 7);
-			}
-
-			dest_mask = empty_squares
-					& ((isol_mask & ~(CHI_H_MASK | CHI_1_MASK)) >> 9);
-			to = from;
-			while (dest_mask) {
-				to -= 9;
-				*moves++ = from | (to << 6) | (piece << 13);		
-				dest_mask = empty_squares
-						& ((dest_mask & ~(CHI_H_MASK | CHI_1_MASK)) >> 9);
-			}
-
-			piece_mask = chi_clear_least_set(piece_mask);
+			*moves++ = move;
+			mask = chi_clear_least_set(mask);
 		}
 	}
 
@@ -653,46 +452,50 @@ chi_generate_color_rook_moves(chi_pos *pos, chi_position_context *ctx,
 	for (size_t i = 0; i < ctx->num_rook_attack_masks; ++i) {
 		chi_attack_mask *attack_mask = &ctx->rook_attack_masks[i];
 		int from = attack_mask->from;
-		bitv64 mask = attack_mask->mask & ctx->empty;
-		chi_piece_t piece = ((((bitv64) 1) << from) & MY_BISHOPS(pos))
-				? (~queen & 0x7) : (~rook & 0x7);
+		bitv64 mask = attack_mask->mask & (ctx->empty | HER_PIECES(pos));
+		chi_piece_t piece = ((((bitv64) 1) << from) & MY_BISHOPS(pos)) ?
+				(~queen & 0x7) : (~rook & 0x7);
 
+		/* This whole while loop can be factored out because it is identical
+		 * to the bishop routine.
+		 */
 		while (mask) {
 			int to = chi_bitv2shift(chi_clear_but_least_set(mask));
-			*moves++ = (from | (to << 6) | (piece << 13));
-			mask = chi_clear_least_set(mask);
-		}
-	}
 
-	return moves;
+			chi_move move = (from | (to << 6) | (piece << 13));
+			bitv64 to_mask = 1ULL << to;
 
-	bitv64 piece_mask = MY_ROOKS(pos);
+			/* FIXME! It is probably smarter to go over all moves at once
+			 * and fill victims and values.  That will also make it possible
+			 * to omit that step altogether, for example when evading a
+			 * check or when doing a perft test.
+			 */
+			if (HER_PIECES(pos) & to_mask) {
+				unsigned int material = CHI_VALUE_PAWN / 100;
+				chi_piece_t victim = pawn;
 
-	if (piece_mask) {
-		bitv64 occ_squares = pos->w_pieces | pos->b_pieces;
-		bitv64 occ90_squares = pos->w_pieces90 | pos->b_pieces90;
+				/* FIXME! The first if should be a pawn capture because this
+				 * is the most likely one.
+				 */
+				if (to_mask & HER_KNIGHTS(pos)) {
+					material = 3;
+					victim = knight;
+				} else if (to_mask & HER_BISHOPS(pos)) {
+					material = 3;
+					victim = bishop;
+					if (to_mask & HER_ROOKS(pos)) {
+						material = 9;
+						victim = queen;
+					}
+				} else if (to_mask & HER_ROOKS(pos)) {
+					material = 5;
+					victim = rook;
+				}
 
-		while (piece_mask) {
-			int from = chi_bitv2shift(chi_clear_but_least_set(piece_mask));
-			bitv64 state = (rank_masks[from] & occ_squares)
-					>> ((from >> 3) << 3);
-			bitv64 state90 = (file_masks[from] & occ90_squares)
-					>> ((rotate90[from] >> 3) << 3);
-			bitv64 hor_slide_mask = rook_hor_slide_masks[from][state];
-			bitv64 ver_slide_mask = rook_ver_slide_masks[from][state90];
-			bitv64 slide_mask = hor_slide_mask | ver_slide_mask;
-			chi_piece_t piece = ((((bitv64) 1) << from) & MY_BISHOPS(pos)) ?
-					(~queen & 0x7) : (~rook & 0x7);
-
-			while (slide_mask) {
-				unsigned int to =
-						chi_bitv2shift(chi_clear_but_least_set(slide_mask));
-
-				*moves++ = (from | (to << 6) | (piece << 13));
-				slide_mask = chi_clear_least_set(slide_mask);
+				move |= (victim << 16) | (material << 22);
 			}
-
-			piece_mask = chi_clear_least_set(piece_mask);
+			*moves++ = move;
+			mask = chi_clear_least_set(mask);
 		}
 	}
 

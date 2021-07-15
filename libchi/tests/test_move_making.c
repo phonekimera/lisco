@@ -491,6 +491,7 @@ START_TEST(test_pawn_double_move)
 	ck_assert_int_eq(errnum, 0);
 }
 
+#include "../magicmoves.h"
 /* White rook attacks black rook */
 START_TEST(test_ks_black_rook_capture)
 {
