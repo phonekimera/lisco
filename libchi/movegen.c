@@ -24,113 +24,94 @@
 
 #include "bitmasks.h"
 
-chi_move* 
-chi_generate_captures (pos, moves)
-     chi_pos* pos;
-     chi_move* moves;
+chi_move * 
+chi_generate_captures(chi_pos *pos, chi_move *moves)
 {
-    if (chi_on_move (pos) == chi_white)
-	return chi_generate_white_captures (pos, moves);
-    else
-	return chi_generate_black_captures (pos, moves);
+	if (chi_on_move(pos) == chi_white)
+		return chi_generate_white_captures(pos, moves);
+	else
+		return chi_generate_black_captures(pos, moves);
 }
 
-chi_move* 
-chi_generate_non_captures (pos, moves)
-     chi_pos* pos;
-     chi_move* moves;
+chi_move * 
+chi_generate_non_captures(chi_pos *pos, chi_move *moves)
 {
-    if (chi_on_move (pos) == chi_white)
-	return chi_generate_white_non_captures (pos, moves);
-    else
-	return chi_generate_black_non_captures (pos, moves);
+	if (chi_on_move (pos) == chi_white)
+		return chi_generate_white_non_captures (pos, moves);
+	else
+		return chi_generate_black_non_captures (pos, moves);
 }
 
-chi_move* 
-chi_generate_pawn_double_steps (pos, moves)
-     chi_pos* pos;
-     chi_move* moves;
+chi_move * 
+chi_generate_pawn_double_steps(chi_pos *pos, chi_move *moves)
 {
-    if (chi_on_move (pos) == chi_white)
-	return chi_generate_white_pawn_double_steps (pos, moves);
-    else
-	return chi_generate_black_pawn_double_steps (pos, moves);
+	if (chi_on_move (pos) == chi_white)
+		return chi_generate_white_pawn_double_steps (pos, moves);
+	else
+		return chi_generate_black_pawn_double_steps (pos, moves);
 }
 
-chi_move* 
-chi_generate_pawn_single_steps (pos, moves)
-     chi_pos* pos;
-     chi_move* moves;
+chi_move * 
+chi_generate_pawn_single_steps(chi_pos *pos, chi_move *moves)
 {
-    if (chi_on_move (pos) == chi_white)
-	return chi_generate_white_pawn_single_steps (pos, moves);
-    else
-	return chi_generate_black_pawn_single_steps (pos, moves);
+	if (chi_on_move (pos) == chi_white)
+		return chi_generate_white_pawn_single_steps (pos, moves);
+	else
+		return chi_generate_black_pawn_single_steps (pos, moves);
 }
 
-chi_move* 
-chi_generate_knight_moves (pos, moves)
-     chi_pos* pos;
-     chi_move* moves;
+chi_move * 
+chi_generate_knight_moves(chi_pos *pos, chi_move *moves)
 {
-    if (chi_on_move (pos) == chi_white)
-	return chi_generate_white_knight_moves (pos, moves);
-    else
-	return chi_generate_black_knight_moves (pos, moves);
+	if (chi_on_move (pos) == chi_white)
+		return chi_generate_white_knight_moves (pos, moves);
+	else
+		return chi_generate_black_knight_moves (pos, moves);
 }
 
-chi_move* 
-chi_generate_bishop_moves (pos, moves)
-     chi_pos* pos;
-     chi_move* moves;
+chi_move * 
+chi_generate_bishop_moves(chi_pos *pos, chi_move *moves)
 {
-    if (chi_on_move (pos) == chi_white)
-	return chi_generate_white_bishop_moves (pos, moves);
-    else
-	return chi_generate_black_bishop_moves (pos, moves);
+	if (chi_on_move (pos) == chi_white)
+		return chi_generate_white_bishop_moves (pos, moves);
+	else
+		return chi_generate_black_bishop_moves (pos, moves);
 }
 
-chi_move* 
-chi_generate_rook_moves (pos, moves)
-     chi_pos* pos;
-     chi_move* moves;
+chi_move * 
+chi_generate_rook_moves(chi_pos *pos, chi_move *moves)
 {
-    if (chi_on_move (pos) == chi_white)
-	return chi_generate_white_rook_moves (pos, moves);
-    else
-	return chi_generate_black_rook_moves (pos, moves);
+	if (chi_on_move (pos) == chi_white)
+		return chi_generate_white_rook_moves (pos, moves);
+	else
+		return chi_generate_black_rook_moves (pos, moves);
 }
 
-chi_move* 
-chi_generate_king_moves (pos, moves)
-     chi_pos* pos;
-     chi_move* moves;
+chi_move * 
+chi_generate_king_moves(chi_pos *pos, chi_move *moves)
 {
-    if (chi_on_move (pos) == chi_white)
-	return chi_generate_white_king_moves (pos, moves);
-    else
-	return chi_generate_black_king_moves (pos, moves);
+	if (chi_on_move (pos) == chi_white)
+		return chi_generate_white_king_moves (pos, moves);
+	else
+		return chi_generate_black_king_moves (pos, moves);
 }
 
-chi_move* 
-chi_generate_king_castling_moves (pos, moves)
-     chi_pos* pos;
-     chi_move* moves;
+chi_move * 
+chi_generate_king_castling_moves(chi_pos *pos, chi_move *moves)
 {
-    if (chi_on_move (pos) == chi_white)
-	return chi_generate_white_king_castling_moves (pos, moves);
-    else
-	return chi_generate_black_king_castling_moves (pos, moves);
+	if (chi_on_move (pos) == chi_white)
+		return chi_generate_white_king_castling_moves (pos, moves);
+	else
+		return chi_generate_black_king_castling_moves (pos, moves);
 }
 
 int
-chi_check_check (pos)
-     chi_pos* pos;
+chi_check_check(chi_pos *pos)
 {
-    if (chi_on_move (pos) == chi_white)
-	return chi_white_check_check (pos);
-    else
-	return chi_black_check_check (pos);
+	if (chi_on_move (pos) == chi_white)
+		return chi_white_check_check (pos);
+	else
+		return chi_black_check_check (pos);
 }
 
 /* Include the code for white and black moves respectively.  */
@@ -265,11 +246,3 @@ chi_check_check (pos)
 #define KING_CASTLE_CROSS_MASK (((bitv64) 0x06) << 56)
 #define KING_CASTLE_MOVE (0x3b | (0x39 << 6) | ((~king & 0x7) << 13))
 #include "movegen_color.c"
-
-/*
-Local Variables:
-mode: c
-c-style: K&R
-c-basic-shift: 8
-End:
-*/
