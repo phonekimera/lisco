@@ -40,6 +40,8 @@ main(int argc, char *argv[])
 	int failed = 0;
 	SRunner *runner;
 
+	chi_mm_init();
+
 	runner = srunner_create(parsers_suite());
 	srunner_add_suite(runner, presentation_suite());
 	srunner_add_suite(runner, game_over_suite());

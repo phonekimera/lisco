@@ -732,14 +732,9 @@ extern unsigned long int chi_closest_prime(unsigned long int);
  */
 void chi_free(void *ptr);
 
+/* Initialize the magic moves generator.  */
+void chi_mm_init(void);
+
 CHI_END_DECLS
 
 #endif
-
-/*
-Local Variables:
-mode: c
-c-style: K&R
-c-basic-shift: 8
-End:
-*/

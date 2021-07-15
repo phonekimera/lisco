@@ -31,7 +31,8 @@ libchi_la_SOURCES = libchi.h dump_pieces.c strerror.c make_move.c \
 	zk_change_side.c update_material.c set_position.c \
 	parse_fen_position.c parse_epd.c perft.c \
 	char2figurine.c game_over.c fen.c stringbuf.c \
-	unapply_move.c unmake_move.c coordinate_notation.c free.c
+	unapply_move.c unmake_move.c coordinate_notation.c free.c \
+	magicmoves.c mm_init.c
 
 libchi_la_LDFLAGS = -version-info 0:0:0
 
@@ -56,5 +57,5 @@ movegen.lo: bitmasks.h
 
 DISTCLEANFILES = bitmasks.h
 
-EXTRA_DIST = libchi.h.in movegen_color.c
+EXTRA_DIST = libchi.h.in movegen_color.c magicmoves.h
 

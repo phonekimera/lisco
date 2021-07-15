@@ -210,7 +210,8 @@ am_libchi_la_OBJECTS = dump_pieces.lo strerror.lo make_move.lo \
 	zk_change_side.lo update_material.lo set_position.lo \
 	parse_fen_position.lo parse_epd.lo perft.lo char2figurine.lo \
 	game_over.lo fen.lo stringbuf.lo unapply_move.lo \
-	unmake_move.lo coordinate_notation.lo free.lo
+	unmake_move.lo coordinate_notation.lo free.lo magicmoves.lo \
+	mm_init.lo
 libchi_la_OBJECTS = $(am_libchi_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -248,7 +249,8 @@ am__depfiles_remade = ./$(DEPDIR)/apply_move.Plo \
 	./$(DEPDIR)/fen.Plo ./$(DEPDIR)/free.Plo \
 	./$(DEPDIR)/game_over.Plo ./$(DEPDIR)/genmasks.Po \
 	./$(DEPDIR)/illegal_move.Plo ./$(DEPDIR)/init_position.Plo \
-	./$(DEPDIR)/legal_moves.Plo ./$(DEPDIR)/make_move.Plo \
+	./$(DEPDIR)/legal_moves.Plo ./$(DEPDIR)/magicmoves.Plo \
+	./$(DEPDIR)/make_move.Plo ./$(DEPDIR)/mm_init.Plo \
 	./$(DEPDIR)/movegen.Plo ./$(DEPDIR)/parse_epd.Plo \
 	./$(DEPDIR)/parse_fen_position.Plo ./$(DEPDIR)/parse_move.Plo \
 	./$(DEPDIR)/perft.Plo ./$(DEPDIR)/piece2char.Plo \
@@ -1472,7 +1474,8 @@ libchi_la_SOURCES = libchi.h dump_pieces.c strerror.c make_move.c \
 	zk_change_side.c update_material.c set_position.c \
 	parse_fen_position.c parse_epd.c perft.c \
 	char2figurine.c game_over.c fen.c stringbuf.c \
-	unapply_move.c unmake_move.c coordinate_notation.c free.c
+	unapply_move.c unmake_move.c coordinate_notation.c free.c \
+	magicmoves.c mm_init.c
 
 libchi_la_LDFLAGS = -version-info 0:0:0 -no-undefined
 AM_CPPFLAGS = -I. -I$(srcdir) -I.. -I$(top_srcdir)/lib
@@ -1481,7 +1484,7 @@ noinst_HEADERS = stringbuf.h
 showfen_LDADD = -lchi $(top_srcdir)/lib/libtate.la
 showfen_DEPENDENCIES = $(srcdir)/libchi.la $(top_srcdir)/lib/libtate.la
 DISTCLEANFILES = bitmasks.h
-EXTRA_DIST = libchi.h.in movegen_color.c
+EXTRA_DIST = libchi.h.in movegen_color.c magicmoves.h
 all: all-recursive
 
 .SUFFIXES:
@@ -1595,7 +1598,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/illegal_move.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/init_position.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/legal_moves.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/magicmoves.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/make_move.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mm_init.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/movegen.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_epd.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_fen_position.Plo@am__quote@ # am--include-marker
@@ -1872,7 +1877,9 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/illegal_move.Plo
 	-rm -f ./$(DEPDIR)/init_position.Plo
 	-rm -f ./$(DEPDIR)/legal_moves.Plo
+	-rm -f ./$(DEPDIR)/magicmoves.Plo
 	-rm -f ./$(DEPDIR)/make_move.Plo
+	-rm -f ./$(DEPDIR)/mm_init.Plo
 	-rm -f ./$(DEPDIR)/movegen.Plo
 	-rm -f ./$(DEPDIR)/parse_epd.Plo
 	-rm -f ./$(DEPDIR)/parse_fen_position.Plo
@@ -1955,7 +1962,9 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/illegal_move.Plo
 	-rm -f ./$(DEPDIR)/init_position.Plo
 	-rm -f ./$(DEPDIR)/legal_moves.Plo
+	-rm -f ./$(DEPDIR)/magicmoves.Plo
 	-rm -f ./$(DEPDIR)/make_move.Plo
+	-rm -f ./$(DEPDIR)/mm_init.Plo
 	-rm -f ./$(DEPDIR)/movegen.Plo
 	-rm -f ./$(DEPDIR)/parse_epd.Plo
 	-rm -f ./$(DEPDIR)/parse_fen_position.Plo

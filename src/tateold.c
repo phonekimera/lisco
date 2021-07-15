@@ -135,6 +135,7 @@ char *argv[];
 
 	isa_tty = isatty (fileno (stdout));
 
+	chi_mm_init();
 	chi_init_position (&current);
 	errnum = chi_zk_init (&zk_handle);
 	if (errnum)

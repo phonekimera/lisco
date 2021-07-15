@@ -50,7 +50,7 @@ START_TEST(test_initial)
    +---+---+---+---+---+---+---+---+
      a   b   c   d   e   f   g   h
 */
-	chi_pos pos, startpos;
+	chi_pos pos;
 	int errnum = chi_set_position(&pos, wanted);
 	char *got;
 
