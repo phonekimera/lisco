@@ -56,8 +56,6 @@ chi_init_position (pos)
 	
 	pos->w_pieces = CHI_1_MASK | CHI_2_MASK;
 	pos->b_pieces = CHI_8_MASK | CHI_7_MASK;
-	pos->w_pieces90 = CHI_A_MASK | CHI_B_MASK;
-	pos->b_pieces90 = CHI_G_MASK | CHI_H_MASK;
 
 	chi_wk_castle (pos) = 1;
 	chi_wq_castle (pos) = 1;

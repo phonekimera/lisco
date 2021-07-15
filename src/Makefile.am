@@ -24,7 +24,6 @@ noinst_HEADERS = \
 	board.h \
 	book.h \
 	brain.h \
-	edit.h \
 	log.h \
 	perft.h \
 	rtime.h \

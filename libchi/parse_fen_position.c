@@ -24,17 +24,6 @@
 
 #include <libchi.h>
 
-static const int rotate90[64] = {
-	7, 15, 23, 31, 39, 47, 55, 63,
-	6, 14, 22, 30, 38, 46, 54, 62,
-	5, 13, 21, 29, 37, 45, 53, 61,
-	4, 12, 20, 28, 36, 44, 52, 60,
-	3, 11, 19, 27, 35, 43, 51, 59,
-	2, 10, 18, 26, 34, 42, 50, 58,
-	1,  9, 17, 25, 33, 41, 49, 57,
-	0,  8, 16, 24, 32, 40, 48, 56,
-};
-
 int
 chi_parse_fen_position (chi_pos *argpos, const char *fen, const char **end_ptr)
 {
@@ -172,18 +161,6 @@ chi_parse_fen_position (chi_pos *argpos, const char *fen, const char **end_ptr)
 	pos->w_rooks | pos->w_kings;
 	pos->b_pieces = pos->b_pawns | pos->b_knights | pos->b_bishops | 
 	pos->b_rooks | pos->b_kings;
-
-	for (shift = 0; shift < 64; ++shift) {
-		int shift90 = rotate90[shift];
-		bitv64 mask90 = ((bitv64) 1) << shift90;
-	
-		mask = ((bitv64) 1) << shift;
-
-		if (mask & pos->w_pieces)
-			pos->w_pieces90 |= mask90;
-		else if (mask & pos->b_pieces)
-			pos->b_pieces90 |= mask90;
-	}
 
 	*end_ptr = ptr;
 

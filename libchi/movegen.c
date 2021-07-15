@@ -138,9 +138,7 @@ chi_check_check(chi_pos *pos)
 #define chi_generate_color_king_moves chi_generate_white_king_moves
 #define chi_color_check_check chi_white_check_check
 #define MY_PIECES(p) ((p)->w_pieces)
-#define MY_PIECES90(p) ((p)->w_pieces90)
 #define HER_PIECES(p) ((p)->b_pieces)
-#define HER_PIECES90(p) ((p)->b_pieces90)
 #define MY_PAWNS(p) ((p)->w_pawns)
 #define HER_PAWNS(p) ((p)->b_pawns)
 #define PAWN_START_MASK CHI_2_MASK
@@ -182,9 +180,7 @@ chi_check_check(chi_pos *pos)
 #undef chi_generate_color_king_moves
 #undef chi_color_check_check
 #undef MY_PIECES
-#undef MY_PIECES90
 #undef HER_PIECES
-#undef HER_PIECES90
 #undef MY_PAWNS
 #undef HER_PAWNS
 #undef PAWN_START_MASK
@@ -227,9 +223,7 @@ chi_check_check(chi_pos *pos)
     chi_generate_black_king_castling_moves
 #define chi_generate_color_king_moves chi_generate_black_king_moves
 #define MY_PIECES(p) ((p)->b_pieces)
-#define MY_PIECES90(p) ((p)->b_pieces90)
 #define HER_PIECES(p) ((p)->w_pieces)
-#define HER_PIECES90(p) ((p)->w_pieces90)
 #define MY_PAWNS(p) ((p)->b_pawns)
 #define HER_PAWNS(p) ((p)->w_pawns)
 #define PAWN_START_MASK CHI_7_MASK

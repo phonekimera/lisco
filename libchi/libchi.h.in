@@ -339,8 +339,6 @@ typedef enum {
 typedef struct {
 	bitv64 w_pieces;
 	bitv64 b_pieces;
-	bitv64 w_pieces90;
-	bitv64 b_pieces90;
 
 	bitv64 w_pawns;
 	bitv64 w_knights;
@@ -574,13 +572,6 @@ extern int chi_parse_epd(chi_epd_pos* chi_arg_epd_pos,
 
 /* Free all resources from an EPD test position.  */
 extern void chi_free_epd(chi_epd_pos* chi_arg_epd_pos);
-
-/* Place a piece (also empty!) of given color on board.  Will not update
-   en_passant state, castling state, move clocks etc.  */
-extern int chi_set_piece(chi_pos* chi_arg_pos, 
-			 chi_piece_t chi_arg_piece,
-			 chi_color_t chi_arg_color,
-			 int chi_arg_file, int chi_arg_rank);
 
 /* Dumps piece characters into a string.  The second argument is a buffer
    allocated with malloc(), the third argument must point to the buffer's 

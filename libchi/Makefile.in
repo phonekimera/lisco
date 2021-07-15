@@ -203,15 +203,14 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libchi_la_LIBADD =
 am_libchi_la_OBJECTS = dump_pieces.lo strerror.lo make_move.lo \
 	print_move.lo movegen.lo bitv2shift.lo clear_position.lo \
-	coords2label.lo init_position.lo piece2char.lo set_piece.lo \
-	shift2label.lo parse_move.lo apply_move.lo legal_moves.lo \
-	check_legality.lo illegal_move.lo closest_prime.lo zk_init.lo \
-	zk_finish.lo zk_signature.lo zk_update_signature.lo \
-	zk_change_side.lo update_material.lo set_position.lo \
-	parse_fen_position.lo parse_epd.lo char2figurine.lo \
-	game_over.lo fen.lo stringbuf.lo unapply_move.lo \
-	unmake_move.lo coordinate_notation.lo free.lo magicmoves.lo \
-	mm_init.lo
+	coords2label.lo init_position.lo piece2char.lo shift2label.lo \
+	parse_move.lo apply_move.lo legal_moves.lo check_legality.lo \
+	illegal_move.lo closest_prime.lo zk_init.lo zk_finish.lo \
+	zk_signature.lo zk_update_signature.lo zk_change_side.lo \
+	update_material.lo set_position.lo parse_fen_position.lo \
+	parse_epd.lo char2figurine.lo game_over.lo fen.lo stringbuf.lo \
+	unapply_move.lo unmake_move.lo coordinate_notation.lo free.lo \
+	magicmoves.lo mm_init.lo
 libchi_la_OBJECTS = $(am_libchi_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -254,13 +253,12 @@ am__depfiles_remade = ./$(DEPDIR)/apply_move.Plo \
 	./$(DEPDIR)/movegen.Plo ./$(DEPDIR)/parse_epd.Plo \
 	./$(DEPDIR)/parse_fen_position.Plo ./$(DEPDIR)/parse_move.Plo \
 	./$(DEPDIR)/piece2char.Plo ./$(DEPDIR)/print_move.Plo \
-	./$(DEPDIR)/set_piece.Plo ./$(DEPDIR)/set_position.Plo \
-	./$(DEPDIR)/shift2label.Plo ./$(DEPDIR)/showfen.Po \
-	./$(DEPDIR)/strerror.Plo ./$(DEPDIR)/stringbuf.Plo \
-	./$(DEPDIR)/unapply_move.Plo ./$(DEPDIR)/unmake_move.Plo \
-	./$(DEPDIR)/update_material.Plo ./$(DEPDIR)/zk_change_side.Plo \
-	./$(DEPDIR)/zk_finish.Plo ./$(DEPDIR)/zk_init.Plo \
-	./$(DEPDIR)/zk_signature.Plo \
+	./$(DEPDIR)/set_position.Plo ./$(DEPDIR)/shift2label.Plo \
+	./$(DEPDIR)/showfen.Po ./$(DEPDIR)/strerror.Plo \
+	./$(DEPDIR)/stringbuf.Plo ./$(DEPDIR)/unapply_move.Plo \
+	./$(DEPDIR)/unmake_move.Plo ./$(DEPDIR)/update_material.Plo \
+	./$(DEPDIR)/zk_change_side.Plo ./$(DEPDIR)/zk_finish.Plo \
+	./$(DEPDIR)/zk_init.Plo ./$(DEPDIR)/zk_signature.Plo \
 	./$(DEPDIR)/zk_update_signature.Plo
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -1467,7 +1465,7 @@ SUBDIRS = . tests
 lib_LTLIBRARIES = libchi.la
 libchi_la_SOURCES = libchi.h dump_pieces.c strerror.c make_move.c \
 	print_move.c movegen.c bitv2shift.c clear_position.c \
-	coords2label.c init_position.c piece2char.c set_piece.c \
+	coords2label.c init_position.c piece2char.c \
 	shift2label.c parse_move.c apply_move.c legal_moves.c \
 	check_legality.c illegal_move.c closest_prime.c \
 	zk_init.c zk_finish.c zk_signature.c zk_update_signature.c \
@@ -1607,7 +1605,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_move.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/piece2char.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/print_move.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/set_piece.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/set_position.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shift2label.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/showfen.Po@am__quote@ # am--include-marker
@@ -1885,7 +1882,6 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/parse_move.Plo
 	-rm -f ./$(DEPDIR)/piece2char.Plo
 	-rm -f ./$(DEPDIR)/print_move.Plo
-	-rm -f ./$(DEPDIR)/set_piece.Plo
 	-rm -f ./$(DEPDIR)/set_position.Plo
 	-rm -f ./$(DEPDIR)/shift2label.Plo
 	-rm -f ./$(DEPDIR)/showfen.Po
@@ -1969,7 +1965,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/parse_move.Plo
 	-rm -f ./$(DEPDIR)/piece2char.Plo
 	-rm -f ./$(DEPDIR)/print_move.Plo
-	-rm -f ./$(DEPDIR)/set_piece.Plo
 	-rm -f ./$(DEPDIR)/set_position.Plo
 	-rm -f ./$(DEPDIR)/shift2label.Plo
 	-rm -f ./$(DEPDIR)/showfen.Po

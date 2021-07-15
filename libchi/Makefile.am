@@ -24,7 +24,7 @@ SUBDIRS = . tests
 lib_LTLIBRARIES = libchi.la
 libchi_la_SOURCES = libchi.h dump_pieces.c strerror.c make_move.c \
 	print_move.c movegen.c bitv2shift.c clear_position.c \
-	coords2label.c init_position.c piece2char.c set_piece.c \
+	coords2label.c init_position.c piece2char.c \
 	shift2label.c parse_move.c apply_move.c legal_moves.c \
 	check_legality.c illegal_move.c closest_prime.c \
 	zk_init.c zk_finish.c zk_signature.c zk_update_signature.c \
