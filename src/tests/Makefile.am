@@ -23,9 +23,9 @@ TESTS = ./check_common \
 	./check_lisco \
 	./check_liscoplay
 
-#if HAS_PERL
-#        TESTS += ./check_mates ./check_dm1 ./check_dm2 ./check_dm3
-#endif
+if HAS_PERL
+	TESTS += ./check_mates ./check_dm1 ./check_dm2 ./check_dm3
+endif
 
 check_common_SOURCES = \
 		../util.c \

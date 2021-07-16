@@ -9,7 +9,6 @@ eval {
 	require Chess::Rep;
 };
 if ($@) {
-	#warn $@;
 	warn "Please install Chess::Rep from CPAN if you want to run these tests.\n";
 	exit 0;
 }
@@ -17,10 +16,19 @@ if ($@) {
 sub parse_epd;
 sub convert_san;
 
+my $limit_tests = 100;
+
 my ($engine, $epdfile, @commands) = @ARGV;
 
 if (!defined $epdfile || !length $epdfile) {
 	die "Usage: $@ ENGINE EPDFILE[, COMMANDS...]"
+}
+
+if (exists $ENV{TATE_STRESS_TEST}) {
+	warn "Running full EPD '$epdfile'; unset environment variable TATE_STRESS_TEST to limit to $limit_tests.\n";
+	$limit_tests = -1;
+} else {
+	warn "Limiting EPD tests '$epdfile' to $limit_tests; unset environment variable TATE_STRESS_TEST to run full suite.\n";
 }
 
 unshift @commands, 'uci';
@@ -83,6 +91,10 @@ while (my $line = <$epd>) {
 	} else {
 		my $found = grep { $_ eq $bestmove } @am;
 		ok !$found, "line $lineno";
+	}
+
+	if ($limit_tests > 0 && $lineno >= $limit_tests) {
+		last;
 	}
 }
 
