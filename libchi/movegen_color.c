@@ -22,9 +22,6 @@
 #ifndef CHI_MOVEGEN_COLOR
 # define CHI_MOVEGEN_COLOR 1
 
-#define M1 ((bitv64) 0x5555555555555555)
-#define M2 ((bitv64) 0x3333333333333333)
-
 #define DIAG045 ((bitv64) 0x8040201008040201)
 #define DIAG235 ((bitv64) 0x0102040810204080)
 #define FILE_UP_MASK ((bitv64) 0x0101010101010100)
@@ -32,25 +29,6 @@
 #define RANKMASK ((bitv64) 0xff)
 
 #include "magicmoves.h"
-
-/* Give the compiler a chance to inline this.  */
-static unsigned int
-find_first(bitv64 b)
-{
-	unsigned int n;
-
-	bitv64 a = b - 1 - (((b - 1) >> 1) & M1);
-	bitv64 c = (a & M2) + ((a >> 2) & M2);
-
-	n = ((unsigned int) c) + ((unsigned int) (c >> 32));
-	n = (n & 0x0f0f0f0f) + ((n >> 4) & 0x0f0f0f0f);
-	n = (n & 0xffff) + (n >> 16);
-	n = (n & 0xff) + (n >> 8);
-
-	return n;
-}
-
-#define chi_bitv2shift(b) find_first(b)
 
 #endif
 

@@ -738,7 +738,28 @@ extern int chi_black_check_check(chi_pos*);
 extern void chi_update_material(chi_pos* chi_arg_pos);
 
 /* For bitboards with exactly one bit set.  */
-extern unsigned int chi_bitv2shift(bitv64 chi_arg_bitv);
+#if defined(__GNUC__)  // GCC, Clang, ICC
+# define chi_bitv2shift(b) __builtin_ctzll(b)
+#else
+inline unsigned int
+chi_bitv2shift(@BITV64@ b)
+{
+	unsigned int n;
+
+# define M1 ((bitv64) 0x5555555555555555)
+# define M2 ((bitv64) 0x3333333333333333)
+
+	@BITV64@ a = b - 1 - (((b - 1) >> 1) & M1);
+	@BITV64@ c = (a & M2) + ((a >> 2) & M2);
+
+	n = ((unsigned int) c) + ((unsigned int) (c >> 32));
+	n = (n & 0x0f0f0f0f) + ((n >> 4) & 0x0f0f0f0f);
+	n = (n & 0xffff) + (n >> 16);
+	n = (n & 0xff) + (n >> 8);
+
+	return n;
+}
+#endif
 
 /* Get a handle for creating zobrist keys.  Returns NULL on failure.  */
 extern int chi_zk_init(chi_zk_handle* chi_arg_zk_handle);
