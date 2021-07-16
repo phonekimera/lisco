@@ -67,6 +67,7 @@ extern void init_tt_hashs(unsigned long int memuse);
 extern void clear_tt_hashs(void);
 extern unsigned int probe_tt (chi_pos *pos, bitv64 signature, int depth,
 	int *alpha, int *beta);
+/* Used for sorting moves.  */
 extern chi_move best_tt_move (chi_pos *pos, bitv64 signature);
 extern void store_tt_entry (
 		chi_pos *pos, bitv64 signature, chi_move move, unsigned short int depth,

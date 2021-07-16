@@ -29,14 +29,16 @@
 
 #define MATE -10000
 #define INF ((-(MATE)) << 1)
-#define MAXDEPTH 512
+#define MAX_PLY 512
 
 typedef struct Line {
-	chi_move moves[MAXDEPTH];
+	chi_move moves[MAX_PLY];
 	unsigned int num_moves;
 } Line;
 
 typedef struct Tree {
+	bitv64 signatures[MAX_PLY + 1];
+
 	chi_pos position;
 	chi_move bestmove;
 	int depth;
