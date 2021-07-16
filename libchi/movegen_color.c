@@ -196,43 +196,6 @@ chi_generate_color_captures(chi_pos *pos, chi_position_context *ctx,
 		}
 	}
 
-	/* Knight captures.  */
-	piece_mask = MY_KNIGHTS(pos);
-	while (piece_mask) {
-		unsigned int from =
-				chi_bitv2shift(chi_clear_but_least_set(piece_mask));
-		bitv64 attack_mask = knight_attacks[from] & her_squares;
-		chi_move move = from | ((~knight & 0x7) << 13);
-
-		while (attack_mask) {
-			unsigned int to = chi_bitv2shift(chi_clear_but_least_set(attack_mask));
-			bitv64 target_square = ((bitv64) 1 << to);
-			int material = 1;
-			chi_piece_t victim = pawn;
-
-			if (target_square & HER_KNIGHTS(pos)) {
-				material = 3;
-				victim = knight;
-			} else if (target_square & HER_BISHOPS(pos)) {
-				material = 3;
-				victim = bishop;
-				if (target_square & HER_ROOKS(pos)) {
-					material = 9;
-					victim = queen;
-				}
-			} else if (target_square & HER_ROOKS(pos)) {
-				material = 5;
-				victim = rook;
-			}
-
-			*moves++ = move | (to << 6) | (victim << 16) | (material << 22);
-
-			attack_mask = chi_clear_least_set(attack_mask);
-		}
-
-		piece_mask = chi_clear_least_set(piece_mask);
-	}
-
 	/* King captures.  */
 	piece_mask = MY_KINGS(pos);
 	while (piece_mask) {
@@ -337,16 +300,43 @@ chi_generate_color_knight_moves(chi_pos *pos, chi_position_context *ctx,
 	bitv64 piece_mask = MY_KNIGHTS(pos);
 
 	if (piece_mask) {
-		bitv64 empty_squares = ~(pos->w_pieces | pos->b_pieces);
 		while (piece_mask) {
 			unsigned int from =
 			chi_bitv2shift(chi_clear_but_least_set(piece_mask));
-			bitv64 attack_mask = knight_attacks[from] & empty_squares;
+			bitv64 attack_mask = knight_attacks[from]
+					& (ctx->empty | HER_PIECES(pos));
 
 			while (attack_mask) {
 				unsigned int to =
 					chi_bitv2shift(chi_clear_but_least_set(attack_mask));
-				*moves++ = from | (to << 6) | ((~knight & 0x7) << 13);
+				chi_move move = from | (to << 6) | ((~knight & 0x7) << 13);
+
+				bitv64 to_mask = 1ULL << to;
+
+				if (HER_PIECES(pos) & to_mask) {
+					unsigned int material = CHI_VALUE_PAWN / 100;
+					chi_piece_t victim = pawn;
+
+					if (to_mask & HER_KNIGHTS(pos)) {
+						material = 3;
+						victim = knight;
+					} else if (to_mask & HER_BISHOPS(pos)) {
+						material = 3;
+						victim = bishop;
+						if (to_mask & HER_ROOKS(pos)) {
+							material = 9;
+							victim = queen;
+						}
+					} else if (to_mask & HER_ROOKS(pos)) {
+						material = 5;
+						victim = rook;
+					}
+
+					move |= (victim << 16) | (material << 22);
+				}
+
+				*moves++ = move;
+
 				attack_mask = chi_clear_least_set(attack_mask);
 			}
 
