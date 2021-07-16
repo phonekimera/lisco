@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -27,7 +27,7 @@
 #include <libchi.h>
 
 #include "board.h"
-#include "tate.h"
+#include "lisco.h"
 
 void
 dump_board (FILE *stream, chi_pos *pos)

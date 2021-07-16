@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -1172,7 +1172,7 @@ move_making_suite(void)
 	tcase_add_test(tc_pawn, test_pawn_double_move);
 	suite_add_tcase(suite, tc_pawn);
 
-    tc_rook = tcase_create("Castling States");
+    tc_rook = tcase_create("Castling Sliscos");
     tcase_add_test(tc_rook, test_ks_black_rook_capture);
     tcase_add_test(tc_rook, test_ks_white_rook_capture);
     tcase_add_test(tc_rook, test_qs_black_rook_capture);

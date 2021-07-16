@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -38,8 +38,8 @@
 #include "display-board.h"
 #include "log.h"
 #include "stringbuf.h"
-#include "tateplay-engine.h"
-#include "tateplay-game.h"
+#include "liscoplay-engine.h"
+#include "liscoplay-game.h"
 #include "util.h"
 #include "xboard-feature.h"
 #include "xmalloca-debug.h"

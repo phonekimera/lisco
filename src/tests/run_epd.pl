@@ -11,17 +11,17 @@ if (!defined $epdfile || !length $epdfile) {
 	die "Usage: $@ EPDFILE[, COMMANDS...]"
 }
 
-# Find tate executable.
-my $tate = "../tateold";
-$tate = "../tateold.exe" unless -e $tate;
+# Find lisco executable.
+my $lisco = "../liscoold";
+$lisco = "../liscoold.exe" unless -e $lisco;
 
 open STDERR, ">&STDOUT";
 
 push @commands, "epdfile $epdfile", "quit";
 
 my ($cout, $cin);
-my $pid = open2 $cout, $cin, $tate
-	or die "cannot exec '$tate': $!";
+my $pid = open2 $cout, $cin, $lisco
+	or die "cannot exec '$lisco': $!";
 
 foreach my $cmd (@commands) {
 	$cin->print("$cmd\n");

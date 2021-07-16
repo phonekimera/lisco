@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -2278,7 +2278,7 @@ static const char *tests[] = {
 	"Rc7", "Rd8", "Bg7", "Qe8", "Bf6", "Rxc8", NULL,
 
 	__FILE__, STRING(__LINE__),
-	"New York State Open",
+	"New York Slisco Open",
 	"Poughkeepsie, NY USA",
 	"1963.08.31",
 	"3",

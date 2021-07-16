@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -16,27 +16,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TATEPLAY_LOOP_H
-# define _TATEPLAY_LOOP_H        /* Allow multiple inclusion.  */
-
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include "stdbool.h"
+#include <check.h>
 
-#include "tateplay-game.h"
+#include "libchi.h"
 
-#ifdef __cplusplus
-extern "C" {
+extern Suite *uci_engine_suite();
+extern Suite *perft_suite();
+
+#ifdef DEBUG_XMALLOC
+# include "../xmalloc-debug.c"
 #endif
 
-extern int child_exited;
+int
+main(int argc, char *argv[])
+{
+	int failed = 0;
+	SRunner *runner;
 
-bool tateplay_loop(Game *game);
+#ifdef DEBUG_XMALLOC
+	init_xmalloc_debug();
+#endif
 
-#ifdef __cplusplus
+	chi_mm_init();
+
+	runner = srunner_create(uci_engine_suite());
+	srunner_add_suite(runner, uci_engine_suite());
+	srunner_add_suite(runner, perft_suite());
+
+	srunner_run_all(runner, CK_NORMAL);
+	failed = srunner_ntests_failed(runner);
+	srunner_free(runner);
+
+	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-#endif
-
-#endif

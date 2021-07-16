@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -23,7 +23,7 @@
 #include <xalloc.h>
 
 #include "time-management.h"
-#include "tate.h"
+#include "lisco.h"
 #include "time-control.h"
 
 /* Stolen from stockfish and ported to C.  */

@@ -34,12 +34,12 @@ m4/
 !m4/README
 !m4/ax_pthread.m4
 
-src/tate
-src/tateold
-src/tateplay
+src/lisco
+src/liscoold
+src/liscoplay
 src/tests/check_common
-src/tests/check_tate
-src/tests/check_tateplay
+src/tests/check_lisco
+src/tests/check_liscoplay
 
 libchi/libchi.h
 libchi/showfen

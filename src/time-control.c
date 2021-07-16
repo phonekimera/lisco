@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -26,7 +26,7 @@
 #include <stdlib.h>
 
 #include "time-control.h"
-#include "tate.h"
+#include "lisco.h"
 
 long int moves_to_tc  = 40;
 long int min_per_game = 5;

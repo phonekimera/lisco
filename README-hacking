@@ -1,4 +1,4 @@
-# This file is part of the chess engine tate.
+# This file is part of the chess engine lisco.
 #
 # Copyright (C) 2002-2021 cantanea EOOD.
 #
@@ -32,4 +32,4 @@ Once everything is fine, you can run the well-known commands:
 ```
 
 You don't have to run "make install".  You can test the binary
-`src/tate` after running "make" only.
+`src/lisco` after running "make" only.

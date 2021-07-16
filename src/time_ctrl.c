@@ -28,7 +28,7 @@
 #include <sys/time.h>
 
 #include "time_ctrl.h"
-#include "tate.h"
+#include "lisco.h"
 
 long int moves_to_tc  = 40;
 long int min_per_game = 5;

@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -71,14 +71,14 @@ static void
 debug_start_search(Tree *tree, chi_move move)
 {
 	fprintf(stderr, "considering");
-	print_line(stderr, &tate.position, &tree->line);
+	print_line(stderr, &lisco.position, &tree->line);
 }
 
 static void
 debug_end_search(Tree *tree, chi_move move)
 {
 	fprintf(stderr, "done considering");
-	print_line(stderr, &tate.position, &tree->line);
+	print_line(stderr, &lisco.position, &tree->line);
 }
 #endif
 
@@ -180,12 +180,12 @@ root_search(Tree *tree, int max_depth)
 		
 		forced_mate = score == -MATE -depth;
 
-		if (chi_on_move(&tate.position) == chi_black)
+		if (chi_on_move(&lisco.position) == chi_black)
 			score = -score;
 
-		tate.bestmove = tree->bestmove;
-		tate.bestmove_found = 1;
-		tate.pondermove_found = 0;
+		lisco.bestmove = tree->bestmove;
+		lisco.bestmove_found = 1;
+		lisco.pondermove_found = 0;
 		if (forced_mate) {
 			break;
 		}
@@ -201,11 +201,11 @@ think(void)
 	Tree tree;
 	int score;
 
-	if (chi_game_over(&tate.position, NULL)) return;
+	if (chi_game_over(&lisco.position, NULL)) return;
 
 	memset(&tree, 0, sizeof tree);
 
-	chi_copy_pos(&tree.position, &tate.position);
+	chi_copy_pos(&tree.position, &lisco.position);
 
 	on_move = chi_on_move(&tree.position);
 

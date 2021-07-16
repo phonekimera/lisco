@@ -1,6 +1,6 @@
 #! /usr/bin/env perl
 
-# This file is part of the chess engine tate.
+# This file is part of the chess engine lisco.
 #
 # Copyright (C) 2002-2021 cantanea EOOD.
 #

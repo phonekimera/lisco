@@ -1,4 +1,4 @@
-## This file is part of the chess engine tate.
+## This file is part of the chess engine lisco.
 ##
 ## Copyright (C) 2002-2021 cantanea EOOD.
 ##
@@ -33,7 +33,7 @@ check_libchi_SOURCES = \
 		check_libchi.c
 
 check_libchi_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
-check_libchi_LDADD = ../../lib/libtate.la ../libchi.la $(LDFLAGS) $(CHECK_LIBS)
+check_libchi_LDADD = ../../lib/liblisco.la ../libchi.la $(LDFLAGS) $(CHECK_LIBS)
 
 AM_CPPFLAGS = -I.. -I$(srcdir)/.. -I$(top_srcdir)/lib \
 	-I$(top_srcdir)/libchi $(AM_CFLAGS)

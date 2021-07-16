@@ -1,4 +1,4 @@
-## This file is part of the chess engine tate.
+## This file is part of the chess engine lisco.
 ##
 ## Copyright (C) 2002-2021 cantanea EOOD.
 ##
@@ -17,11 +17,11 @@
 
 ## Process this file with automake to produce Makefile.in.
 
-noinst_PROGRAMS = check_common check_tate check_tateplay
+noinst_PROGRAMS = check_common check_lisco check_liscoplay
 
 TESTS = ./check_common \
-	./check_tate \
-	./check_tateplay
+	./check_lisco \
+	./check_liscoplay
 
 #if HAS_PERL
 #        TESTS += ./check_mates ./check_dm1 ./check_dm2 ./check_dm3
@@ -32,17 +32,17 @@ check_common_SOURCES = \
 		test_util.c \
 		check_common.c
 
-check_tateplay_SOURCES = \
-		../tateplay-option.c \
-		../tateplay-time-control.c \
+check_liscoplay_SOURCES = \
+		../liscoplay-option.c \
+		../liscoplay-time-control.c \
 		../util.c \
 		../xboard-feature.c \
-		test_tate_time_control.c \
+		test_lisco_time_control.c \
 		test_xboard.c \
 		test_uci.c \
-		check_tateplay.c
+		check_liscoplay.c
 
-check_tate_SOURCES = \
+check_lisco_SOURCES = \
 		../state.c \
 		../perft.c \
 		../rtime.c \
@@ -51,16 +51,16 @@ check_tate_SOURCES = \
 		../util.c \
 		test_uci_engine.c \
 		test_perft.c \
-		check_tate.c
+		check_lisco.c
 
 check_common_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
-check_common_LDADD = ../../lib/libtate.la ../../libchi/libchi.la \
+check_common_LDADD = ../../lib/liblisco.la ../../libchi/libchi.la \
 	$(LDFLAGS) $(CHECK_LIBS)
-check_tate_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
-check_tate_LDADD = ../../lib/libtate.la ../../libchi/libchi.la \
+check_lisco_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
+check_lisco_LDADD = ../../lib/liblisco.la ../../libchi/libchi.la \
 	$(LDFLAGS) $(CHECK_LIBS)
-check_tateplay_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
-check_tateplay_LDADD = ../../lib/libtate.la ../../libchi/libchi.la \
+check_liscoplay_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
+check_liscoplay_LDADD = ../../lib/liblisco.la ../../libchi/libchi.la \
 	$(LDFLAGS) $(CHECK_LIBS)
 
 AM_CPPFLAGS = -I.. -I$(srcdir)/.. -I$(top_srcdir)/lib \

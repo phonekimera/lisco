@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -29,8 +29,8 @@
 
 #include "stdbool.h"
 
-#include "tateplay-option.h"
-#include "tateplay-time-control.h"
+#include "liscoplay-option.h"
+#include "liscoplay-time-control.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,7 +43,7 @@ typedef enum EngineProtocol {
 #define xboard xboard
 } EngineProtocol;
 
-typedef enum EngineState {
+typedef enum EngineSlisco {
 	initial,
 	started,
 	negotiating,
@@ -53,7 +53,7 @@ typedef enum EngineState {
 	thinking,
 	pondering,
 	finished
-} EngineState;
+} EngineSlisco;
 
 typedef struct UserOption {
 	char *name;
@@ -82,7 +82,7 @@ typedef struct Engine {
 	struct Game *game;
 
 	EngineProtocol protocol;
-	EngineState state;
+	EngineSlisco state;
 
 	long delay;
 	struct timeval start_output;

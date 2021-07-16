@@ -1,4 +1,4 @@
-## This file is part of the chess engine tate.
+## This file is part of the chess engine lisco.
 ##
 ## Copyright (C) 2002-2021 cantanea EOOD.
 ##
@@ -17,7 +17,7 @@
 
 SUBDIRS = . tests
 
-bin_PROGRAMS = tate tateplay
+bin_PROGRAMS = lisco liscoplay
 
 noinst_HEADERS = \
 	basename.h \
@@ -29,12 +29,12 @@ noinst_HEADERS = \
 	rtime.h \
 	search.h \
 	state.h \
-	tate.h \
-	tateplay-engine.h \
-	tateplay-game.h \
-	tateplay-loop.h \
-	tateplay-option.h \
-	tateplay-time-control.h \
+	lisco.h \
+	liscoplay-engine.h \
+	liscoplay-game.h \
+	liscoplay-loop.h \
+	liscoplay-option.h \
+	liscoplay-time-control.h \
 	think.h \
 	time-control.h \
 	time-management.h \
@@ -43,17 +43,17 @@ noinst_HEADERS = \
 	xboard-feature.h \
 	xmalloca-debug.h
 
-tate_SOURCES = tate.c uci-engine.c util.c think.c state.c perft.c \
+lisco_SOURCES = lisco.c uci-engine.c util.c think.c state.c perft.c \
 	rtime.c
-# FIXME! Remove tateplay. Can be replaced with cutechess-cli.
-tateplay_SOURCES = tateplay.c tateplay-engine.c log.c tateplay-game.c \
-	tateplay-loop.c util.c tateplay-option.c xboard-feature.c display-board.c \
-	tateplay-time-control.c
+# FIXME! Remove liscoplay. Can be replaced with cutechess-cli.
+liscoplay_SOURCES = liscoplay.c liscoplay-engine.c log.c liscoplay-game.c \
+	liscoplay-loop.c util.c liscoplay-option.c xboard-feature.c display-board.c \
+	liscoplay-time-control.c
 
-tate_LDADD = ../lib/libtate.la ../libchi/libchi.la
-tate_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
-tateplay_LDADD = ../lib/libtate.la ../libchi/libchi.la
-tateplay_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
+lisco_LDADD = ../lib/liblisco.la ../libchi/libchi.la
+lisco_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
+liscoplay_LDADD = ../lib/liblisco.la ../libchi/libchi.la
+liscoplay_DEPENDENCIES = $(top_srcdir)/libchi/libchi.la
 
 AM_CPPFLAGS = -I. -I$(srcdir) -I.. -I$(top_srcdir)/lib -I../lib \
 	-I$(top_srcdir)/libchi -I../libchi $(AM_CFLAGS)

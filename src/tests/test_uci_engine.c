@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -132,13 +132,13 @@ START_TEST(test_uci_position)
 
 	INIT_UCI(engine_options, output);
 
-	chi_init_position (&tate.position);
+	chi_init_position (&lisco.position);
 
 	command = xstrdup("startpos");
 	status = uci_handle_position(&engine_options, command, engine_out);
 	free(command);
 	ck_assert_int_eq(status, 1);
-	current_fen = chi_fen(&tate.position);
+	current_fen = chi_fen(&lisco.position);
 	ck_assert_str_eq(current_fen, START_FEN);
 	free((void *) current_fen);
 
@@ -146,7 +146,7 @@ START_TEST(test_uci_position)
 	status = uci_handle_position(&engine_options, command, engine_out);
 	free(command);
 	ck_assert_int_eq(status, 1);
-	current_fen = chi_fen(&tate.position);
+	current_fen = chi_fen(&lisco.position);
 	ck_assert_str_eq(current_fen, IDIOT_MATE_FEN);
 	free((void *) current_fen);
 
@@ -154,7 +154,7 @@ START_TEST(test_uci_position)
 	status = uci_handle_position(&engine_options, command, engine_out);
 	free(command);
 	ck_assert_int_eq(status, 1);
-	current_fen = chi_fen(&tate.position);
+	current_fen = chi_fen(&lisco.position);
 	ck_assert_str_eq(current_fen, IDIOT_MATE_FEN);
 	free((void *) current_fen);
 
@@ -162,7 +162,7 @@ START_TEST(test_uci_position)
 	status = uci_handle_position(&engine_options, command, engine_out);
 	free(command);
 	ck_assert_int_eq(status, 1);
-	current_fen = chi_fen(&tate.position);
+	current_fen = chi_fen(&lisco.position);
 	ck_assert_str_eq(current_fen, IDIOT_MATE_FEN);
 	free((void *) current_fen);
 

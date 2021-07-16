@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -171,13 +171,13 @@ uci_handle_position(UCIEngineOptions *options, char *args, FILE *out)
 		}
 
 		rest = trim(rest);
-		errnum = chi_extract_position(&tate.position, rest, (const char **) &rest);
+		errnum = chi_extract_position(&lisco.position, rest, (const char **) &rest);
 		if (errnum) {
 			fprintf(out, "info Invalid FEN string (%d).\n", errnum);
 			return 1;
 		}
 	} else if (strcmp("startpos", type) == 0) {
-		chi_init_position(&tate.position);
+		chi_init_position(&lisco.position);
 	} else {
 		fprintf(out, "info Command 'position' requires one of 'startpos' or"
 			" 'fen' as an argument.\n");
@@ -198,19 +198,19 @@ uci_handle_position(UCIEngineOptions *options, char *args, FILE *out)
 	while (rest) {
 		movestr = strsep(&rest, DELIM);
 		if (*movestr) {
-			errnum = chi_parse_move(&tate.position, &move, movestr);
+			errnum = chi_parse_move(&lisco.position, &move, movestr);
 			if (errnum) {
 				fprintf(out, "info Invalid move '%s'.\n", movestr);
 				return 1;
 			}
 
-			errnum = chi_check_legality(&tate.position, move);
+			errnum = chi_check_legality(&lisco.position, move);
 			if (errnum) {
 				fprintf(out, "info Illegal move '%s'.\n", movestr);
 				return 1;
 			}
 
-			errnum = chi_apply_move(&tate.position, move);
+			errnum = chi_apply_move(&lisco.position, move);
 			if (errnum) {
 				fprintf(out, "info Cannot apply move '%s'.\n", movestr);
 				return 1;
@@ -247,7 +247,7 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 				return 1;
 			}
 			chi_pos position;
-			chi_copy_pos(&position, &tate.position);
+			chi_copy_pos(&position, &lisco.position);
 			(void) perft(&position, perft_depth, NULL, out);
 			return 1;
 		} else {
@@ -258,12 +258,12 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 
 	think();
 
-	if (tate.bestmove_found) {
+	if (lisco.bestmove_found) {
 		errnum = chi_coordinate_notation(
-			tate.bestmove, chi_on_move(&tate.position), &bestmove, &bufsize);
-		if (!errnum && tate.pondermove_found) {
+			lisco.bestmove, chi_on_move(&lisco.position), &bestmove, &bufsize);
+		if (!errnum && lisco.pondermove_found) {
 			errnum = chi_coordinate_notation(
-				tate.pondermove, !chi_on_move(&tate.position), &pondermove,
+				lisco.pondermove, !chi_on_move(&lisco.position), &pondermove,
 				&bufsize);
 		}
 

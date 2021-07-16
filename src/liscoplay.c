@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -36,9 +36,9 @@
 #include "progname.h"
 
 #include "log.h"
-#include "tateplay-game.h"
-#include "tateplay-loop.h"
-#include "tateplay-time-control.h"
+#include "liscoplay-game.h"
+#include "liscoplay-loop.h"
+#include "liscoplay-time-control.h"
 #include "util.h"
 
 static void usage(int status);
@@ -216,7 +216,7 @@ main(int argc, char *argv[])
 		usage(EXIT_FAILURE);
 	}
 
-	status = tateplay_loop(game);
+	status = liscoplay_loop(game);
 
 	game_print_pgn(game);
 
@@ -304,7 +304,7 @@ Informative output:\n");
 		printf("\
   -v, --verbose               increase verbosity level\n");
 		printf ("\n");
-		fputs ("Report bugs at <https://github.com/gflohr/tate/issues>.\n",
+		fputs ("Report bugs at <https://github.com/gflohr/lisco/issues>.\n",
 		       stdout);
 	}
 

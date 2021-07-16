@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -30,7 +30,7 @@
 
 #include "brain.h"
 #include "search.h"
-#include "tate.h"
+#include "lisco.h"
 #include "time-control.h"
 #include "time-management.h"
 

@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TATEPLAY_GAME_H
-# define _TATEPLAY_GAME_H        /* Allow multiple inclusion.  */
+#ifndef _LISCOPLAY_GAME_H
+# define _LISCOPLAY_GAME_H        /* Allow multiple inclusion.  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -27,7 +27,7 @@
 
 #include "libchi.h"
 #include "stringbuf.h"
-#include "tateplay-engine.h"
+#include "liscoplay-engine.h"
 
 #ifdef __cplusplus
 extern "C" {

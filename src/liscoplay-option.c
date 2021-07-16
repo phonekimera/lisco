@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -29,7 +29,7 @@
 #include "xstrndup.h"
 
 #include "util.h"
-#include "tateplay-option.h"
+#include "liscoplay-option.h"
 
 static size_t option_consume_tokens(Option *self, char **tokens,
                                     const char *original);

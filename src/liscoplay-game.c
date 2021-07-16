@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -31,7 +31,7 @@
 #include "xmalloca-debug.h"
 #include "display-board.h"
 #include "log.h"
-#include "tateplay-game.h"
+#include "liscoplay-game.h"
 #include "util.h"
 
 static bool legal_tag_value(const char *value);

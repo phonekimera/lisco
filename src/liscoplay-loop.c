@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -27,7 +27,7 @@
 #include "stdbool.h"
 
 #include "log.h"
-#include "tateplay-loop.h"
+#include "liscoplay-loop.h"
 #include "util.h"
 
 int child_exited = 0;
@@ -35,7 +35,7 @@ int child_exited = 0;
 #define ever (;;)
 
 bool
-tateplay_loop(Game *game)
+liscoplay_loop(Game *game)
 {
 	fd_set read_fd_set;
 	fd_set write_fd_set;

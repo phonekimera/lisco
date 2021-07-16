@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TATEPLAY_TIME_CONTROL_H
-# define _TATEPLAY_TIME_CONTROL_H        /* Allow multiple inclusion.  */
+#ifndef _LISCOPLAY_TIME_CONTROL_H
+# define _LISCOPLAY_TIME_CONTROL_H        /* Allow multiple inclusion.  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>

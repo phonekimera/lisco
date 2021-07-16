@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -16,40 +16,44 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _LISCOPLAY_OPTION_H
+# define _LISCOPLAY_OPTION_H        /* Allow multiple inclusion.  */
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include <check.h>
-
 #include "libchi.h"
 
-extern Suite *uci_engine_suite();
-extern Suite *perft_suite();
-
-#ifdef DEBUG_XMALLOC
-# include "../xmalloc-debug.c"
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-int
-main(int argc, char *argv[])
-{
-	int failed = 0;
-	SRunner *runner;
+typedef enum OptionType {
+	option_type_string = 1,
+	option_type_check,
+	option_type_spin,
+	option_type_button,
+	option_type_combo,
+} OptionType;
 
-#ifdef DEBUG_XMALLOC
-	init_xmalloc_debug();
-#endif
+typedef struct Option {
+	char *name;
+	OptionType type;
+	char *min;
+	char *max;
+	char **vars;
+	size_t num_vars;
+	char *default_value;
+	chi_bool default_set;
+} Option;
 
-	chi_mm_init();
+extern Option *option_uci_new(const char *input);
+extern Option *option_xboard_new(const char *input);
+extern void option_destroy(Option *option);
 
-	runner = srunner_create(uci_engine_suite());
-	srunner_add_suite(runner, uci_engine_suite());
-	srunner_add_suite(runner, perft_suite());
-
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
-
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+#ifdef __cplusplus
 }
+#endif
+
+#endif

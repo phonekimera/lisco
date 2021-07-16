@@ -1,4 +1,4 @@
-## This file is part of the chess engine tate.
+## This file is part of the chess engine lisco.
 ##
 ## Copyright (C) 2002-2021 cantanea EOOD.
 ##
@@ -45,8 +45,8 @@ noinst_PROGRAMS = genmasks showfen
 
 noinst_HEADERS = stringbuf.h
 
-showfen_LDADD = -lchi $(top_srcdir)/lib/libtate.la
-showfen_DEPENDENCIES = $(srcdir)/libchi.la $(top_srcdir)/lib/libtate.la
+showfen_LDADD = -lchi $(top_srcdir)/lib/liblisco.la
+showfen_DEPENDENCIES = $(srcdir)/libchi.la $(top_srcdir)/lib/liblisco.la
 
 bitmasks.h: genmasks
 	./genmasks >$@.tmp

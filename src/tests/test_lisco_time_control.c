@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -22,7 +22,7 @@
 
 #include <check.h>
 
-#include "tateplay-time-control.h"
+#include "liscoplay-time-control.h"
 
 START_TEST(test_st_constructor)
 {

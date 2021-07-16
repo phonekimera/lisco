@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -27,7 +27,7 @@
 
 #include "uci-engine.h"
 
-typedef struct Tate {
+typedef struct Lisco {
 	// The current UCI options and state.
 	UCIEngineOptions uci;
 
@@ -47,13 +47,13 @@ typedef struct Tate {
 	int pondermove_found;
 
 	chi_zk_handle zk_handle;
-} Tate;
+} Lisco;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern Tate tate;
+extern Lisco lisco;
 
 #ifdef __cplusplus
 }

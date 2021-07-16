@@ -1,4 +1,4 @@
-dnl This file is part of the chess engine tate.
+dnl This file is part of the chess engine lisco.
 dnl
 dnl Copyright (C) 2002-2021 cantanea EOOD.
 dnl
@@ -16,8 +16,8 @@ dnl You should have received a copy of the GNU General Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ([2.71])
-AC_INIT([tate],[0.6.0])
-AC_CONFIG_SRCDIR([src/tate.c])
+AC_INIT([lisco],[0.6.0])
+AC_CONFIG_SRCDIR([src/lisco.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
 AM_INIT_AUTOMAKE([1.16.3 silent-rules parallel-tests subdir-objects])
@@ -48,7 +48,7 @@ AC_C_BIGENDIAN
 
 AC_CHECK_LIB(m, log10, , AC_MSG_ERROR(unable to find function log10))
 
-AX_PTHREAD(, AC_MSG_ERROR(thread support is required to compile tate))
+AX_PTHREAD(, AC_MSG_ERROR(thread support is required to compile lisco))
 
 AC_CHECK_SIZEOF(unsigned long)
 AC_CHECK_SIZEOF(unsigned long long)

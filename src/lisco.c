@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -57,21 +57,21 @@ char *argv[];
 
 	greeting();
 
-	memset(&tate, 0, sizeof tate);
+	memset(&lisco, 0, sizeof lisco);
 
-	chi_init_position (&tate.position);
+	chi_init_position (&lisco.position);
 
 	chi_mm_init();
 
-	errnum = chi_zk_init(&tate.zk_handle);
+	errnum = chi_zk_init(&lisco.zk_handle);
 	if (errnum)
 		error (EXIT_FAILURE,
 		       0,
 		       "Cannot initialize Zobrist key array: %s",
 		       chi_strerror (errnum));
 
-	uci_init(&tate.uci);
-	uci_main(&tate.uci,
+	uci_init(&lisco.uci);
+	uci_main(&lisco.uci,
 	         stdin, "[standard input]",
 	         stdout, "[standard output]");
 

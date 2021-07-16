@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -81,7 +81,7 @@ popcount (b)
 
 #define chi_bitv2shift(b) find_first (b)
 
-static const int rotate90[64] = {
+static const int rolisco90[64] = {
 	7, 15, 23, 31, 39, 47, 55, 63,
 	6, 14, 22, 30, 38, 46, 54, 62,
 	5, 13, 21, 29, 37, 45, 53, 61,
@@ -585,7 +585,7 @@ evaluate_mobility (TREE *tree)
 		int from = chi_bitv2shift (chi_clear_but_least_set (piece_mask));
 		bitv64 state = (rank_masks[from] & occ_squares) >>  ((from >> 3) << 3);
 		bitv64 state90 = (file_masks[from] & occ90_squares) >> 
-			((rotate90[from] >> 3) << 3);
+			((rolisco90[from] >> 3) << 3);
 		bitv64 target_mask = rook_hor_slide_masks[from][state] |
 			rook_ver_slide_masks[from][state90];
 		target_mask |= (rook_hor_attack_masks[from][state] & occ_squares);
@@ -602,7 +602,7 @@ evaluate_mobility (TREE *tree)
 		bitv64 state = (rank_masks[from] & occ_squares) >> 
 			((from >> 3) << 3);
 		bitv64 state90 = (file_masks[from] & occ90_squares) >> 
-			((rotate90[from] >> 3) << 3);
+			((rolisco90[from] >> 3) << 3);
 		bitv64 target_mask = rook_hor_slide_masks[from][state] |
 			rook_ver_slide_masks[from][state90];
 		target_mask |= (rook_hor_attack_masks[from][state] & occ_squares);

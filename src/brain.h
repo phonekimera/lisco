@@ -1,4 +1,4 @@
-/* This file is part of the chess engine tate.
+/* This file is part of the chess engine lisco.
  *
  * Copyright (C) 2002-2021 cantanea EOOD.
  *
@@ -25,7 +25,7 @@
 
 #include <libchi.h>
 
-#include "tate.h"
+#include "lisco.h"
 
 // Set to the maximum depth to search.
 #define DEBUG_BRAIN 0
