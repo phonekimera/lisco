@@ -27,7 +27,7 @@
 
 #include "uci-engine.h"
 
-#include "state.h"
+#include "lisco.h"
 #include "think.h"
 #include "util.h"
 #include "perft.h"

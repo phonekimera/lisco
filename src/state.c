@@ -20,6 +20,6 @@
 # include <config.h>
 #endif
 
-#include "state.h"
+#include "lisco.h"
 
 Lisco lisco;

@@ -28,7 +28,7 @@
 
 #include "xalloc.h"
 
-#include "../state.h"
+#include "../lisco.h"
 #include "../uci-engine.h"
 
 #define INIT_UCI(engine_options, output, in, inname, out, outname) \

@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "state.h"
+#include "lisco.h"
 
 #define DEBUG_SEARCH 0
 

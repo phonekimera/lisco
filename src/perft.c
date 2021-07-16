@@ -25,7 +25,7 @@
 
 #include <libchi.h>
 
-#include "state.h"
+#include "lisco.h"
 #include "perft.h"
 #include "rtime.h"
 

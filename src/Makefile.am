@@ -28,7 +28,6 @@ noinst_HEADERS = \
 	perft.h \
 	rtime.h \
 	search.h \
-	state.h \
 	lisco.h \
 	liscoplay-engine.h \
 	liscoplay-game.h \

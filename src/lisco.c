@@ -32,7 +32,6 @@
 #include "xalloc.h"
 
 #include "lisco.h"
-#include "state.h"
 #include "uci-engine.h"
 
 static void greeting();

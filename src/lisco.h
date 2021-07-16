@@ -25,6 +25,8 @@
 
 #include <libchi.h>
 
+#include "uci-engine.h"
+
 #define LISCO_DEFAULT_TT_SIZE 16
 
 #define HASH_UNKNOWN ((unsigned int) 0)
@@ -32,9 +34,33 @@
 #define HASH_BETA    ((unsigned int) 2)
 #define HASH_EXACT   ((unsigned int) 3)
 
+typedef struct Lisco {
+	// The current UCI options and state.
+	UCIEngineOptions uci;
+
+	// The current position.
+	chi_pos position;
+
+	// The move found.
+	chi_move bestmove;
+
+	// Non-zero if a valid move had been found.
+	int bestmove_found;
+
+	// Move that the engine would like to ponder on.
+	chi_move pondermove;
+
+	// Non-zero if a valid move to ponder upon had been found.
+	int pondermove_found;
+
+	chi_zk_handle zk_handle;
+} Lisco;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+extern Lisco lisco;
 
 extern void init_tt_hashs(unsigned long int memuse);
 extern void clear_tt_hashs(void);
