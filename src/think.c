@@ -122,10 +122,6 @@ minimax(Tree *tree, int depth)
 
 	move_ptr = chi_legal_moves(position, moves);
 
-if (depth == tree->depth) {
-	fprintf(stderr, "number of root moves: %lu\n", move_ptr - moves);
-}
-
 	bestvalue = -INF;
 
 	++tree->line.num_moves;
@@ -213,7 +209,7 @@ think(void)
 
 	on_move = chi_on_move(&tree.position);
 
-	score = root_search(&tree, 5);
+	score = root_search(&tree, 7);
 
 	// Only print that to the real output channel.
 	//fprintf(stderr, "score: %d\n", score);
