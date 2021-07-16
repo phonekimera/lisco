@@ -30,16 +30,20 @@
 typedef struct UCIEngineOptions {
 	int debug;
 	int option_threads;
+	FILE *in;
+	const char *inname;
+	FILE *out;
+	const char *outname;
 } UCIEngineOptions;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern void uci_init(UCIEngineOptions* options);
-extern int uci_main(UCIEngineOptions *options,
-                    FILE *in, const char *inname,
-                    FILE *out, const char *outname);
+extern void uci_init(UCIEngineOptions* options,
+		FILE *in, const char *inname,
+		FILE *out, const char *outname);
+extern int uci_main(UCIEngineOptions *options);
 
 #ifdef TEST_UCI_ENGINE
 extern int uci_handle_quit(UCIEngineOptions *options);

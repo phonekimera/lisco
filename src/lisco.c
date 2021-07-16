@@ -31,6 +31,7 @@
 #include "progname.h"
 #include "xalloc.h"
 
+#include "lisco.h"
 #include "state.h"
 #include "uci-engine.h"
 
@@ -41,9 +42,7 @@ static void greeting();
 #endif
 
 int
-main (argc, argv)
-int argc;
-char *argv[];
+main (int argc, char *argv[])
 {
 	int errnum;
 
@@ -61,8 +60,10 @@ char *argv[];
 
 	chi_init_position (&lisco.position);
 
+	uci_init(&lisco.uci, stdin, "[standard input]",
+			stdout, "[standard output]");
 	chi_mm_init();
-
+	init_tt_hashs(LISCO_DEFAULT_TT_SIZE * 1 << 20);
 	errnum = chi_zk_init(&lisco.zk_handle);
 	if (errnum)
 		error (EXIT_FAILURE,
@@ -70,10 +71,7 @@ char *argv[];
 		       "Cannot initialize Zobrist key array: %s",
 		       chi_strerror (errnum));
 
-	uci_init(&lisco.uci);
-	uci_main(&lisco.uci,
-	         stdin, "[standard input]",
-	         stdout, "[standard output]");
+	uci_main(&lisco.uci);
 
 	return EXIT_SUCCESS;
 }

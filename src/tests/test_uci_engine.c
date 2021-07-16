@@ -31,12 +31,12 @@
 #include "../state.h"
 #include "../uci-engine.h"
 
-#define INIT_UCI(engine_options, output) \
+#define INIT_UCI(engine_options, output, in, inname, out, outname) \
 	UCIEngineOptions engine_options; \
 	FILE *engine_out = fmemopen((void *) output, sizeof output, "w"); \
 	\
 	memset((void *) output, 0, sizeof output); \
-	uci_init(&engine_options);
+	uci_init(&engine_options, in, inname, engine_out, "[memory stream]");
 
 #define TEST_UCI_STR(x) #x
 #define TEST_UCI_TOSTR(str) TEST_UCI_STR(str)
@@ -50,10 +50,10 @@ START_TEST(test_uci_main)
 	int status;
 	FILE *engine_in = fmemopen((void *) input, strlen(input), "r");
 
-	INIT_UCI(engine_options, output);
+	INIT_UCI(engine_options, output, engine_in, "[in memory buffer]",
+			engine_out, "[in memory buffer]");
 
-	status = uci_main(&engine_options, engine_in, "[in memory buffer]",
-	                  engine_out, "[in memory buffer]");
+	status = uci_main(&engine_options);
 	ck_assert_int_eq(status, 0);
 	expect = "Unknown command: foobar\nUnknown command: trim\n";
 
@@ -66,7 +66,7 @@ START_TEST(test_uci_quit)
 	int status;
 	UCIEngineOptions engine_options;
 
-	uci_init(&engine_options);
+	uci_init(&engine_options, NULL, NULL, NULL, NULL);
 
 	status = uci_handle_quit(&engine_options);
 	ck_assert_int_eq(status, 0);
@@ -81,7 +81,7 @@ START_TEST(test_uci_uci)
 	int status;
 	size_t output_length, expect_length;
 
-	INIT_UCI(engine_options, output);
+	INIT_UCI(engine_options, output, NULL, NULL, engine_out, "[memstream]");
 
 	command = xstrdup("uci\n");
 	status = uci_handle_uci(&engine_options, command, engine_out);
@@ -107,7 +107,7 @@ START_TEST(test_uci_debug)
 	const char output[1024];
 	int status;
 
-	INIT_UCI(engine_options, output);
+	INIT_UCI(engine_options, output, NULL, NULL, engine_out, "[memstream]");
 
 	status = uci_handle_debug(&engine_options, "on", engine_out);
 	ck_assert_int_eq(status, 1);
@@ -130,7 +130,7 @@ START_TEST(test_uci_position)
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 #define IDIOT_MATE_FEN "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3"
 
-	INIT_UCI(engine_options, output);
+	INIT_UCI(engine_options, output, NULL, NULL, engine_out, "[memstream]");
 
 	chi_init_position (&lisco.position);
 

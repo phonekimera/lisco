@@ -155,11 +155,6 @@ typedef struct tree {
 	chi_epd_pos *epd;
 } TREE;
 
-#define HASH_UNKNOWN ((unsigned int) 0)
-#define HASH_ALPHA   ((unsigned int) 1)
-#define HASH_BETA    ((unsigned int) 2)
-#define HASH_EXACT   ((unsigned int) 3)
-
 extern unsigned int history[];
 #define history_lookup(tree, move) \
 	history[(move & 0xfff) + (chi_on_move (&tree->pos) << 6)]

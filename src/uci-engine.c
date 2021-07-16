@@ -45,20 +45,27 @@ next_token(char **string)
 }
 
 void
-uci_init(UCIEngineOptions *options)
+uci_init(UCIEngineOptions *options, FILE *in, const char *inname,
+         FILE *out, const char *outname)
 {
 	memset(options, 0, sizeof *options);
 
 	options->option_threads = 1;
+	options->in = in;
+	options->inname = inname;
+	options->out = out;
+	options->outname = outname;
 }
 
 int
-uci_main(UCIEngineOptions *options, FILE *in, const char *inname,
-         FILE *out, const char *outname)
+uci_main(UCIEngineOptions *options)
 {
 	char *line = NULL;
 	size_t linecap = 0;
 	ssize_t linelen = 1;
+	FILE *in = options->in;
+	const char *inname = options->inname;
+	FILE *out = options->out;
 
 	while ((linelen = getline(&line, &linecap, in)) > 0) {
 		char *trimmed = trim(line);
