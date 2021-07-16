@@ -10,7 +10,7 @@ eval {
 };
 if ($@) {
 	warn "Please install Chess::Rep from CPAN if you want to run these tests.\n";
-	exit 0;
+	exit 77;
 }
 
 sub parse_epd;

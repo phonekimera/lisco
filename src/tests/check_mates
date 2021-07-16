@@ -1,4 +1,6 @@
 #! /usr/bin/env perl
+	eval 'exec /usr/bin/perl -wS $0 ${1+"$@"}'
+		if $running_under_some_shell;
 
 use strict;
 
@@ -13,4 +15,5 @@ $epd_file =~ s{^check_(.*)$}{epd/$1.epd};
 chdir $test_dir or die "cannot chdir to '$test_dir': $!";
 my $engine = '../lisco.exe';
 $engine = '../lisco' if !-e $engine;
-system './solve_epd.pl', $engine, $epd_file, 'sd 9' == 0 or exit 1;
+my $status = system './solve_epd.pl', $engine, $epd_file, 'sd 9';
+exit 23 if $status != 0;
