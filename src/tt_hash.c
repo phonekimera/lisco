@@ -31,10 +31,10 @@
 #define MIN_TT_SIZE (sizeof (TT_Entry) * 1000000)
 
 typedef struct tt_entry {
-    bitv64 signature;
-    chi_move best;
-    short int score;
-    unsigned short int depth;
+	bitv64 signature;
+	chi_move best;
+	short int score;
+	unsigned short int depth;
 } TT_Entry;
 
 /* The transposition table.  It is organized as follows: The first
