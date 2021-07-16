@@ -209,7 +209,7 @@ think(void)
 
 	on_move = chi_on_move(&tree.position);
 
-	score = root_search(&tree, 7);
+	score = root_search(&tree, 6);
 
 	// Only print that to the real output channel.
 	//fprintf(stderr, "score: %d\n", score);
