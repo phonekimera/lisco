@@ -24,7 +24,7 @@
 #include <string.h>
 
 #include "lisco.h"
-#include "time-control.h"
+#include "rtime.h"
 
 #define DEBUG_SEARCH 0
 
@@ -104,10 +104,11 @@ evaluate(Tree *tree)
 static void
 time_control(Tree *tree)
 {
-	long elapsed = rdifftime(rtime(), tree->start_time);
-	unsigned long long nps = 100 * (tree->nodes / elapsed);
+	rtime_t now = rtime();
+	long elapsed = rdifftime(now, tree->start_time);
+	unsigned long long nps = 1000 * (tree->nodes / elapsed);
 	tree->nodes_to_tc = nps / 10;
-	if (tree->fixed_time * 100 - elapsed < 20) {
+	if (elapsed > 1000 * tree->fixed_time - 200) {
 		tree->move_now = 1;
 	}
 }
@@ -189,7 +190,6 @@ minimax(Tree *tree, int depth)
 	return bestvalue;
 }
 
-
 static int
 root_search(Tree *tree, int max_depth)
 {
@@ -201,7 +201,7 @@ root_search(Tree *tree, int max_depth)
 
 	// Initially assume 10,000 nodes per second.  That give us 10,000 nodes
 	// to estimate the timing.
-	tree->nodes_to_tc = 10000;
+	tree->nodes_to_tc = 100000;
 
 	// Iterative deepening.
 	for (depth = 1; depth <= max_depth; ++depth) {

@@ -23,28 +23,20 @@
 # include <config.h>
 #endif
 
-#ifdef HAVE_SYS_TIMEB_H
-# include <sys/timeb.h>
-#endif
+#include <sys/time.h>
 
-#if TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
-#else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
+typedef struct timeval rtime_t;
 
-#if defined(HAVE_SYS_TIMEB_H) && (defined(HAVE_FTIME) || defined(HAVE_GETTIMEOFDAY)) 
-typedef struct timeb rtime_t;
-#else
-typedef time_t rtime_t;
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 extern rtime_t rtime(void);
-extern long int rdifftime(rtime_t end, rtime_t start);
+/* Difference in microseconds.  */
+extern long long int rdifftime(rtime_t end, rtime_t start);
+
+#ifdef __cplusplus
+extern }
+#endif
 
 #endif

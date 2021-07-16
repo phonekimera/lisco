@@ -22,50 +22,29 @@
 
 #include "rtime.h"
 
-long int 
-rdifftime(rtime_t end, rtime_t start)
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+
+long long int 
+rdifftime (rtime_t end, rtime_t start)
 {
-	/* Determine the time taken between start and the current time in
-		centi-seconds.  */
+	long long int timediff = 1000 * (end.tv_sec - start.tv_sec);
+	timediff += (end.tv_usec - start.tv_usec) / 1000;
 
-	/* Using ftime().  */
-#if defined(HAVE_SYS_TIMEB_H) && (defined(HAVE_FTIME) || defined(HAVE_GETTIMEOFDAY))
-	return ((end.time - start.time) * 100 + 
-		(end.millitm-start.millitm) / 10);
-
-	/* Using time(). */
-#else
-    return (100 * (long int) difftime (end, start));
-#endif
+	return timediff;
 }
 
 rtime_t 
-rtime() 
+rtime () 
 {
-	/* Using ftime().  */
-#if defined(HAVE_FTIME) && defined(HAVE_SYS_TIMEB_H)
-	rtime_t temp;
-	ftime (&temp);
-	return temp;
+	struct timeval now;
 
-	/* -------------------------------------------------- */
+	if (gettimeofday(&now, NULL) < 0) {
+		fprintf(stderr, "Error getting current time: %s\n",
+		        strerror(errno));
+		
+	}
 
-	/* gettimeofday replacement by Daniel Clausen.  */
-#else
-# if defined(HAVE_GETTIMEOFDAY) && defined(HAVE_SYS_TIMEB_H)
-	rtime_t temp;
-	struct timeval tmp;
-
-	gettimeofday (&tmp, NULL);
-	temp.time = tmp.tv_sec;
-	temp.millitm = tmp.tv_usec / 1000;
-	temp.timezone = 0;
-	temp.dstflag = 0;
-
-	return temp;
-
-# else
-	return (time (0));
-# endif  
-#endif
+	return now;
 }
