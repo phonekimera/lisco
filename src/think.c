@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include "lisco.h"
+#include "time-control.h"
 
 #define DEBUG_SEARCH 0
 
@@ -42,10 +43,15 @@ typedef struct Tree {
 	chi_pos position;
 	chi_move bestmove;
 	int depth;
-	unsigned long nodes;
-	unsigned long evals;
+	unsigned long long nodes;
+	unsigned long long evals;
 
 	Line line;
+
+	rtime_t start_time;
+	unsigned long long int nodes_to_tc;
+	long long int fixed_time;
+	int move_now;
 } Tree;
 
 #if DEBUG_SEARCH
@@ -95,16 +101,30 @@ evaluate(Tree *tree)
 	return score;
 }
 
+static void
+time_control(Tree *tree)
+{
+	long elapsed = rdifftime(rtime(), tree->start_time);
+	unsigned long long nps = 100 * (tree->nodes / elapsed);
+	tree->nodes_to_tc = nps / 10;
+	if (tree->fixed_time * 100 - elapsed < 20) {
+		tree->move_now = 1;
+	}
+}
+
 static int
 minimax(Tree *tree, int depth)
 {
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move *move_ptr;
 	chi_pos *position = &tree->position;
-	int bestvalue, value;
+	int bestvalue = -INF, value;
 	chi_result result;
 
 	++tree->nodes;
+	if (--tree->nodes_to_tc <= 0) {
+		time_control(tree);
+	}
 
 	if (chi_game_over(position, &result)) {
 		if (chi_result_is_white_win(result) || chi_result_is_black_win(result)) {
@@ -128,6 +148,10 @@ minimax(Tree *tree, int depth)
 
 	++tree->line.num_moves;
 	while (move_ptr-- > moves) {
+		if (tree->move_now) {
+			return bestvalue;
+		}
+
 		chi_move move = *move_ptr;
 
 		tree->line.moves[tree->line.num_moves - 1] = move;
@@ -172,6 +196,13 @@ root_search(Tree *tree, int max_depth)
 	int depth, score;
 	chi_bool forced_mate;
 
+	tree->start_time = rtime();
+	tree->fixed_time = 3;
+
+	// Initially assume 10,000 nodes per second.  That give us 10,000 nodes
+	// to estimate the timing.
+	tree->nodes_to_tc = 10000;
+
 	// Iterative deepening.
 	for (depth = 1; depth <= max_depth; ++depth) {
 #if DEBUG_SEARCH
@@ -211,7 +242,7 @@ think(void)
 
 	on_move = chi_on_move(&tree.position);
 
-	score = root_search(&tree, 6);
+	score = root_search(&tree, 11);
 
 	// Only print that to the real output channel.
 	//fprintf(stderr, "score: %d\n", score);
