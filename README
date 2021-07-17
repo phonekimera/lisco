@@ -1,2 +1,1 @@
-This is lisco, a chess engine fully conforming to the xboard protocol
-(version 2) but not conforming to any rule set up in chess books.
+This is lisco, a UCI chess engine.
