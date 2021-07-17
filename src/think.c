@@ -26,33 +26,9 @@
 #include "lisco.h"
 #include "rtime.h"
 
-#define DEBUG_SEARCH 0
+#define DEBUG_SEARCH 1
 
-#define MATE -10000
-#define INF ((-(MATE)) << 1)
-#define MAX_PLY 512
-
-typedef struct Line {
-	chi_move moves[MAX_PLY];
-	unsigned int num_moves;
-} Line;
-
-typedef struct Tree {
-	bitv64 signatures[MAX_PLY + 1];
-
-	chi_pos position;
-	chi_move bestmove;
-	int depth;
-	unsigned long long nodes;
-	unsigned long long evals;
-
-	Line line;
-
-	rtime_t start_time;
-	unsigned long long int nodes_to_tc;
-	long long int fixed_time;
-	int move_now;
-} Tree;
+static void update_tree(Tree *tree, int ply, chi_pos *position, chi_move move);
 
 #if DEBUG_SEARCH
 static void
@@ -90,6 +66,29 @@ debug_end_search(Tree *tree, chi_move move)
 }
 #endif
 
+static void
+print_pv(Tree *tree, int depth)
+{
+	FILE *out = lisco.uci.out;
+	long elapsed = rdifftime(rtime(), tree->start_time);
+	long nps = elapsed ? tree->nodes / elapsed : tree->nodes;
+	char *buf = NULL;
+	unsigned int bufsize;
+
+	int errnum = chi_coordinate_notation(tree->bestmove, chi_on_move(&tree->position),
+		&buf, &bufsize);
+	if (errnum) {
+		if (buf)
+			free(buf);
+		return;
+	}
+	fprintf(out, "info depth %d multipv 1 score cp %d nodes %llu nps %ld"
+			" tbhits %llu time %ld pv %s\n",
+			tree->depth, tree->score, tree->nodes, nps, tree->tt_hits, elapsed,
+			buf);
+	free(buf);
+}
+
 static int
 evaluate(Tree *tree)
 {
@@ -109,7 +108,7 @@ time_control(Tree *tree)
 	unsigned long long nps = 1000 * (tree->nodes / elapsed);
 	tree->nodes_to_tc = nps / 10;
 	if (elapsed > 1000 * tree->fixed_time - 200) {
-		tree->move_now = 1;
+		//tree->move_now = 1;
 	}
 }
 
@@ -121,6 +120,7 @@ minimax(Tree *tree, int depth)
 	chi_pos *position = &tree->position;
 	int bestvalue = -INF, value;
 	chi_result result;
+	int ply = tree->depth - depth;
 
 	++tree->nodes;
 	if (--tree->nodes_to_tc <= 0) {
@@ -143,6 +143,29 @@ minimax(Tree *tree, int depth)
 		}
 	}
 
+	/*
+	int alpha, beta;
+	++tree->tt_probes;
+	unsigned int tt_hit = probe_tt (position, tree->signatures[ply], depth,
+			&alpha, &beta);
+	if (tt_hit != HASH_UNKNOWN) {
+		++tree->tt_hits;
+#if DEBUG_SEARCH
+		fprintf(stderr, "\ttable hit type %u.\n", tt_hit);
+#endif
+		switch (tt_hit) {
+			case HASH_EXACT:
+				return alpha;
+
+			case HASH_BETA:
+				return beta;
+
+			case HASH_ALPHA:
+				return alpha;
+		}
+	}
+	*/
+
 	move_ptr = chi_legal_moves(position, moves);
 
 	bestvalue = -INF;
@@ -162,8 +185,14 @@ minimax(Tree *tree, int depth)
 #endif
 
 		chi_apply_move(position, move);
-		
+		update_tree(tree, ply, position, move);
+
 		value = -minimax(tree, depth - 1);
+
+		/*
+		store_tt_entry(position, tree->signatures[ply + 1], move, depth, value,
+				HASH_EXACT);
+		*/
 
 		chi_unapply_move(position, move);
 
@@ -182,6 +211,8 @@ minimax(Tree *tree, int depth)
 				fprintf(stderr, "\tNew best root move with best value %d.\n", bestvalue);
 #endif
 				tree->bestmove = move;
+				tree->score = bestvalue;
+				print_pv(tree, depth);
 			}
 		}
 	}
@@ -197,7 +228,7 @@ root_search(Tree *tree, int max_depth)
 	chi_bool forced_mate;
 
 	tree->start_time = rtime();
-	tree->fixed_time = 3;
+	tree->fixed_time = 120;
 
 	// Initially assume 10,000 nodes per second.  That give us 10,000 nodes
 	// to estimate the timing.
@@ -236,16 +267,30 @@ think(void)
 
 	if (chi_game_over(&lisco.position, NULL)) return;
 
+#if DEBUG_SEARCH
+	setvbuf(stderr, (char *) NULL, _IONBF, 0);
+	setvbuf(lisco.uci.out, (char *) NULL, _IONBF, 0);
+#endif
+
 	memset(&tree, 0, sizeof tree);
 
 	chi_copy_pos(&tree.position, &lisco.position);
 
 	on_move = chi_on_move(&tree.position);
 
-	score = root_search(&tree, 11);
+	tree.signatures[0] = chi_zk_signature(lisco.zk_handle, &tree.position);
+
+	score = root_search(&tree, 110);
 
 	// Only print that to the real output channel.
 	//fprintf(stderr, "score: %d\n", score);
 	//fprintf(stderr, "info nodes searched: %lu\n", tree.nodes);
 	//fprintf(stderr, "info nodes evaluated: %lu\n", tree.evals);
+}
+
+static void
+update_tree(Tree *tree, int ply, chi_pos *position, chi_move move)
+{
+	tree->signatures[ply + 1] = chi_zk_update_signature(lisco.zk_handle,
+		tree->signatures[ply], move, chi_on_move(position));
 }

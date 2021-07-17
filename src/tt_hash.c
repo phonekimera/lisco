@@ -28,10 +28,20 @@
 
 #include "lisco.h"
 
+#define DEBUG_TT 1
+
+#define HASH_UNKNOWN ((unsigned int) 0)
+#define HASH_ALPHA   ((unsigned int) 1)
+#define HASH_BETA    ((unsigned int) 2)
+#define HASH_EXACT   ((unsigned int) 3)
+
 #define MIN_TT_SIZE (sizeof (TT_Entry) * 1000000)
 
 typedef struct tt_entry {
 	bitv64 signature;
+	// FIXME! This wastes a lot of space! For the move we just need the
+	// bare information. The rest can be restored laster.  And for the depth
+	// we need a lot less space.
 	chi_move best;
 	short int score;
 	unsigned short int depth;
@@ -90,11 +100,11 @@ probe_tt (chi_pos *pos, bitv64 signature, int depth, int *alpha, int *beta)
 		hit = tt + offset;
 	}
 
-#if DEBUG_BRAIN
-    fprintf (stderr, "TTProbe at depth %d (on move: %s, ",
-	     depth, wtm ? "white" : "black");
-    fprintf (stderr, "alpha: %d, beta: %d, signature: 0x%016llx)\n", 
-	     *alpha, *beta, signature);
+#if DEBUG_TT
+	fprintf (stderr, "TTProbe at depth %d (on move: %s, ",
+			depth, wtm ? "white" : "black");
+	fprintf (stderr, "alpha: %d, beta: %d, signature: %llu)\n", 
+			*alpha, *beta, signature);
 #endif
 
 	if (hit->signature == signature) {
@@ -102,7 +112,7 @@ probe_tt (chi_pos *pos, bitv64 signature, int depth, int *alpha, int *beta)
 
 	if (hit->depth >= depth) {
 		if (flags == HASH_EXACT) {
-#if DEBUG_BRAIN
+#if DEBUG_TT
 		fprintf (stderr, 
 			 "Hit for depth %d (score: %d, flags: HASH_EXACT, ",
 			 hit->depth, hit->score);
@@ -112,7 +122,7 @@ probe_tt (chi_pos *pos, bitv64 signature, int depth, int *alpha, int *beta)
 			*alpha = hit->score;
 			return HASH_EXACT;
 	} else if (flags == HASH_ALPHA && hit->score >= *beta) {
-#if DEBUG_BRAIN
+#if DEBUG_TT
 		fprintf (stderr, 
 			 "Hit for depth %d (score: %d, flags: HASH_ALPHA, ",
 			 hit->depth, hit->score);
@@ -122,7 +132,7 @@ probe_tt (chi_pos *pos, bitv64 signature, int depth, int *alpha, int *beta)
 		*alpha = hit->score;
 		return HASH_ALPHA;
 	} else if (flags == HASH_BETA && hit->score <= *alpha) {
-#if DEBUG_BRAIN
+#if DEBUG_TT
 		fprintf (stderr, 
 			 "Hit for depth %d (score: %d, flags: HASH_BETA, ",
 			 hit->depth, hit->score);
@@ -132,14 +142,14 @@ probe_tt (chi_pos *pos, bitv64 signature, int depth, int *alpha, int *beta)
 		*beta = hit->score;
 		return HASH_BETA;
 	} else if (flags == HASH_ALPHA) {
-#if DEBUG_BRAIN
+#if DEBUG_TT
 		fprintf (stderr, "HASH_ALPHA score %d too high at depth %d, ",
 			 hit->score, depth);
 		my_print_move (hit->best & 0x3fffffff);
 		fprintf (stderr, "\n");
 #endif
 	} else if (flags == HASH_BETA) {
-#if DEBUG_BRAIN
+#if DEBUG_TT
 		fprintf (stderr, "HASH_BETA score %d too low at depth %d, ",
 			 hit->score, depth);
 		my_print_move (hit->best & 0x3fffffff);
@@ -154,8 +164,8 @@ probe_tt (chi_pos *pos, bitv64 signature, int depth, int *alpha, int *beta)
 		}
 	}
 
-#if DEBUG_BRAIN
-    fprintf (stderr, "TTProbe failed\n");
+#if DEBUG_TT
+	fprintf (stderr, "TTProbe failed\n");
 #endif
 
 	return HASH_UNKNOWN;

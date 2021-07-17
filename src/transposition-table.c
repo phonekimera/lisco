@@ -20,37 +20,59 @@
 # include <config.h>
 #endif
 
-#include <check.h>
+#include <string.h>
+#include <sys/types.h>
 
-#include "libchi.h"
+#include <libchi.h>
 
-extern Suite *tt_suite();
-extern Suite *uci_engine_suite();
-extern Suite *perft_suite();
+#include "lisco.h"
+#include "util.h"
 
-#ifdef DEBUG_XMALLOC
-# include "../xmalloc-debug.c"
-#endif
+typedef struct TTEntry {
+	unsigned age: 9;
+	unsigned type: 2;
+	unsigned move: 22;
+	unsigned draft: 15;
+	unsigned value: 16;
+	unsigned signature_hi: 32;
+	unsigned signature_lo: 32;
+} TTEntry;
 
-int
-main(int argc, char *argv[])
+// Roughly 0.6 MB.
+#define MIN_TT_SIZE (sizeof (TTEntry) * 20000)
+
+static TTEntry *tt = NULL;
+static void *tt_free_me = NULL;
+static size_t tt_size = 0;
+
+void
+tt_init(size_t size)
 {
-	int failed = 0;
-	SRunner *runner;
+	tt_destroy();
 
-#ifdef DEBUG_XMALLOC
-	init_xmalloc_debug();
-#endif
+	if (size < MIN_TT_SIZE)
+		size = MIN_TT_SIZE;
+	
+	tt_size = size;
 
-	chi_mm_init();
+	tt = xmalloc_aligned(&tt_free_me, 64, tt_size * sizeof *tt);
 
-	runner = srunner_create(tt_suite());
-	srunner_add_suite(runner, uci_engine_suite());
-	srunner_add_suite(runner, perft_suite());
+	tt_clear();
+}
 
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
+void
+tt_clear(void)
+{
+	memset(tt, 0, tt_size * sizeof *tt);
+}
 
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+void
+tt_destroy(void)
+{
+	if (tt_free_me)
+		free(tt_free_me);
+	
+	tt_free_me = NULL;
+	tt = NULL;
+	tt_size = 0;
 }

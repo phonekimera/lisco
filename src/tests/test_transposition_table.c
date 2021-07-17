@@ -16,41 +16,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define TEST_UCI_ENGINE 1
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
+#include <stdio.h>
+
 #include <check.h>
 
-#include "libchi.h"
+#include "lisco.h"
 
-extern Suite *tt_suite();
-extern Suite *uci_engine_suite();
-extern Suite *perft_suite();
-
-#ifdef DEBUG_XMALLOC
-# include "../xmalloc-debug.c"
-#endif
-
-int
-main(int argc, char *argv[])
+START_TEST(test_tt_init)
 {
-	int failed = 0;
-	SRunner *runner;
+	tt_init(100000);
+	tt_clear();
+	tt_destroy();
+}
+END_TEST
 
-#ifdef DEBUG_XMALLOC
-	init_xmalloc_debug();
-#endif
+Suite *
+tt_suite(void)
+{
+	Suite *suite;
+	TCase *tc_basic;
 
-	chi_mm_init();
+	suite = suite_create("Main Transposition table");
 
-	runner = srunner_create(tt_suite());
-	srunner_add_suite(runner, uci_engine_suite());
-	srunner_add_suite(runner, perft_suite());
+	tc_basic = tcase_create("Basic functions");
+	tcase_add_test(tc_basic, test_tt_init);
+	suite_add_tcase(suite, tc_basic);
 
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
-
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	return suite;
 }

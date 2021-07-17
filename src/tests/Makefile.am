@@ -47,8 +47,10 @@ check_lisco_SOURCES = \
 		../perft.c \
 		../rtime.c \
 		../think.c \
+		../transposition-table.c \
 		../uci-engine.c \
 		../util.c \
+		test_transposition_table.c \
 		test_uci_engine.c \
 		test_perft.c \
 		check_lisco.c

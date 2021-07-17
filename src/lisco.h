@@ -25,14 +25,14 @@
 
 #include <libchi.h>
 
+#include "rtime.h"
 #include "uci-engine.h"
 
 #define LISCO_DEFAULT_TT_SIZE 16
 
-#define HASH_UNKNOWN ((unsigned int) 0)
-#define HASH_ALPHA   ((unsigned int) 1)
-#define HASH_BETA    ((unsigned int) 2)
-#define HASH_EXACT   ((unsigned int) 3)
+#define MATE -10000
+#define INF ((-(MATE)) << 1)
+#define MAX_PLY 512
 
 typedef struct Lisco {
 	// The current UCI options and state.
@@ -56,6 +56,34 @@ typedef struct Lisco {
 	chi_zk_handle zk_handle;
 } Lisco;
 
+typedef struct Line {
+	chi_move moves[MAX_PLY];
+	unsigned int num_moves;
+} Line;
+
+typedef struct Tree {
+	bitv64 signatures[MAX_PLY + 1];
+
+	chi_pos position;
+	chi_move bestmove;
+	int score;
+	int depth;
+	unsigned long long nodes;
+	unsigned long long evals;
+
+	Line line;
+
+	rtime_t start_time;
+	unsigned long long int nodes_to_tc;
+	long long int fixed_time;
+	int move_now;
+
+	chi_move hash_move[MAX_PLY];
+
+	unsigned long long tt_probes;
+	unsigned long long tt_hits;
+} Tree;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -63,15 +91,17 @@ extern "C" {
 extern Lisco lisco;
 
 // Main transposition table.
-extern void init_tt_hashs(unsigned long int memuse);
-extern void clear_tt_hashs(void);
-extern unsigned int probe_tt (chi_pos *pos, bitv64 signature, int depth,
-	int *alpha, int *beta);
-/* Used for sorting moves.  */
-extern chi_move best_tt_move (chi_pos *pos, bitv64 signature);
-extern void store_tt_entry (
-		chi_pos *pos, bitv64 signature, chi_move move, unsigned short int depth,
-		short int score, unsigned int flags);
+
+/* Create a new transposition table of approximatel SIZE bytes and destroy
+ * an old one.
+ */
+extern void tt_init(size_t size);
+
+/* Clear all entries in the transposition table.  */
+extern void tt_clear(void);
+
+/* Completely destroy the transposition table.  */
+extern void tt_destroy(void);
 
 #ifdef __cplusplus
 extern }

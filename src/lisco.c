@@ -62,7 +62,7 @@ main (int argc, char *argv[])
 	uci_init(&lisco.uci, stdin, "[standard input]",
 			stdout, "[standard output]");
 	chi_mm_init();
-	init_tt_hashs(LISCO_DEFAULT_TT_SIZE * 1 << 20);
+	tt_init(LISCO_DEFAULT_TT_SIZE * 1 << 20);
 	errnum = chi_zk_init(&lisco.zk_handle);
 	if (errnum)
 		error (EXIT_FAILURE,

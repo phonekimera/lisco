@@ -43,7 +43,8 @@ noinst_HEADERS = \
 	xmalloca-debug.h
 
 lisco_SOURCES = lisco.c uci-engine.c util.c think.c state.c perft.c \
-	rtime.c tt_hash.c
+	rtime.c transposition-table.c
+
 # FIXME! Remove liscoplay. Can be replaced with cutechess-cli.
 liscoplay_SOURCES = liscoplay.c liscoplay-engine.c log.c liscoplay-game.c \
 	liscoplay-loop.c util.c liscoplay-option.c xboard-feature.c display-board.c \

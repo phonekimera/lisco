@@ -23,6 +23,8 @@
 # include <config.h>
 #endif
 
+#include <sys/types.h>
+
 #include "libchi.h"
 
 #ifdef __cplusplus
@@ -40,6 +42,11 @@ extern void time_subtract(struct timeval *total, const struct timeval *elapsed);
 extern chi_bool time_is_left(const struct timeval *deadline,
                              const struct timeval *now);
 extern long num_cpus(void);
+
+/* Allocates SIZE bytes aligned to ALIGNMENT.  The block to be freed is stored
+ * in TO_FREE while the aligned block is returned.
+ */
+extern void *xmalloc_aligned(void **to_free, unsigned alignement, size_t size);
 
 #ifdef __cplusplus
 }
