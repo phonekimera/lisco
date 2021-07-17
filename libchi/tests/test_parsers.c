@@ -390,7 +390,6 @@ START_TEST(test_parse_move_san_ambiguous_rank)
 }
 END_TEST
 
-
 START_TEST(test_parse_move_san_ambiguous_file_and_rank)
 {
 	chi_pos pos;
@@ -428,18 +427,84 @@ START_TEST(test_parse_move_san_ambiguous_file_and_rank)
 }
 END_TEST
 
+START_TEST(test_move_material_capture)
+{
+	const char *fen = "8/1k1q4/4P3/1K6/8/8/8/8 w - - 0 1";
+	chi_pos position;
+	int errnum;
+	chi_move move;
+
+	errnum = chi_set_position(&position, fen);
+	ck_assert_int_eq(errnum, 0);
+	errnum = chi_parse_move(&position, &move, "exd7");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_material(move), 9);
+}
+
+START_TEST(test_move_material_ep)
+{
+	const char *fen = "8/1k6/8/1K6/4pP2/8/8/8 b - f3 0 1";
+	chi_pos position;
+	int errnum;
+	chi_move move;
+
+	errnum = chi_set_position(&position, fen);
+	ck_assert_int_eq(errnum, 0);
+	errnum = chi_parse_move(&position, &move, "exf");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_material(move), 1);
+}
+
+#include <stdio.h>
+START_TEST(test_move_material_promotion)
+{
+	const char *fen = "qb6/knP5/pp6/8/4K3/8/8/8 w - - 0 1";
+	chi_pos position;
+	int errnum;
+	chi_move move;
+
+	errnum = chi_set_position(&position, fen);
+	ck_assert_int_eq(errnum, 0);
+	errnum = chi_parse_move(&position, &move, "c8=N#");
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_int_eq(chi_move_material(move), 2);
+}
+
+START_TEST(test_move_material_promotion_capture)
+{
+	const char *fen = "1k1q4/4P3/1K6/8/8/8/8/8 w - - 0 1";
+	chi_pos position;
+	int errnum;
+	chi_move move;
+
+	errnum = chi_set_position(&position, fen);
+	ck_assert_int_eq(errnum, 0);
+	errnum = chi_parse_move(&position, &move, "exd8=Q#");
+	ck_assert_int_eq(errnum, 0);
+	fprintf(stderr, "Move: 0x%08x\n", move);
+	ck_assert_int_eq(chi_move_material(move), 17);
+}
+
 Suite *
 parsers_suite(void)
 {
 	Suite *suite;
 	TCase *tc_bugs;
     TCase *tc_san;
+	TCase *tc_move_material;
 
 	suite = suite_create("Parsers");
 
 	tc_bugs = tcase_create("Bugs");
 	tcase_add_test(tc_bugs, test_parse_move_san_bug);
 	suite_add_tcase(suite, tc_bugs);
+
+	tc_move_material = tcase_create("Move Material Balance");
+	tcase_add_test(tc_move_material, test_move_material_capture);
+	tcase_add_test(tc_move_material, test_move_material_ep);
+	tcase_add_test(tc_move_material, test_move_material_promotion);
+	tcase_add_test(tc_move_material, test_move_material_promotion_capture);
+	suite_add_tcase(suite, tc_move_material);
 
 	tc_san = tcase_create("SAN");
 	tcase_add_test(tc_san, test_parse_move_san_pawn);

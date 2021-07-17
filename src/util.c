@@ -179,8 +179,6 @@ xmalloc_aligned(void **to_free, unsigned alignment, size_t size)
 	unsigned long long a64 = (unsigned long long) alignment;
 	*to_free = xmalloc(size + alignment - 1);
 	unsigned long long address = (unsigned long long) *to_free;
-fprintf(stderr, "address was: %p\n", (void *) address);
 	address = (address + a64 - 1) & ~(a64 - 1);
-fprintf(stderr, "address is: %p\n", (void *) address);
 	return (void *) address;
 }

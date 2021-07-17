@@ -657,8 +657,8 @@ fill_move (chi_pos *pos, chi_move *move)
 		}
 	}
 
-	*move |= (material << 22) | (is_ep << 12) | 
-	(victim << 16) | (attacker << 13);
+	*move |= (material << 22) | (is_ep << 12)
+			| (victim << 16) | (attacker << 13);
 }
 
 /*

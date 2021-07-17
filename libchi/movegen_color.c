@@ -121,31 +121,30 @@ chi_generate_color_captures(chi_pos *pos, chi_position_context *ctx,
 					chi_move filled;
 
 					if (target_square & HER_KNIGHTS(pos)) {
-						material = 3 << 22;
+						material = 3;
 						victim = knight << 16;
 					} else if (target_square & HER_BISHOPS(pos)) {
-						material = 3 << 22;
+						material = 3;
 						victim = bishop << 16;
 						if (target_square & HER_ROOKS(pos)) {
-							material = 9 << 22;
+							material = 9;
 							victim = queen << 16;
 						}
 					} else if (target_square & HER_ROOKS(pos)) {
-						material = 5 << 22;
+						material = 5;
 						victim = rook << 16;
 					} else if (to == ep_offset) {
 						ep_flag = 0x1000;
 					}
 
-					filled = move | victim | ep_flag | material;
-
 					if (to_mask & PAWN_PROMOTE_RANK_MASK) {
-						*moves++ = filled | (queen << 19) | (8 << 22);
-						*moves++ = filled | (rook << 19) | (4 << 22);
-						*moves++ = filled | (bishop << 19) | (2 << 22);
-						*moves++ = filled | (knight << 19) | (2 << 22);
+						filled = move | victim | ep_flag;
+						*moves++ = filled | (queen << 19) | ((8 + material) << 22);
+						*moves++ = filled | (rook << 19) | ((4 + material) << 22);
+						*moves++ = filled | (bishop << 19) | ((2 + material) << 22);
+						*moves++ = filled | (knight << 19) | ((2 + material) << 22);
 					} else {
-						*moves++ = filled;
+						*moves++ = move | victim | ep_flag | (material << 22);
 					}
 				}
 			}
@@ -163,31 +162,31 @@ chi_generate_color_captures(chi_pos *pos, chi_position_context *ctx,
 					chi_move filled;
 
 					if (target_square & HER_KNIGHTS(pos)) {
-						material = 3 << 22;
+						material = 3;
 						victim = knight << 16;
 					} else if (target_square & HER_BISHOPS(pos)) {
-						material = 3 << 22;
+						material = 3;
 						victim = bishop << 16;
+						// FIXME! This should be if/else!
 						if (target_square & HER_ROOKS(pos)) {
-							material = 9 << 22;
+							material = 9;
 							victim = queen << 16;
 						}
 					} else if (target_square & HER_ROOKS(pos)) {
-						material = 5 << 22;
+						material = 5;
 						victim = rook << 16;
 					} else if (to == ep_offset) {
 						ep_flag = 0x1000;
 					}
 
-					filled = move | victim | ep_flag | material;
-
 					if (to_mask & PAWN_PROMOTE_RANK_MASK) {
-						*moves++ = filled | (queen << 19) | (8 << 22);
-						*moves++ = filled | (rook << 19) | (4 << 22);
-						*moves++ = filled | (bishop << 19) | (2 << 22);
-						*moves++ = filled | (knight << 19) | (2 << 22);
+						filled = move | victim | ep_flag;
+						*moves++ = filled | (queen << 19) | ((8 + material) << 22);
+						*moves++ = filled | (rook << 19) | ((4 + material) << 22);
+						*moves++ = filled | (bishop << 19) | ((2 + material) << 22);
+						*moves++ = filled | (knight << 19) | ((2 + material) << 22);
 					} else {
-						*moves++ = filled;
+						*moves++ = move | victim | ep_flag | (material << 22);
 					}
 				}
 			}
