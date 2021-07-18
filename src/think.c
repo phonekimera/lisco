@@ -26,7 +26,7 @@
 #include "lisco.h"
 #include "rtime.h"
 
-#define DEBUG_SEARCH 1
+#define DEBUG_SEARCH 0
 
 static void update_tree(Tree *tree, int ply, chi_pos *position, chi_move move);
 
