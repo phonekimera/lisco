@@ -125,8 +125,6 @@ time_control(Tree *tree)
 static int
 alphabeta(Tree *tree, int depth, int alpha, int beta)
 {
-	chi_move moves[CHI_MAX_MOVES];
-	chi_move *move_ptr;
 	chi_pos *position = &tree->position;
 	int value;
 	chi_result result;
@@ -172,15 +170,16 @@ alphabeta(Tree *tree, int depth, int alpha, int beta)
 	}
 	*/
 
-	move_ptr = chi_legal_moves(position, moves);
+	MoveSelector selector;
+	move_selector_init(&selector, tree,
+		tree->depth == depth && tree->bestmove ? tree->bestmove : 0);
 
 	++tree->line.num_moves;
-	while (move_ptr-- > moves) {
+	chi_move move;
+	while ((move = move_selector_next(&selector))) {
 		if (tree->move_now) {
 			return alpha;
 		}
-
-		chi_move move = *move_ptr;
 
 		tree->line.moves[tree->line.num_moves - 1] = move;
 
