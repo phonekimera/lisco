@@ -13,7 +13,7 @@ if ($@) {
 	exit 77;
 }
 
-use constant DEBUG => 1;
+use constant DEBUG => 0;
 
 sub parse_epd;
 sub convert_san;
@@ -276,6 +276,7 @@ sub uci_init_engine {
 
 	foreach my $cmd ('uci', @commands) {
 		$cin->print("$cmd\n");
+		print STDERR ">>> $cmd\n" if DEBUG;
 	}
 }
 
@@ -284,6 +285,7 @@ sub xboard_init_engine {
 
 	foreach my $cmd ('xboard', 'protover 2', 'post', 'easy', @commands) {
 		$cin->print("$cmd\n");
+		print STDERR ">>> $cmd\n" if DEBUG;
 	}
 }
 
@@ -291,12 +293,14 @@ sub uci_set_position {
 	my ($cin, $cout, $fen) = @_;
 
 	$cin->print("position fen $fen\n");
+	print STDERR ">>> position fen $fen\n" if DEBUG;
 }
 
 sub xboard_set_position {
 	my ($cin, $cout, $fen) = @_;
 
 	$cin->print("setboard $fen\n");
+	print STDERR ">>> setboard $fen\n";
 }
 
 sub uci_go {
@@ -305,7 +309,10 @@ sub uci_go {
 	die if !$seconds;
 
 	my $mseconds = 1000 * $seconds;
-	$cin->print("ucinewgame\ngo movetime $mseconds\n");
+	$cin->print("ucinewgame\n");
+	print STDERR ">>> ucinewgame\n" if DEBUG;
+	$cin->print("go movetime $mseconds\n");
+	print STDERR ">>> go movetime $mseconds\n" if DEBUG;
 }
 
 sub xboard_go {
@@ -314,7 +321,10 @@ sub xboard_go {
 	die if !$seconds;
 
 	my $cseconds = 100 * $seconds;
-	$cin->print("time $cseconds\ngo\n");
+	$cin->print("time $cseconds\n");
+	print STDERR ">>> time $cseconds\n";
+	$cin->print("go\n");
+	print STDERR ">>> go\n";
 }
 
 sub uci_on_output {

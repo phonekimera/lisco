@@ -53,6 +53,10 @@ main (int argc, char *argv[])
 
 	atexit(close_stdout);
 
+	setvbuf(stdin, (char *) NULL, _IONBF, 0);
+	setvbuf(stdout, (char *) NULL, _IONBF, 0);
+	setvbuf(stderr, (char *) NULL, _IONBF, 0);
+
 	greeting();
 
 	memset(&lisco, 0, sizeof lisco);

@@ -275,11 +275,6 @@ think(void)
 
 	if (chi_game_over(&lisco.position, NULL)) return;
 
-#if DEBUG_SEARCH
-	setvbuf(stderr, (char *) NULL, _IONBF, 0);
-	setvbuf(lisco.uci.out, (char *) NULL, _IONBF, 0);
-#endif
-
 	memset(&tree, 0, sizeof tree);
 
 	chi_copy_pos(&tree.position, &lisco.position);
