@@ -633,23 +633,23 @@ extern int chi_unmake_move(chi_pos* chi_arg_pos, chi_move chi_arg_move);
 extern int chi_unapply_move(chi_pos* chi_arg_pos, chi_move chi_arg_move);
 
 /* Internal: Pre-compute attack masks etc.  */
-void chi_init_white_position_context(chi_pos *pos, chi_position_context *ctx);
-void chi_init_black_position_context(chi_pos *pos, chi_position_context *ctx);
+void chi_init_white_position_context(const chi_pos *pos, chi_position_context *ctx);
+void chi_init_black_position_context(const chi_pos *pos, chi_position_context *ctx);
 
 /* Internal: Generate all pseudo-legal captures for a given position.  */
 extern chi_move* chi_generate_captures(
-	chi_pos* chi_arg_pos,
+	const chi_pos* chi_arg_pos,
 	chi_position_context *ctx,
 	chi_move* chi_arg_movestack);
 
 /* Internal: Generate all pseudo-legal non-captures for a given position.  */
 extern chi_move* chi_generate_non_captures(
-	chi_pos* chi_arg_pos, 
+	const chi_pos* chi_arg_pos, 
 	chi_position_context *ctx,
 	chi_move* chi_arg_movestack);
 
 /* Generate all legal moves for a given position.  */
-extern chi_move* chi_legal_moves(chi_pos* chi_arg_pos, 
+extern chi_move* chi_legal_moves(const chi_pos* chi_arg_pos, 
 				 chi_move* chi_arg_movestack);
 
 /* Return the result of a given position.  The function *only* reports
@@ -657,81 +657,81 @@ extern chi_move* chi_legal_moves(chi_pos* chi_arg_pos,
  * material.  The 50-moves rule is not checked, and draws by repetition
  * are also ignored as they must be claimed.
  */
-extern chi_bool chi_game_over(chi_pos *pos, chi_result *result);
+extern chi_bool chi_game_over(const chi_pos *pos, chi_result *result);
 
 /* Check if a given move is legal (done by generating all legal moves
    and trying to find it there.  */
-extern int chi_check_legality(chi_pos* chi_arg_pos, 
-			      chi_move chi_arg_move);
+extern int chi_check_legality(const chi_pos* chi_arg_pos, 
+		chi_move chi_arg_move);
 
 /* Check if the side to move is in check.  */
-extern int chi_check_check(chi_pos* chi_arg_pos);
+extern int chi_check_check(const chi_pos* chi_arg_pos);
 
 /* Internal. */
 extern chi_move* chi_generate_white_captures(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_black_captures(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 
 /* Internal. */
 extern chi_move* chi_generate_white_non_captures(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_black_non_captures(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 
 /* Internal: A whole bunch of functions that let you generate (potentially
    expensive to generate) moves step by step.  */
 extern chi_move* chi_generate_pawn_double_steps(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_white_pawn_double_steps(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_black_pawn_double_steps(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 
 extern chi_move* chi_generate_pawn_single_steps(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_white_pawn_single_steps(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_black_pawn_single_steps(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 
 extern chi_move* chi_generate_knight_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_white_knight_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_black_knight_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 
 extern chi_move* chi_generate_bishop_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_white_bishop_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_black_bishop_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 
 extern chi_move* chi_generate_rook_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_white_rook_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_black_rook_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 
 extern chi_move* chi_generate_king_castling_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_white_king_castling_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_black_king_castling_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 
 extern chi_move* chi_generate_king_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_white_king_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 extern chi_move* chi_generate_black_king_moves(
-		chi_pos*, chi_position_context *ctx, chi_move*);
+		const chi_pos*, chi_position_context *ctx, chi_move*);
 
-extern int chi_white_check_check(chi_pos*);
-extern int chi_black_check_check(chi_pos*);
+extern int chi_white_check_check(const chi_pos*);
+extern int chi_black_check_check(const chi_pos*);
 
 /* Update the material count for a position, regardless of its former
    value.  The function will never fail.  */

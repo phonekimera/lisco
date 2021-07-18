@@ -23,9 +23,7 @@
 #include <libchi.h>
 
 int
-chi_check_legality (pos, usermove)
-     chi_pos* pos;
-     chi_move usermove;
+chi_check_legality (const chi_pos *pos, chi_move usermove)
 {
     chi_move moves[CHI_MAX_MOVES];
     chi_move* move_ptr;

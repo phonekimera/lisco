@@ -43,16 +43,18 @@ check_liscoplay_SOURCES = \
 		check_liscoplay.c
 
 check_lisco_SOURCES = \
-		../state.c \
+		../move-selector.c \
 		../perft.c \
 		../rtime.c \
+		../state.c \
 		../think.c \
 		../transposition-table.c \
 		../uci-engine.c \
 		../util.c \
+		test_move_selector.c \
+		test_perft.c \
 		test_transposition_table.c \
 		test_uci_engine.c \
-		test_perft.c \
 		check_lisco.c
 
 check_common_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)

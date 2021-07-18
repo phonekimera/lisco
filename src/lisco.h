@@ -84,6 +84,11 @@ typedef struct Tree {
 	unsigned long long tt_hits;
 } Tree;
 
+typedef struct MoveSelector {
+	chi_move moves[CHI_MAX_MOVES];
+	size_t num_moves;
+} MoveSelector;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -102,6 +107,11 @@ extern void tt_clear(void);
 
 /* Completely destroy the transposition table.  */
 extern void tt_destroy(void);
+
+/* Initialize a move selector from a search tree TREE.  An optional
+ * BESTMOVE is always returned first.
+ */
+void move_selector_init(MoveSelector *self, const Tree *tree, chi_move bestmove);
 
 #ifdef __cplusplus
 extern }

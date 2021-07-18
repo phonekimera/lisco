@@ -23,7 +23,7 @@
 #include <libchi.h>
 
 chi_move*
-chi_legal_moves(chi_pos *pos, chi_move *move_stack)
+chi_legal_moves(const chi_pos *pos, chi_move *move_stack)
 {
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move* move_ptr;

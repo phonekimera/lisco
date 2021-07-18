@@ -25,7 +25,7 @@
 #include "bitmasks.h"
 
 chi_move * 
-chi_generate_captures(chi_pos *pos, chi_position_context *ctx, chi_move *moves)
+chi_generate_captures(const chi_pos *pos, chi_position_context *ctx, chi_move *moves)
 {
 	if (chi_on_move(pos) == chi_white)
 		return chi_generate_white_captures(pos, ctx, moves);
@@ -34,7 +34,7 @@ chi_generate_captures(chi_pos *pos, chi_position_context *ctx, chi_move *moves)
 }
 
 chi_move * 
-chi_generate_non_captures(chi_pos *pos, chi_position_context *ctx,
+chi_generate_non_captures(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	if (chi_on_move (pos) == chi_white)
@@ -44,7 +44,7 @@ chi_generate_non_captures(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move * 
-chi_generate_pawn_double_steps(chi_pos *pos, chi_position_context *ctx,
+chi_generate_pawn_double_steps(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	if (chi_on_move (pos) == chi_white)
@@ -54,7 +54,7 @@ chi_generate_pawn_double_steps(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move * 
-chi_generate_pawn_single_steps(chi_pos *pos, chi_position_context *ctx,
+chi_generate_pawn_single_steps(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	if (chi_on_move (pos) == chi_white)
@@ -64,7 +64,7 @@ chi_generate_pawn_single_steps(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move * 
-chi_generate_knight_moves(chi_pos *pos, chi_position_context *ctx,
+chi_generate_knight_moves(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	if (chi_on_move (pos) == chi_white)
@@ -74,7 +74,7 @@ chi_generate_knight_moves(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move * 
-chi_generate_bishop_moves(chi_pos *pos, chi_position_context *ctx,
+chi_generate_bishop_moves(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	if (chi_on_move (pos) == chi_white)
@@ -84,7 +84,7 @@ chi_generate_bishop_moves(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move * 
-chi_generate_rook_moves(chi_pos *pos, chi_position_context *ctx,
+chi_generate_rook_moves(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	if (chi_on_move (pos) == chi_white)
@@ -94,7 +94,7 @@ chi_generate_rook_moves(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move * 
-chi_generate_king_moves(chi_pos *pos, chi_position_context *ctx,
+chi_generate_king_moves(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	if (chi_on_move (pos) == chi_white)
@@ -104,7 +104,7 @@ chi_generate_king_moves(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move * 
-chi_generate_king_castling_moves(chi_pos *pos, chi_position_context *ctx,
+chi_generate_king_castling_moves(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	if (chi_on_move (pos) == chi_white)
@@ -114,7 +114,7 @@ chi_generate_king_castling_moves(chi_pos *pos, chi_position_context *ctx,
 }
 
 int
-chi_check_check(chi_pos *pos)
+chi_check_check(const chi_pos *pos)
 {
 	if (chi_on_move (pos) == chi_white)
 		return chi_white_check_check (pos);

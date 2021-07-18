@@ -33,7 +33,7 @@
 #endif
 
 void
-chi_init_color_position_context(chi_pos *pos, chi_position_context *ctx)
+chi_init_color_position_context(const chi_pos *pos, chi_position_context *ctx)
 {
 	memset(ctx, 0, sizeof *ctx);
 
@@ -70,7 +70,7 @@ chi_init_color_position_context(chi_pos *pos, chi_position_context *ctx)
 }
 
 chi_move *
-chi_generate_color_captures(chi_pos *pos, chi_position_context *ctx,
+chi_generate_color_captures(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	bitv64 her_squares = HER_PIECES(pos);
@@ -237,7 +237,7 @@ chi_generate_color_captures(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move *
-chi_generate_color_pawn_double_steps(chi_pos *pos, chi_position_context *ctx,
+chi_generate_color_pawn_double_steps(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	bitv64 piece_mask = PAWN_START_MASK & MY_PAWNS(pos);
@@ -268,7 +268,7 @@ chi_generate_color_pawn_double_steps(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move *
-chi_generate_color_pawn_single_steps(chi_pos *pos, chi_position_context *ctx,
+chi_generate_color_pawn_single_steps(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	bitv64 piece_mask = MY_PAWNS(pos) & ~PAWN_PRE_PROMOTE_RANK_MASK;
@@ -293,7 +293,7 @@ chi_generate_color_pawn_single_steps(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move *
-chi_generate_color_knight_moves(chi_pos *pos, chi_position_context *ctx,
+chi_generate_color_knight_moves(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	bitv64 piece_mask = MY_KNIGHTS(pos);
@@ -347,7 +347,7 @@ chi_generate_color_knight_moves(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move *
-chi_generate_color_bishop_moves(chi_pos *pos, chi_position_context *ctx,
+chi_generate_color_bishop_moves(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	for (size_t i = 0; i < ctx->num_bishop_attack_masks; ++i) {
@@ -402,7 +402,7 @@ chi_generate_color_bishop_moves(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move *
-chi_generate_color_rook_moves(chi_pos *pos, chi_position_context *ctx,
+chi_generate_color_rook_moves(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	for (size_t i = 0; i < ctx->num_rook_attack_masks; ++i) {
@@ -459,7 +459,7 @@ chi_generate_color_rook_moves(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move *
-chi_generate_color_king_moves(chi_pos *pos, chi_position_context *ctx,
+chi_generate_color_king_moves(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	bitv64 piece_mask = MY_KINGS(pos);
@@ -484,7 +484,7 @@ chi_generate_color_king_moves(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move*
-chi_generate_color_king_castling_moves(chi_pos *pos, chi_position_context *ctx,
+chi_generate_color_king_castling_moves(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	bitv64 occ_squares = pos->w_pieces | pos->b_pieces;
@@ -499,7 +499,7 @@ chi_generate_color_king_castling_moves(chi_pos *pos, chi_position_context *ctx,
 }
 
 chi_move *
-chi_generate_color_non_captures(chi_pos *pos, chi_position_context *ctx,
+chi_generate_color_non_captures(const chi_pos *pos, chi_position_context *ctx,
 	chi_move *moves)
 {
 	moves = chi_generate_color_king_castling_moves(pos, ctx, moves);
@@ -514,8 +514,7 @@ chi_generate_color_non_captures(chi_pos *pos, chi_position_context *ctx,
 }
 
 int
-chi_color_check_check(pos)
-	chi_pos* pos;
+chi_color_check_check(const chi_pos *pos)
 {
 	bitv64 king_mask = MY_KINGS(pos);
 	register unsigned int king_shift =

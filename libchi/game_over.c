@@ -25,7 +25,7 @@
 static inline chi_bool min2bits_set(bitv64 value);
 
 chi_bool
-chi_game_over(chi_pos *pos, chi_result *result)
+chi_game_over(const chi_pos *pos, chi_result *result)
 {
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move *end_ptr;

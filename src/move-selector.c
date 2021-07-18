@@ -20,39 +20,14 @@
 # include <config.h>
 #endif
 
-#include <check.h>
+#include <sys/types.h>
 
-#include "libchi.h"
+#include <libchi.h>
 
-extern Suite *move_selector_suite();
-extern Suite *tt_suite();
-extern Suite *uci_engine_suite();
-extern Suite *perft_suite();
+#include "lisco.h"
 
-#ifdef DEBUG_XMALLOC
-# include "../xmalloc-debug.c"
-#endif
-
-int
-main(int argc, char *argv[])
+void move_selector_init(MoveSelector *self, const Tree *tree, chi_move bestmove)
 {
-	int failed = 0;
-	SRunner *runner;
-
-#ifdef DEBUG_XMALLOC
-	init_xmalloc_debug();
-#endif
-
-	chi_mm_init();
-
-	runner = srunner_create(move_selector_suite());
-	srunner_add_suite(runner, tt_suite());
-	srunner_add_suite(runner, uci_engine_suite());
-	srunner_add_suite(runner, perft_suite());
-
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
-
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	chi_move *move_ptr = chi_legal_moves(&tree->position, self->moves);
+	self->num_moves = move_ptr - self->moves;
 }
