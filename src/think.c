@@ -108,7 +108,7 @@ time_control(Tree *tree)
 	unsigned long long nps = 1000 * (tree->nodes / elapsed);
 	tree->nodes_to_tc = nps / 10;
 	if (elapsed > 1000 * tree->fixed_time - 200) {
-		//tree->move_now = 1;
+		tree->move_now = 1;
 	}
 }
 
