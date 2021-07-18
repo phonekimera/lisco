@@ -97,7 +97,7 @@ evaluate(Tree *tree)
 
 	++tree->evals;
 	
-	return score;
+	return chi_on_move(&tree->position) == chi_white ? score : -score;
 }
 
 static void
@@ -136,11 +136,7 @@ minimax(Tree *tree, int depth)
 	}
 
 	if (depth == 0) {
-		if (chi_on_move(position) == chi_white) {
-			return evaluate(tree);
-		} else {
-			return -evaluate(tree);
-		}
+		return evaluate(tree);
 	}
 
 	/*
