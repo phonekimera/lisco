@@ -71,7 +71,7 @@ print_pv(Tree *tree, int depth)
 {
 	FILE *out = lisco.uci.out;
 	long elapsed = rdifftime(rtime(), tree->start_time);
-	long nps = elapsed ? tree->nodes / elapsed : tree->nodes;
+	long nps = elapsed ? 1000 * tree->nodes / elapsed : tree->nodes;
 	char *buf = NULL;
 	unsigned int bufsize;
 
