@@ -109,6 +109,9 @@ time_control(Tree *tree)
 	tree->nodes_to_tc = nps / 10;
 	if (elapsed > 1000 * tree->fixed_time - 200) {
 		tree->move_now = 1;
+#if DEBUG_SEARCH
+		fprintf(stderr, "Time's up, move now!\n");
+#endif
 	}
 }
 
@@ -197,6 +200,7 @@ alphabeta(Tree *tree, int depth, int alpha, int beta)
 
 		if (value >= beta) {
 			/* Fail high.  */
+			--tree->line.num_moves;
 			return beta;
 		}
 
@@ -215,6 +219,7 @@ alphabeta(Tree *tree, int depth, int alpha, int beta)
 			}
 		}
 	}
+
 	--tree->line.num_moves;
 
 	return alpha;
@@ -227,6 +232,7 @@ root_search(Tree *tree, int max_depth)
 	chi_bool forced_mate;
 
 	tree->start_time = rtime();
+	tree->move_now = 0;
 	tree->fixed_time = 120;
 
 	// Initially assume 10,000 nodes per second.  That give us 10,000 nodes
@@ -252,6 +258,9 @@ root_search(Tree *tree, int max_depth)
 		if (forced_mate) {
 			break;
 		}
+
+		if (tree->move_now)
+			break;
 	}
 
 	return score;

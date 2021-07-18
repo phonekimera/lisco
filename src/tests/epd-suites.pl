@@ -13,7 +13,7 @@ if ($@) {
 	exit 77;
 }
 
-use constant DEBUG => 0;
+use constant DEBUG => 1;
 
 sub parse_epd;
 sub convert_san;
