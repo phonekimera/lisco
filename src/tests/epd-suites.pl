@@ -300,7 +300,7 @@ sub xboard_set_position {
 	my ($cin, $cout, $fen) = @_;
 
 	$cin->print("setboard $fen\n");
-	print STDERR ">>> setboard $fen\n";
+	print STDERR ">>> setboard $fen\n" if DEBUG;
 }
 
 sub uci_go {
@@ -322,9 +322,9 @@ sub xboard_go {
 
 	my $cseconds = 100 * $seconds;
 	$cin->print("time $cseconds\n");
-	print STDERR ">>> time $cseconds\n";
+	print STDERR ">>> time $cseconds\n" if DEBUG;
 	$cin->print("go\n");
-	print STDERR ">>> go\n";
+	print STDERR ">>> go\n" if DEBUG;
 }
 
 sub uci_on_output {
