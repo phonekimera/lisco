@@ -75,18 +75,22 @@ print_pv(Tree *tree, int depth)
 	char *buf = NULL;
 	unsigned int bufsize;
 
-	int errnum = chi_coordinate_notation(tree->bestmove, chi_on_move(&tree->position),
-		&buf, &bufsize);
-	if (errnum) {
-		if (buf)
-			free(buf);
-		return;
-	}
 	fprintf(out, "info depth %d multipv 1 score cp %d nodes %llu nps %ld"
-			" tbhits %llu time %ld pv %s\n",
-			tree->depth, tree->score, tree->nodes, nps, tree->tt_hits, elapsed,
-			buf);
+			" tbhits %llu time %ld pv",
+			tree->depth, tree->score, tree->nodes, nps, tree->tt_hits, elapsed);
+
+	chi_pos position;
+	chi_copy_pos(&position, &tree->position);
+	Line *line = &tree->line;
+	for (int i = 0; i < line->num_moves; ++i) {
+		chi_move move = line->moves[i];
+		chi_coordinate_notation(line->moves[i], chi_on_move(&position), &buf, &bufsize);
+		chi_apply_move(&position, move);
+		fprintf(out, " %s", buf);
+	}
 	free(buf);
+
+	fprintf(out, "\n");
 }
 
 static int
@@ -97,7 +101,10 @@ evaluate(Tree *tree)
 
 	++tree->evals;
 	
-	return chi_on_move(&tree->position) == chi_white ? score : -score;
+#if DEBUG_SEARCH
+	fprintf(stderr, "\tevaluate: %d\n", chi_on_move(&tree->position) == chi_white ? -score : +score);
+#endif
+	return chi_on_move(&tree->position) == chi_white ? -score : +score;
 }
 
 static void
@@ -200,6 +207,9 @@ alphabeta(Tree *tree, int depth, int alpha, int beta)
 
 		if (value >= beta) {
 			/* Fail high.  */
+#if DEBUG_SEARCH
+			fprintf(stderr, "\tfail high: value(%d) >= beta(%d)\n", value, beta);
+#endif
 			--tree->line.num_moves;
 			return beta;
 		}
@@ -214,7 +224,8 @@ alphabeta(Tree *tree, int depth, int alpha, int beta)
 				fprintf(stderr, "\tNew best root move with best value %d.\n", alpha);
 #endif
 				tree->bestmove = move;
-				tree->score = value;
+				tree->score =
+					chi_on_move(position) == chi_white ? value : -value;
 				print_pv(tree, depth);
 			}
 		}
@@ -234,6 +245,7 @@ root_search(Tree *tree, int max_depth)
 	tree->start_time = rtime();
 	tree->move_now = 0;
 	tree->fixed_time = 120;
+	tree->score = 0;
 
 	// Initially assume 10,000 nodes per second.  That give us 10,000 nodes
 	// to estimate the timing.
