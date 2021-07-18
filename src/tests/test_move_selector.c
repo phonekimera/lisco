@@ -26,13 +26,13 @@
 
 START_TEST(test_basic)
 {
-	const char *fen = "1B1bR3/1K1pn3/4kN2/6Qp/7p/7P/8/8 w - - 0 1";
+	const char *fen = "1B1bR3/1K1pn2P/4kN2/6Qp/7p/7P/8/8 w - - 0 1";
 	/*
 	    a   b   c   d   e   f   g   h
    +---+---+---+---+---+---+---+---+
  8 |   | B |   | b | R |   |   |   | En passant not possible.
    +---+---+---+---+---+---+---+---+ White king castle: no.
- 7 |   | K |   | p | n |   |   |   | White queen castle: no.
+ 7 |   | K |   | p | n |   |   | P | White queen castle: no.
    +---+---+---+---+---+---+---+---+ Black king castle: no.
  6 |   |   |   |   | k | N |   |   | Black queen castle: no.
    +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
@@ -60,11 +60,73 @@ START_TEST(test_basic)
 
 	MoveSelector selector;
 	move_selector_init(&selector, &tree, bestmove);
+	ck_assert_int_eq(selector.num_moves, 45);
+	ck_assert_int_eq(selector.selected, 0);
 
 	chi_move move;
 
 	move = move_selector_next(&selector);
 	ck_assert_uint_eq(move, bestmove);
+
+	char *buf = NULL;
+	unsigned int bufsize = 0;
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "h8=Q");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "h8=R");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "Rxd8");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "Rxe7+");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "h8=B");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "h8=N");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "Nxd7");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "Nxh5");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "Qxh5");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "Qxh4");
+
+	free(buf);
+
+	size_t i = 0;
+	while (move_selector_next(&selector))
+		++i;
+	ck_assert_int_eq(i, 34);
 }
 END_TEST
 
