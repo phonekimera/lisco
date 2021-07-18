@@ -113,12 +113,12 @@ time_control(Tree *tree)
 }
 
 static int
-minimax(Tree *tree, int depth)
+alphabeta(Tree *tree, int depth, int alpha, int beta)
 {
 	chi_move moves[CHI_MAX_MOVES];
 	chi_move *move_ptr;
 	chi_pos *position = &tree->position;
-	int bestvalue = -INF, value;
+	int value;
 	chi_result result;
 	int ply = tree->depth - depth;
 
@@ -164,12 +164,10 @@ minimax(Tree *tree, int depth)
 
 	move_ptr = chi_legal_moves(position, moves);
 
-	bestvalue = -INF;
-
 	++tree->line.num_moves;
 	while (move_ptr-- > moves) {
 		if (tree->move_now) {
-			return bestvalue;
+			return alpha;
 		}
 
 		chi_move move = *move_ptr;
@@ -183,7 +181,7 @@ minimax(Tree *tree, int depth)
 		chi_apply_move(position, move);
 		update_tree(tree, ply, position, move);
 
-		value = -minimax(tree, depth - 1);
+		value = -alphabeta(tree, depth - 1, -beta, -alpha);
 
 		/*
 		store_tt_entry(position, tree->signatures[ply + 1], move, depth, value,
@@ -194,27 +192,32 @@ minimax(Tree *tree, int depth)
 
 #if DEBUG_SEARCH
 		debug_end_search(tree, move);
-		fprintf(stderr, "\tvalue: %d (best: %d)\n", value, bestvalue);
+		fprintf(stderr, "\tvalue: %d (best: %d)\n", value, alpha);
 #endif
 
-		if (value > bestvalue) {
-			bestvalue = value;
+		if (value >= beta) {
+			/* Fail high.  */
+			return beta;
+		}
+
+		if (value > alpha) {
+			alpha = value;
 #if DEBUG_SEARCH
-				fprintf(stderr, "\tNew best move with best value %d.\n", bestvalue);
+			fprintf(stderr, "\tNew best move with best value %d.\n", alpha);
 #endif
 			if (depth == tree->depth) {
 #if DEBUG_SEARCH
-				fprintf(stderr, "\tNew best root move with best value %d.\n", bestvalue);
+				fprintf(stderr, "\tNew best root move with best value %d.\n", alpha);
 #endif
 				tree->bestmove = move;
-				tree->score = bestvalue;
+				tree->score = value;
 				print_pv(tree, depth);
 			}
 		}
 	}
 	--tree->line.num_moves;
 
-	return bestvalue;
+	return alpha;
 }
 
 static int
@@ -236,7 +239,7 @@ root_search(Tree *tree, int max_depth)
 		fprintf(stderr, "Deepening search to maximum %d plies.\n", depth);
 #endif
 		tree->depth = depth;
-		score = minimax(tree, depth);
+		score = alphabeta(tree, depth, -INF, +INF);
 		
 		forced_mate = score == -MATE -depth;
 
