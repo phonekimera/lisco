@@ -87,6 +87,7 @@ typedef struct Tree {
 typedef struct MoveSelector {
 	chi_move moves[CHI_MAX_MOVES];
 	size_t num_moves;
+	size_t selected;
 } MoveSelector;
 
 #ifdef __cplusplus
@@ -112,6 +113,9 @@ extern void tt_destroy(void);
  * BESTMOVE is always returned first.
  */
 void move_selector_init(MoveSelector *self, const Tree *tree, chi_move bestmove);
+
+/* Get the next move from the pool or 0 if there are no more moves.  */
+chi_move move_selector_next(MoveSelector *self);
 
 #ifdef __cplusplus
 extern }

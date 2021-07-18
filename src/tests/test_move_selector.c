@@ -60,6 +60,11 @@ START_TEST(test_basic)
 
 	MoveSelector selector;
 	move_selector_init(&selector, &tree, bestmove);
+
+	chi_move move;
+
+	move = move_selector_next(&selector);
+	ck_assert_uint_eq(move, bestmove);
 }
 END_TEST
 

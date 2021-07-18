@@ -30,4 +30,54 @@ void move_selector_init(MoveSelector *self, const Tree *tree, chi_move bestmove)
 {
 	chi_move *move_ptr = chi_legal_moves(&tree->position, self->moves);
 	self->num_moves = move_ptr - self->moves;
+	self->selected = 0;
+	chi_move *sorted = self->moves;
+	size_t size = self->num_moves;
+
+	if (bestmove) {
+		/* Move the best move to the front and take the opportunity to already
+		 * sort the array a little for the following insertion sort.
+		 */
+		for (size_t i = 0; i < size; ++i) {
+			if (bestmove == self->moves[i]) {
+				++sorted;
+				--size;
+				self->moves[i] = self->moves[0];
+				self->moves[0] = bestmove;
+				break;
+			}
+			if (i && self->moves[i] > self->moves[i - 1]) {
+				chi_move tmp_move = self->moves[i - 1];
+				self->moves[i - 1] = self->moves[i];
+				self->moves[i] = tmp_move;
+			}
+		}
+	}
+
+	/* FIXME! It probably doesn't make sense to sort the entire array but
+	 * only those moves with a material gain or a promotion.
+	 */
+	for (size_t step = 1; step < size; ++step) {
+		chi_move key = sorted[step];
+		int j = step - 1;
+
+		while (key > sorted[j] && j >= 0) {
+			sorted[j + 1] = sorted[j];
+			--j;
+		}
+		sorted[j + 1] = key;
+	}
+}
+
+chi_move
+move_selector_next(MoveSelector *self)
+{
+	/* FIXME! Trade memory for performance and make the array one item bigger
+	 * and insert a 0 at the end. Provided that the caller stops pulling moves
+	 * on a null move, this is safe.
+	 */
+	if (self->selected >= self->num_moves)
+		return 0;
+
+	return self->moves[self->selected++];
 }
