@@ -93,20 +93,6 @@ print_pv(Tree *tree, int depth)
 	fprintf(out, "\n");
 }
 
-static int
-evaluate(Tree *tree)
-{
-	const chi_pos *position = &tree->position;
-	int score = 100 * chi_material(position);
-
-	++tree->evals;
-	
-#if DEBUG_SEARCH
-	fprintf(stderr, "\tevaluate: %d\n", chi_on_move(&tree->position) == chi_white ? -score : +score);
-#endif
-	return chi_on_move(&tree->position) == chi_white ? -score : +score;
-}
-
 static void
 time_control(Tree *tree)
 {
@@ -144,7 +130,7 @@ alphabeta(Tree *tree, int depth, int alpha, int beta)
 	}
 
 	if (depth == 0) {
-		return evaluate(tree);
+		return evaluate(tree, ply, alpha, beta);
 	}
 
 	/*
@@ -299,7 +285,7 @@ think(void)
 	// Only print that to the real output channel.
 	//fprintf(stderr, "score: %d\n", score);
 	//fprintf(stderr, "info nodes searched: %lu\n", tree.nodes);
-	//fprintf(stderr, "info nodes evaluated: %lu\n", tree.evals);
+	//fprintf(stderr, "info nodes evaluate_locald: %lu\n", tree.evals);
 }
 
 static void

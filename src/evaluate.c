@@ -24,8 +24,8 @@
 
 #include <libchi.h>
 
-#include "brain.h"
-#include "board.h"
+#include "lisco.h"
+#include "magicmoves.h"
 
 #ifdef abs
 # undef abs
@@ -40,31 +40,23 @@
 #define EVAL_NOT_CASTLED (24)
 #define EVAL_LOST_CASTLE (10)
 
+#define DRAW 20
+#define MAX_POS_SCORE 99999
+
 #include <libchi/bitmasks.h>
 
-#define M1 ((bitv64) 0x5555555555555555)
-#define M2 ((bitv64) 0x3333333333333333)
+static int evaluate_dev_white(Tree *tree, int ply);
+static int evaluate_dev_black(Tree *tree, int ply);
+static int evaluate_mobility(Tree *tree);
 
-/* Give the compiler a chance to inline this.  */
-static unsigned int 
-find_first(bitv64 b)
-{
-	unsigned int n;
-
-	bitv64 a = b - 1 - (((b - 1) >> 1) & M1);
-	bitv64 c = (a & M2) + ((a >> 2) & M2);
-
-	n = ((unsigned int) c) + ((unsigned int) (c >> 32));
-	n = (n & 0x0f0f0f0f) + ((n >> 4) & 0x0f0f0f0f);
-	n = (n & 0xffff) + (n >> 16);
-	n = (n & 0xff) + (n >> 8);
-
-	return n;    
-}
+#if defined(__GNUC__)  // GCC, Clang, ICC
+# define popcount(b) __builtin_popcount(b)
+#else
+# define M1 ((bitv64) 0x5555555555555555)
+# define M2 ((bitv64) 0x3333333333333333)
 
 static unsigned int
-popcount (b)
-	bitv64 b;
+popcount(bitv64 b)
 {
 	unsigned int n;
 
@@ -78,19 +70,7 @@ popcount (b)
 
 	return n;    
 }
-
-#define chi_bitv2shift(b) find_first (b)
-
-static const int rotate90[64] = {
-	7, 15, 23, 31, 39, 47, 55, 63,
-	6, 14, 22, 30, 38, 46, 54, 62,
-	5, 13, 21, 29, 37, 45, 53, 61,
-	4, 12, 20, 28, 36, 44, 52, 60,
-	3, 11, 19, 27, 35, 43, 51, 59,
-	2, 10, 18, 26, 34, 42, 50, 58,
-	1,  9, 17, 25, 33, 41, 49, 57,
-	0,  8, 16, 24, 32, 40, 48, 56,
-};
+#endif
 
 #if 0
 /* FIXME! What was that for? */
@@ -173,9 +153,9 @@ int black_king_heat[64] = {
 };
 
 int
-evaluate(TREE *tree, int ply, int alpha, int beta)
+evaluate(Tree *tree, int ply, int alpha, int beta)
 {
-	chi_pos* pos = &tree->pos;
+	chi_pos* pos = &tree->position;
 	bitv64 signature = tree->signatures[ply];
 	int score;
 	int total_white_pieces, total_black_pieces;
@@ -188,7 +168,7 @@ evaluate(TREE *tree, int ply, int alpha, int beta)
 		return score;
 	}
 
-	if (tree->in_check[ply]) {
+	if (chi_check_check(pos)) {
 		chi_move moves[CHI_MAX_MOVES];
 		chi_move* mv = moves;
 
@@ -206,8 +186,8 @@ evaluate(TREE *tree, int ply, int alpha, int beta)
 		return DRAW;
 	}
 
-	total_white_pieces = popcount (pos->w_pieces);
-	total_black_pieces = popcount (pos->b_pieces);
+	total_white_pieces = popcount(pos->w_pieces);
+	total_black_pieces = popcount(pos->b_pieces);
 
 	if (!pos->w_pawns && !pos->b_pawns) {
 		/* Check for draw by lack of material.  */
@@ -218,10 +198,10 @@ evaluate(TREE *tree, int ply, int alpha, int beta)
 		} else if (!pos->w_rooks && !pos->b_rooks) {
 			/* Only bishops and knights left.  We report two knights
 			   as not sufficient.  */
-			int white_bishops = popcount (pos->w_bishops);
-			int black_bishops = popcount (pos->b_bishops);
-			int white_knights = popcount (pos->w_knights);
-			int black_knights = popcount (pos->b_knights);
+			int white_bishops = popcount(pos->w_bishops);
+			int black_bishops = popcount(pos->b_bishops);
+			int white_knights = popcount(pos->w_knights);
+			int black_knights = popcount(pos->b_knights);
 
 			if ((white_bishops < 2 && !white_knights)
 			    || (black_bishops < 2 && !black_knights))
@@ -240,7 +220,8 @@ evaluate(TREE *tree, int ply, int alpha, int beta)
 		else
 	    	return -score;
     } else if (total_white_pieces > 10 && total_black_pieces > 10) {
-		if (!(tree->w_castled && tree->b_castled)) {
+		if (!(pos->lost_wk_castle && pos->lost_bk_castle
+		      && pos->lost_wq_castle && pos->lost_bq_castle)) {
 			score += evaluate_dev_white(tree, ply);
 			score += evaluate_dev_black(tree, ply);
 		}
@@ -369,11 +350,11 @@ evaluate(TREE *tree, int ply, int alpha, int beta)
 	return score;
 }
 
-int
-evaluate_dev_white(TREE *tree, int ply)
+static int
+evaluate_dev_white(Tree *tree, int ply)
 {
 	int score = 0;
-	chi_pos* pos = &tree->pos;
+	chi_pos* pos = &tree->position;
 	bitv64 w_pawns = pos->w_pawns;
 	bitv64 w_bishops = pos->w_bishops & ~pos->w_rooks;
 	bitv64 center_pawns = w_pawns & (CHI_D_MASK | CHI_E_MASK);
@@ -389,7 +370,7 @@ evaluate_dev_white(TREE *tree, int ply)
 
 	/* Penalty for premature queen moves.  */
 	if (!(w_queens & CHI_D_MASK & CHI_1_MASK)
-	    && (!tree->w_castled
+	    && (!(pos->lost_wk_castle && pos->lost_wq_castle)
 		    || (pos->w_knights & (CHI_B_MASK | CHI_G_MASK) & CHI_1_MASK)
 			|| (w_bishops & (CHI_C_MASK | CHI_F_MASK) & CHI_1_MASK)))
 		score -= EVAL_PREMATURE_QUEEN_MOVE;
@@ -406,7 +387,7 @@ evaluate_dev_white(TREE *tree, int ply)
 		if ((center_pawns << 8) & (pos->w_pieces | pos->b_pieces))
 			score -= EVAL_BLOCKED_CENTER_PAWN;
 
-		if (!tree->w_castled && !chi_w_castled(pos)) {
+		if (!(pos->lost_wk_castle && pos->lost_wq_castle) && !chi_w_castled(pos)) {
 			/* Penalty for not having castled.  */
 			score -= EVAL_NOT_CASTLED;
 
@@ -418,11 +399,11 @@ evaluate_dev_white(TREE *tree, int ply)
 	return score;
 }
 
-int
-evaluate_dev_black(TREE *tree, int ply)
+static int
+evaluate_dev_black(Tree *tree, int ply)
 {
 	int score = 0;
-	chi_pos* pos = &tree->pos;
+	chi_pos* pos = &tree->position;
 	bitv64 b_pawns = pos->b_pawns;
 	bitv64 b_bishops = pos->b_bishops & ~pos->b_rooks;
 	bitv64 center_pawns = b_pawns & (CHI_D_MASK | CHI_E_MASK);
@@ -454,7 +435,7 @@ evaluate_dev_black(TREE *tree, int ply)
 	if ((center_pawns >> 8) & (pos->w_pieces | pos->b_pieces))
 		score += EVAL_BLOCKED_CENTER_PAWN;
 
-	if (!tree->b_castled && !chi_b_castled(pos)) {
+	if (!(pos->lost_bk_castle && pos->lost_bq_castle) && !chi_b_castled(pos)) {
 		/* Penalty for not having castled.  */
 		score += EVAL_NOT_CASTLED;
 
@@ -466,13 +447,12 @@ evaluate_dev_black(TREE *tree, int ply)
 	return score;
 }
 
-int 
-evaluate_mobility (TREE *tree)
+static int 
+evaluate_mobility(Tree *tree)
 {
-	chi_pos* pos = &tree->pos;
+	chi_pos* pos = &tree->position;
 	int score = 0;
 	bitv64 occ_squares = pos->w_pieces | pos->b_pieces;
-	bitv64 occ90_squares = pos->w_pieces90 | pos->b_pieces90;
 	bitv64 empty_squares = ~occ_squares;
 	register bitv64 piece_mask;
 
@@ -527,90 +507,52 @@ evaluate_mobility (TREE *tree)
 		piece_mask = chi_clear_least_set(piece_mask);	
 	}
 
-	/* Bishop moves, captures, and defenses.  */
-	piece_mask = pos->w_bishops & ~(CHI_H_MASK | CHI_8_MASK);
-	while (piece_mask) {
-		bitv64 target_mask = piece_mask <<= 7;
-		for (; target_mask; ++score, target_mask &= target_mask - 1);
-		piece_mask &= empty_squares & ~(CHI_H_MASK | CHI_8_MASK);
-	}
-	piece_mask = pos->b_bishops & ~(CHI_H_MASK | CHI_8_MASK);
-    while (piece_mask) {
-		bitv64 target_mask = piece_mask <<= 7;
-		for (; target_mask; --score, target_mask &= target_mask - 1);
-		piece_mask &= empty_squares & ~(CHI_H_MASK | CHI_8_MASK);
-    }
-
-	piece_mask = pos->w_bishops & ~(CHI_A_MASK | CHI_8_MASK);
-	while (piece_mask) {
-		bitv64 target_mask = piece_mask <<= 9;
-		for (; target_mask; ++score, target_mask &= target_mask - 1);
-		piece_mask &= empty_squares & ~(CHI_A_MASK | CHI_8_MASK);
-	}
-		piece_mask = pos->b_bishops & ~(CHI_A_MASK | CHI_8_MASK);
-		while (piece_mask) {
-		bitv64 target_mask = piece_mask <<= 9;
-		for (; target_mask; --score, target_mask &= target_mask - 1);
-		piece_mask &= empty_squares & ~(CHI_A_MASK | CHI_8_MASK);
-	}
-
-	piece_mask = pos->w_bishops & ~(CHI_H_MASK | CHI_1_MASK);
-	while (piece_mask) {
-		bitv64 target_mask = piece_mask >>= 9;
-		for (; target_mask; ++score, target_mask &= target_mask - 1);
-		piece_mask &= empty_squares & ~(CHI_H_MASK | CHI_1_MASK);
-	}
-	piece_mask = pos->b_bishops & ~(CHI_H_MASK | CHI_1_MASK);
-	while (piece_mask) {
-		bitv64 target_mask = piece_mask >>= 9;
-		for (; target_mask; --score, target_mask &= target_mask - 1);
-		piece_mask &= empty_squares & ~(CHI_H_MASK | CHI_1_MASK);
-	}
-
-    piece_mask = pos->w_bishops & ~(CHI_A_MASK | CHI_1_MASK);
-    while (piece_mask) {
-		bitv64 target_mask = piece_mask >>= 7;
-		for (; target_mask; ++score, target_mask &= target_mask - 1);
-		piece_mask &= empty_squares & ~(CHI_A_MASK | CHI_1_MASK);
-	}
-	piece_mask = pos->b_bishops & ~(CHI_A_MASK | CHI_1_MASK);
-	while (piece_mask) {
-		bitv64 target_mask = piece_mask >>= 7;
-		for (; target_mask; --score, target_mask &= target_mask - 1);
-		piece_mask &= empty_squares & ~(CHI_A_MASK | CHI_1_MASK);
-    }
+	bitv64 occupancy = pos->w_pieces | pos->b_pieces;
+	bitv64 empty_mask = ~occupancy;
 
 	piece_mask = pos->w_rooks;
-	while (piece_mask) {
-		int from = chi_bitv2shift (chi_clear_but_least_set (piece_mask));
-		bitv64 state = (rank_masks[from] & occ_squares) >>  ((from >> 3) << 3);
-		bitv64 state90 = (file_masks[from] & occ90_squares) >> 
-			((rotate90[from] >> 3) << 3);
-		bitv64 target_mask = rook_hor_slide_masks[from][state] |
-			rook_ver_slide_masks[from][state90];
-		target_mask |= (rook_hor_attack_masks[from][state] & occ_squares);
-		target_mask |= (rook_ver_attack_masks[from][state90] & occ_squares);
+	while(piece_mask) {
+		int from = chi_bitv2shift(chi_clear_but_least_set(piece_mask));
+		bitv64 attack_mask = Rmagic(from, occupancy);
+		bitv64 reachable_mask = attack_mask && (empty_mask | pos->b_pieces);
 
-		for (; target_mask; ++score, target_mask &= target_mask - 1)
-			;
-		piece_mask = chi_clear_least_set (piece_mask);
+		score += popcount(reachable_mask);
+
+		piece_mask = chi_clear_least_set(piece_mask);
 	}
 
 	piece_mask = pos->b_rooks;
-	while (piece_mask) {
-		int from = chi_bitv2shift (chi_clear_but_least_set (piece_mask));
-		bitv64 state = (rank_masks[from] & occ_squares) >> 
-			((from >> 3) << 3);
-		bitv64 state90 = (file_masks[from] & occ90_squares) >> 
-			((rotate90[from] >> 3) << 3);
-		bitv64 target_mask = rook_hor_slide_masks[from][state] |
-			rook_ver_slide_masks[from][state90];
-		target_mask |= (rook_hor_attack_masks[from][state] & occ_squares);
-		target_mask |= (rook_ver_attack_masks[from][state90] & occ_squares);
+	while(piece_mask) {
+		int from = chi_bitv2shift(chi_clear_but_least_set(piece_mask));
+		bitv64 attack_mask = Rmagic(from, occupancy);
+		bitv64 reachable_mask = attack_mask && (empty_mask | pos->w_pieces);
 
-		for (; target_mask; --score, target_mask &= target_mask - 1);
-		piece_mask = chi_clear_least_set (piece_mask);
-    }
+		score -= popcount(reachable_mask);
+
+		piece_mask = chi_clear_least_set(piece_mask);
+	}
+
+	piece_mask = pos->w_rooks;
+	while(piece_mask) {
+		int from = chi_bitv2shift(chi_clear_but_least_set(piece_mask));
+		bitv64 attack_mask = Rmagic(from, occupancy);
+		bitv64 reachable_mask = attack_mask && (empty_mask | pos->b_pieces);
+
+		score += popcount(reachable_mask);
+
+		piece_mask = chi_clear_least_set(piece_mask);
+	}
+
+	piece_mask = pos->b_rooks;
+	while(piece_mask) {
+		int from = chi_bitv2shift(chi_clear_but_least_set(piece_mask));
+		bitv64 attack_mask = Rmagic(from, occupancy);
+		bitv64 reachable_mask = attack_mask && (empty_mask | pos->w_pieces);
+
+		score -= popcount(reachable_mask);
+
+		piece_mask = chi_clear_least_set(piece_mask);
+	}
 
     return score;
 }

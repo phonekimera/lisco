@@ -24,7 +24,7 @@
 1B1b1Q2/8/6B1/1pP1P3/3k2P1/nR3K2/2p4N/8 w - - bm Qd6+; ce 32764; dm 2; id "line #24";
 1B1b1Q2/8/8/1pP1P2B/3k2P1/nR3K2/2p4N/8 w - - bm Qd6+; ce 32764; dm 2; id "line #25";
 1B1b1Q2/8/8/1pP1P3/3kB1P1/nR3K2/2p4N/8 w - - bm Qd6+; ce 32764; dm 2; id "line #26";
-1b1B1QN1/3nr1P1/1R3rB1/2N3kP/4R1p1/5PP1/5P2/4K3 w - - bm Bxe7; ce 32764; dm 2; id "line #27";
+1b1B1QN1/3nr1P1/1R3rB1/2N3kP/4R1p1/5PP1/5P2/4K3 w - - bm Bxe7 Qxe7; ce 32764; dm 2; id "line #27";
 1B1b1r1k/3Pn2p/pp6/2pNp3/P1P3Q1/3q4/1P5P/6K1 w - - bm Bxe5+; ce 32764; dm 2; id "line #28";
 1b1B1r2/2pQ3B/4pN2/2q1k1P1/6b1/2pRN1P1/5K2/8 w - - bm Qb5; ce 32764; dm 2; id "line #29";
 1B1b1R2/2r1p2B/2q2n1Q/2PPkN2/r1n2N1K/2P2P2/4b3/4R3 w - - bm Nxe7; ce 32764; dm 2; id "line #30";

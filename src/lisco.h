@@ -82,6 +82,8 @@ typedef struct Tree {
 
 	unsigned long long tt_probes;
 	unsigned long long tt_hits;
+	unsigned long long ev_hits;
+	unsigned long long lazy_evals;
 } Tree;
 
 typedef struct MoveSelector {
@@ -116,6 +118,16 @@ void move_selector_init(MoveSelector *self, const Tree *tree, chi_move bestmove)
 
 /* Get the next move from the pool or 0 if there are no more moves.  */
 chi_move move_selector_next(MoveSelector *self);
+
+/* Evaluate the position in a search tree. Returns positive results for an
+ * advantage for the side on move.
+ */
+extern int evaluate(Tree *tree, int ply, int alpha, int beta);
+
+extern void init_ev_hash(size_t memuse);
+extern void clear_ev_hash(void);
+extern int probe_ev (chi_pos *pos, bitv64 signature, int *score);
+extern void store_ev_entry (chi_pos *pos, bitv64 signature, int score);
 
 #ifdef __cplusplus
 extern }

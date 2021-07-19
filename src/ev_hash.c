@@ -26,14 +26,13 @@
 #include <libchi.h>
 
 #include "xalloc.h"
-
-#include "brain.h"
+#include "lisco.h"
 
 #define MIN_EV_SIZE (sizeof (EV_Entry) * 100000)
 
 typedef struct ev_entry {
-    bitv64 signature;
-    short int score;
+	bitv64 signature;
+	short int score;
 } EV_Entry;
 
 EV_Entry* ev = NULL;
@@ -42,8 +41,7 @@ static unsigned long int ev_size = 0;
 static unsigned long int half_ev_size = 0;
 
 void
-init_ev_hashs (memuse)
-     unsigned long int memuse;
+init_ev_hash(size_t memuse)
 {
     if (memuse < MIN_EV_SIZE)
 	memuse = MIN_EV_SIZE;
@@ -57,21 +55,17 @@ init_ev_hashs (memuse)
 Allocated %lu bytes (%lu entries) for evaluation cache.\n",
 	     ev_size * sizeof *ev, ev_size);
 
-    clear_ev_hashs ();
+    clear_ev_hash();
 }
 
 void
-clear_ev_hashs ()
+clear_ev_hash(void)
 {
-    fprintf (stdout, "Clearing evaluation cache.\n");
-    memset (ev, 0, ev_size * sizeof *ev);
+	memset (ev, 0, ev_size * sizeof *ev);
 }
 
 int
-probe_ev (pos, signature, score)
-     chi_pos* pos;
-     bitv64 signature;
-     int* score;
+probe_ev (chi_pos *pos, bitv64 signature, int *score)
 {
     size_t offset;
     EV_Entry* hit;
@@ -93,10 +87,7 @@ probe_ev (pos, signature, score)
 }
 
 void
-store_ev_entry (pos, signature, score)
-     chi_pos* pos;
-     bitv64 signature;
-     int score;
+store_ev_entry (chi_pos *pos, bitv64 signature, int score)
 {
     size_t offset;
     EV_Entry* hit;
@@ -112,11 +103,3 @@ store_ev_entry (pos, signature, score)
     hit->signature = signature;
     hit->score = score;
 }
-
-/*
-Local Variables:
-mode: c
-c-style: K&R
-c-basic-shift: 8
-End:
-*/

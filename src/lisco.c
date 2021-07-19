@@ -67,6 +67,7 @@ main (int argc, char *argv[])
 			stdout, "[standard output]");
 	chi_mm_init();
 	tt_init(LISCO_DEFAULT_TT_SIZE * 1 << 20);
+	init_ev_hash(1024 * 1024 * 100);
 	errnum = chi_zk_init(&lisco.zk_handle);
 	if (errnum)
 		error (EXIT_FAILURE,

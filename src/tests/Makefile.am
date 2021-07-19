@@ -43,6 +43,8 @@ check_liscoplay_SOURCES = \
 		check_liscoplay.c
 
 check_lisco_SOURCES = \
+		../ev_hash.c \
+		../evaluate.c \
 		../move-selector.c \
 		../perft.c \
 		../rtime.c \
