@@ -32,7 +32,7 @@ libchi_la_SOURCES = libchi.h dump_pieces.c strerror.c make_move.c \
 	parse_fen_position.c parse_epd.c \
 	char2figurine.c game_over.c fen.c stringbuf.c \
 	unapply_move.c unmake_move.c coordinate_notation.c free.c \
-	magicmoves.c mm_init.c
+	magicmoves.c mm_init.c see.c
 
 libchi_la_LDFLAGS = -version-info 0:0:0
 

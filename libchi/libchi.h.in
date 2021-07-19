@@ -795,6 +795,17 @@ void chi_free(void *ptr);
 /* Initialize the magic moves generator.  */
 void chi_mm_init(void);
 
+/*******************************
+ * Static Exchange Evaluation. *
+ *******************************/
+
+/* From position POS find all pieces that attack the target square of the
+ * piece moving in MOVE and place them into the bitboards W and B for white
+ * and black respectively.  X-Ray attacks are NOT handled!
+ */
+void chi_obvious_attackers(const chi_pos *pos, chi_move move,
+	bitv64* w, bitv64 *b);
+
 CHI_END_DECLS
 
 #endif
