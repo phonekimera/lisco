@@ -27,9 +27,32 @@
 /* Example from
  * http://mediocrechess.blogspot.com/2007/03/guide-static-exchange-evaluation-see.html
  */
+#include <stdio.h>
 START_TEST(test_obvious_attackers_lone_pawn)
 {
 	const char *fen_white = "7k/p7/1p6/8/8/1Q6/8/7K w - - 0 1";
+	/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   |   |   |   |   |   |   | k | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 | p |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   | p |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 0.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: +7.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   | Q |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   | K |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+	*/
+
 	chi_pos position;
 	int errnum;
 	bitv64 white_attackers, black_attackers;
