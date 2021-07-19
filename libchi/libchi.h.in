@@ -337,6 +337,7 @@ typedef enum {
 } chi_piece_t;
 
 typedef struct {
+	/* FIXME! Change that into an array to avoid branching! */
 	bitv64 w_pieces;
 	bitv64 b_pieces;
 
