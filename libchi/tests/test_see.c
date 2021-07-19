@@ -57,17 +57,51 @@ START_TEST(test_obvious_attackers_lone_pawn)
 	int errnum;
 	bitv64 white_attackers, black_attackers;
 	bitv64 expect_white_attackers, expect_black_attackers;
+	chi_move move;
 
 	errnum = chi_set_position(&position, fen_white);
 	ck_assert_int_eq(errnum, 0);
-
-	chi_move move;
 
 	errnum = chi_parse_move(&position, &move, "Qxb6");
 	ck_assert_int_eq(errnum, 0);
 
 	expect_white_attackers = 0ULL;
 	expect_black_attackers = CHI_A7_MASK;
+	chi_obvious_attackers(&position, move, &white_attackers, &black_attackers);
+	ck_assert_int_eq(white_attackers, expect_white_attackers);
+	ck_assert_int_eq(black_attackers, expect_black_attackers);
+
+	const char *fen_black = "7K/8/1q6/8/8/1P6/P7/7k b - - 0 1";
+	/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   |   |   |   |   |   |   | K | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   | q |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 1.
+   +---+---+---+---+---+---+---+---+ Next move: black.
+ 4 |   |   |   |   |   |   |   |   | Material: -7.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   | P |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 | P |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   | k |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+	*/
+
+	errnum = chi_set_position(&position, fen_black);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&position, &move, "Qxb3");
+	ck_assert_int_eq(errnum, 0);
+
+	expect_white_attackers = CHI_A2_MASK;
+	expect_black_attackers = 0ULL;
 	chi_obvious_attackers(&position, move, &white_attackers, &black_attackers);
 	ck_assert_int_eq(white_attackers, expect_white_attackers);
 	ck_assert_int_eq(black_attackers, expect_black_attackers);
