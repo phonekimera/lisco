@@ -315,6 +315,9 @@ typedef enum chi_result {
  */
 #define CHI_MAX_MOVES 273
 
+/* FIXME! This must be an enum so that it can be safely used as an index
+ * into arrays.
+ */
 #define chi_white (0)
 #define chi_black (1)
 typedef unsigned char chi_color_t;

@@ -26,23 +26,22 @@
 
 #include <string.h>
 
-static void print_rank_state(unsigned char state);
-
 static void bitv64_dump(bitv64, bitv64, int, int);
 static const char* shift2label(unsigned int);
+
+static void generate_reverse_pawn_masks(void);
+
 static void generate_knight_masks(void);
 static void generate_king_masks(void);
 static void generate_rank_masks(void);
 static void generate_file_masks(void);
-static void generate_rook_hor_slide_masks(void);
-static void generate_rook_hor_attack_masks(void);
-static void generate_rook_ver_slide_masks(void);
-static void generate_rook_ver_attack_masks(void);
 
 static void generate_rook_king_attacks(void);
+/* FIXME! Get rid of this! */
 static void generate_rook_king_intermediates(void);
 
 static void generate_bishop_king_attacks(void);
+/* FIXME! Get rid of this! */
 static void generate_bishop_king_intermediates(void);
 
 #ifdef PAWN_LOOKUP
@@ -52,6 +51,8 @@ static void generate_wpawn_dbl_steps(void);
 static void generate_bpawn_dbl_steps(void);
 
 static void print_escaped_moves(unsigned int, const chi_move*);
+
+static void print_rank_state(unsigned char state);
 #endif
 
 static const char* coordinates[] = {
@@ -76,14 +77,11 @@ main (argc, argv)
    The attack masks for knights and kings map a bitshift value into a\n\
    bitmask of fields attacked by that piece.  */\n"); 
 
+	generate_reverse_pawn_masks();
     generate_knight_masks ();
     generate_king_masks ();
     generate_rank_masks ();
     generate_file_masks ();
-    generate_rook_hor_slide_masks ();
-    generate_rook_hor_attack_masks ();
-    generate_rook_ver_slide_masks ();
-    generate_rook_ver_attack_masks ();
 
     generate_bishop_king_attacks ();
     generate_bishop_king_intermediates ();
@@ -101,6 +99,7 @@ main (argc, argv)
     return 0;
 }
 
+#ifdef PAWN_LOOKUP
 static void
 print_rank_state(unsigned char state)
 {
@@ -116,6 +115,7 @@ print_rank_state(unsigned char state)
     }
     printf (").  */\n");
 }
+#endif
 
 static void
 bitv64_dump (from_mask, to_mask, piece_char, tabs)
@@ -159,55 +159,101 @@ shift2label (shift)
 }
 
 static void
+generate_reverse_pawn_masks()
+{
+	bitv64 white_to_mask[64], black_to_mask[64];
+
+	for (int i = 0; i < 64; ++i) {
+		if (i < 8 || i >= 56) {
+			white_to_mask[i] = black_to_mask[i] = 0ULL;
+		} else {
+			bitv64 from_mask = 1ULL << i;
+			white_to_mask[i] = black_to_mask[i] = 0ULL;
+			if (from_mask & ~CHI_H_MASK) {
+				white_to_mask[i] |= 1ULL << (i + 7);
+				black_to_mask[i] |= 1ULL << (i - 9);
+			}
+			if (from_mask & ~CHI_A_MASK) {
+				white_to_mask[i] |= 1ULL << (i + 9);
+				black_to_mask[i] |= 1ULL << (i - 7);
+			}
+		}
+	}
+
+	printf ("\n/* Reverse pawn attack masks.  */\n");
+	printf ("static const bitv64 pawn_attacks[2][64] = {\n");
+
+	printf("\t/* White pawns.  */\n");
+	printf("\t{\n");
+	for (int i = 0; i < 64; ++i) {
+		printf("\t/* (0x%016llx) %s ->\n",  (bitv64) 1 << i, shift2label (i));
+		bitv64_dump((bitv64) 1 << i, white_to_mask[i], 'O', 1);
+		printf("\t*/\n");
+		printf("\t(bitv64) 0x%016llxULL,\n", white_to_mask[i]);
+	}
+	printf("\t},\n");
+
+	printf("\t/* Black pawns.  */\n");
+	printf("\t{\n");
+	for (int i = 0; i < 64; ++i) {
+		printf("\t/* (0x%016llx) %s ->\n",  (bitv64) 1 << i, shift2label (i));
+		bitv64_dump((bitv64) 1 << i, black_to_mask[i], 'O', 1);
+		printf("\t*/\n");
+		printf("\t(bitv64) 0x%016llxULL,\n", black_to_mask[i]);
+	}
+	printf("\t},\n");
+	printf("};\n");
+}
+
+static void
 generate_king_masks ()
 {
-    bitv64 to_mask[64];
-    int file, rank, i;
+	bitv64 to_mask[64];
+	int file, rank, i;
 
-    memset (to_mask, 0, sizeof to_mask);
+	memset(to_mask, 0, sizeof to_mask);
 
-    for (rank = CHI_RANK_1; rank <= CHI_RANK_8; ++rank) {
-	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
-	    int from_shift = chi_coords2shift (file, rank);
+	for (rank = CHI_RANK_1; rank <= CHI_RANK_8; ++rank) {
+		for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
+			int from_shift = chi_coords2shift(file, rank);
 
-	    if (file > CHI_FILE_A && rank < CHI_RANK_8)
-		to_mask[from_shift] |= (1ULL << (from_shift + 9));
+			if (file > CHI_FILE_A && rank < CHI_RANK_8)
+				to_mask[from_shift] |= (1ULL << (from_shift + 9));
 
-	    if (rank < CHI_RANK_8)
-		to_mask[from_shift] |= (1ULL << (from_shift + 8));
+			if (rank < CHI_RANK_8)
+				to_mask[from_shift] |= (1ULL << (from_shift + 8));
 
-	    if (file < CHI_FILE_H && rank < CHI_RANK_8)
-		to_mask[from_shift] |= (1ULL << (from_shift + 7));
+			if (file < CHI_FILE_H && rank < CHI_RANK_8)
+				to_mask[from_shift] |= (1ULL << (from_shift + 7));
 
-	    if (file < CHI_FILE_H)
-		to_mask[from_shift] |= (1ULL << (from_shift - 1));
+			if (file < CHI_FILE_H)
+				to_mask[from_shift] |= (1ULL << (from_shift - 1));
 
-	    if (file < CHI_FILE_H && rank > CHI_RANK_1)
-		to_mask[from_shift] |= (1ULL << (from_shift - 9));
+			if (file < CHI_FILE_H && rank > CHI_RANK_1)
+				to_mask[from_shift] |= (1ULL << (from_shift - 9));
 
-	    if (rank > CHI_RANK_1)
-		to_mask[from_shift] |= (1ULL << (from_shift - 8));
+			if (rank > CHI_RANK_1)
+				to_mask[from_shift] |= (1ULL << (from_shift - 8));
 
-	    if (file > CHI_FILE_A && rank > CHI_RANK_1)
-		to_mask[from_shift] |= (1ULL << (from_shift - 7));
+			if (file > CHI_FILE_A && rank > CHI_RANK_1)
+				to_mask[from_shift] |= (1ULL << (from_shift - 7));
 
-	    if (file > CHI_FILE_A)
-		to_mask[from_shift] |= (1ULL << (from_shift + 1));
+			if (file > CHI_FILE_A)
+				to_mask[from_shift] |= (1ULL << (from_shift + 1));
+		}
 	}
-    }
 
-    printf ("\n/* King attack masks.  */\n");
-    printf ("static const bitv64 king_attacks[64] = {\n");
+	printf("\n/* King attack masks.  */\n");
+	printf("static const bitv64 king_attacks[64] = {\n");
 
-    for (i = 0; i < 64; ++i) {
-	printf ("\t/* (0x%016llx) K%s ->\n", 
-		(bitv64) 1 << i, shift2label (i));
-	bitv64_dump ((bitv64) 1 << i, to_mask[i], 'K', 1);
-	printf ("\t*/\n");
-	printf ("\t(bitv64) 0x%016llx,\n", to_mask[i]);
-    }
+	for (i = 0; i < 64; ++i) {
+		printf("\t/* (0x%016llx) K%s ->\n",  (bitv64) 1 << i, shift2label (i));
+		bitv64_dump((bitv64) 1 << i, to_mask[i], 'K', 1);
+		printf("\t*/\n");
+		printf("\t(bitv64) 0x%016llx,\n", to_mask[i]);
+	}
 
-    printf ("};\n");
+	printf("};\n");
 }
 
 static void
@@ -351,239 +397,6 @@ generate_file_masks ()
 	bitv64_dump ((bitv64) 1 << i, to_mask[i], 'O', 1);
 	printf ("\t*/\n");
 	printf ("\t(bitv64) 0x%016llx,\n", to_mask[i]);
-    }
-
-    printf ("};\n");
-}
-
-static void
-generate_rook_hor_slide_masks ()
-{
-    unsigned int to_masks[8][256];
-    int state;
-    int rank, file;
-
-    for (state = 0; state < 256; ++state) {
-	for (file = CHI_FILE_H; file >= CHI_FILE_A; --file) {
-	    int i;
-	    int shift = chi_coords2shift (file, CHI_RANK_1);
-	    unsigned int from_mask = 1 << shift;
-
-	    to_masks[file][state] = 0;
-
-	    for (i = 1; i < 8; ++i) {
-		if ((from_mask >> i) & state)
-		    break;
-		to_masks[file][state] |= 0xff & (from_mask >> i);
-	    }
-	    for (i = 1; i < 8; ++i) {
-		if ((from_mask << i) & state)
-		    break;
-		to_masks[file][state] |= 0xff & (from_mask << i);
-	    }
-	}
-    }
-
-    printf ("\n/* Rook masks.  */\n");
-    printf ("static const bitv64 rook_hor_slide_masks[64][256] = {\n");
-
-    for (rank = CHI_RANK_1; rank <= CHI_RANK_8; ++rank) {
-	for (file = CHI_FILE_H; file >= CHI_FILE_A; --file) {
-	    int i = chi_coords2shift (file, rank);
-	    printf ("\t/* (0x%016llx) R%s -> (%d)\n", 
-		    (bitv64) 1 << i, shift2label (i), i);
-	    bitv64_dump (((bitv64) 1) << i, 0, 'R', 1);
-	    printf ("\t*/\n");
-	    printf ("\t{\n");
-
-	    for (state = 0; state < 256; ++state) {
-		bitv64 mask = ((bitv64) to_masks[file][state]) << (8 * rank);
-
-		printf ("\t");
-		print_rank_state ((unsigned char) state);
-		printf ("\t\t(bitv64) 0x%016llx,\n", mask);
-	    }
-	    printf ("\t},\n");
-	}
-    }
-
-    printf ("};\n");
-}
-
-static void
-generate_rook_hor_attack_masks ()
-{
-    unsigned int to_masks[8][256];
-    int state;
-    int rank, file;
-
-    for (state = 0; state < 256; ++state) {
-	for (file = CHI_FILE_H; file >= CHI_FILE_A; --file) {
-	    int i;
-	    int shift = chi_coords2shift (file, CHI_RANK_1);
-	    unsigned int from_mask = 1 << shift;
-
-	    to_masks[file][state] = 0;
-
-	    for (i = 1; i < 8; ++i) {
-		if ((from_mask >> i) & state) {
-		    to_masks[file][state] |= 0xff & (from_mask >> i);
-		    break;
-		}
-	    }
-	    for (i = 1; i < 8; ++i) {
-		if ((from_mask << i) & state) {
-		    to_masks[file][state] |= 0xff & (from_mask << i);
-		    break;
-		}
-	    }
-	}
-    }
-
-    printf ("\n/* Rook masks.  */\n");
-    printf ("static const bitv64 rook_hor_attack_masks[64][256] = {\n");
-
-    for (rank = CHI_RANK_1; rank <= CHI_RANK_8; ++rank) {
-	for (file = CHI_FILE_H; file >= CHI_FILE_A; --file) {
-	    int i = chi_coords2shift (file, rank);
-	    printf ("\t/* (0x%016llx) R%s -> (%d)\n", 
-		    (bitv64) 1 << i, shift2label (i), i);
-	    bitv64_dump (((bitv64) 1) << i, 0, 'R', 1);
-	    printf ("\t*/\n");
-	    printf ("\t{\n");
-
-	    for (state = 0; state < 256; ++state) {
-		bitv64 mask = ((bitv64) to_masks[file][state]) << (8 * rank);
-
-		printf ("\t");
-		print_rank_state ((unsigned char) state);
-		printf ("\t\t/*\n");
-		bitv64_dump (((bitv64) 1) << i, mask, 'R', 2);
-		printf ("\t\t*/\n");
-		printf ("\t\t(bitv64) 0x%016llx,\n", mask);
-	    }
-	    printf ("\t},\n");
-	}
-    }
-
-    printf ("};\n");
-}
-
-static void
-generate_rook_ver_slide_masks ()
-{
-    bitv64 to_masks[64][256];
-    int file, rank;
-    int shift;
-    int state;
-
-    memset (to_masks, 0, sizeof to_masks);
-
-    for (state = 0; state < 256; ++state) {
-	for (rank = CHI_RANK_1; rank <= CHI_RANK_8; ++rank) {
-	    int r;
-	    bitv64 target_mask = 0;
-
-	    for (r = rank + 1; r <= CHI_RANK_8; ++r) {
-		int block_mask = 1 << (CHI_RANK_8 - r);
-
-		if (block_mask & state)
-		    break;
-
-		target_mask |= (((bitv64) 1) << 
-				(chi_coords2shift (CHI_FILE_A, r)));
-	    }
-	    for (r = rank - 1; r >= CHI_RANK_1; --r) {
-		int block_mask = 1 << (CHI_RANK_8 - r);
-
-		if (block_mask & state)
-		    break;
-
-		target_mask |= (((bitv64) 1) << 
-				(chi_coords2shift (CHI_FILE_A, r)));
-	    }
-
-	    for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
-		shift = chi_coords2shift (file, rank);
-
-		to_masks[shift][state] |= target_mask >> file;
-	    }
-	}
-    }
-
-    printf ("\n/* Rook masks.  */\n");
-    printf ("static const bitv64 rook_ver_slide_masks[64][256] = {\n");
-
-    for (shift = 0; shift < 64; ++shift) {
-	printf ("\t/* (0x%016llx) R%s -> (%d) */\n", 
-		(bitv64) 1 << shift, shift2label (shift), shift);
-	printf ("\t{\n");
-	for (state = 0; state < 256; ++state) {
-	    printf ("\t");
-	    print_rank_state ((unsigned char) state);
-	    printf ("\t\t(bitv64) 0x%016llx,\n", to_masks[shift][state]);
-	}
-	printf ("\t},\n");
-    }
-
-    printf ("};\n");
-}
-
-static void
-generate_rook_ver_attack_masks ()
-{
-    bitv64 to_masks[64][256];
-    int file, rank;
-    int shift;
-    int state;
-
-    memset (to_masks, 0, sizeof to_masks);
-
-    for (state = 0; state < 256; ++state) {
-	for (rank = CHI_RANK_1; rank <= CHI_RANK_8; ++rank) {
-	    int r;
-	    bitv64 target_mask = 0;
-
-	    for (r = rank + 1; r <= CHI_RANK_8; ++r) {
-		int block_mask = 1 << (CHI_RANK_8 - r);
-
-		if (block_mask & state) {
-		    target_mask |= (((bitv64) 1) << 
-				    (chi_coords2shift (CHI_FILE_A, r)));
-		    break;
-		}
-	    }
-	    for (r = rank - 1; r >= CHI_RANK_1; --r) {
-		int block_mask = 1 << (CHI_RANK_8 - r);
-
-		if (block_mask & state) {
-		    target_mask |= (((bitv64) 1) << 
-				    (chi_coords2shift (CHI_FILE_A, r)));
-		    break;
-		}
-	    }
-
-	    for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
-		shift = chi_coords2shift (file, rank);
-
-		to_masks[shift][state] |= target_mask >> file;
-	    }
-	}
-    }
-
-    printf ("\n/* Rook masks.  */\n");
-    printf ("static const bitv64 rook_ver_attack_masks[64][256] = {\n");
-
-    for (shift = 0; shift < 64; ++shift) {
-	printf ("\t/* (0x%016llx) R%s -> (%d) */\n", 
-		(bitv64) 1 << shift, shift2label (shift), shift);
-	printf ("\t{\n");
-	for (state = 0; state < 256; ++state) {
-	    printf ("\t");
-	    print_rank_state ((unsigned char) state);
-	    printf ("\t\t(bitv64) 0x%016llx,\n", to_masks[shift][state]);
-	}
-	printf ("\t},\n");
     }
 
     printf ("};\n");
