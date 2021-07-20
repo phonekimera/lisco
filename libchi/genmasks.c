@@ -77,7 +77,10 @@ main (argc, argv)
 /* This file is generated!  Edit genmasks.c for changes.\n\
 \n\
    The attack masks for knights and kings map a bitshift value into a\n\
-   bitmask of fields attacked by that piece.  */\n"); 
+   bitmask of fields attacked by that piece.  */\n\
+\n\
+#ifndef _BITMASKS_C\n\
+# define _BITMASKS_C\n"); 
 
 	generate_obscured_masks();
 
@@ -98,6 +101,8 @@ main (argc, argv)
     generate_wpawn_dbl_steps ();
     generate_bpawn_dbl_steps ();
 #endif
+
+	printf("\n#endif\n");
 
     return 0;
 }

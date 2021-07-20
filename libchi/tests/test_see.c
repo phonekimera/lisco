@@ -24,6 +24,10 @@
 
 #include <check.h>
 
+static unsigned piece_values[6] = {
+	100, 300, 325, 500, 900, 10000
+};
+
 /* Example from
  * http://mediocrechess.blogspot.com/2007/03/guide-static-exchange-evaluation-see.html
  */
@@ -54,7 +58,7 @@ START_TEST(test_obvious_attackers_lone_pawn)
 
 	chi_pos position;
 	int errnum;
-	int white_attackers[16], black_attackers[16];
+	unsigned white_attackers[16], black_attackers[16];
 	chi_move move;
 
 	errnum = chi_set_position(&position, fen_white);
@@ -137,7 +141,7 @@ START_TEST(test_obvious_attackers_all_pieces)
 	*/
 	chi_pos position;
 	int errnum;
-	int white_attackers[16], black_attackers[16];
+	unsigned white_attackers[16], black_attackers[16];
 	chi_move move;
 
 	errnum = chi_set_position(&position, fen_white);
@@ -205,11 +209,93 @@ START_TEST(test_obvious_attackers_all_pieces)
 }
 END_TEST
 
+START_TEST(test_see_rook_wins_pawn)
+{
+	const char *fen_white = "1k1r4/1pp4p/p7/4p3/8/P5P1/1PP4P/2K1R3 w - - 0 1";
+	/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   | k |   | r |   |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   | p | p |   |   |   |   | p | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 | p |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   | p |   |   |   | Half moves: 0.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 | P |   |   |   |   |   | P |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   | P | P |   |   |   |   | P |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   | K |   | R |   |   |   |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+	*/
+	chi_pos position;
+	int errnum;
+	chi_move move;
+	int score;
+
+	errnum = chi_set_position(&position, fen_white);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&position, &move, "Rxe5");
+	ck_assert_int_eq(errnum, 0);
+
+	score = chi_see(&position, move, piece_values);
+	ck_assert_int_eq(score, 100);
+}
+
+/* Example from
+ * http://mediocrechess.blogspot.com/2007/03/guide-static-exchange-evaluation-see.html
+ */
+START_TEST(test_see_queen_hits_defended_pawn)
+{
+	const char *fen_white = "7k/p7/1p6/8/8/1Q6/8/7K w - - 0 1";
+	/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   |   |   |   |   |   |   | k | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 | p |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   | p |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 0.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: +7.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   | Q |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   | K |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+	*/
+	chi_pos position;
+	int errnum;
+	chi_move move;
+	int score;
+
+	errnum = chi_set_position(&position, fen_white);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&position, &move, "Qxb6");
+	ck_assert_int_eq(errnum, 0);
+
+	score = chi_see(&position, move, piece_values);
+	ck_assert_int_eq(score, -800);
+}
+
 Suite *
 see_suite(void)
 {
 	Suite *suite;
 	TCase *tc_obvious_attackers;
+	TCase *tc_see;
 
 	suite = suite_create("Static Exchange Evaluation");
 
@@ -217,6 +303,11 @@ see_suite(void)
 	tcase_add_test(tc_obvious_attackers, test_obvious_attackers_lone_pawn);
 	tcase_add_test(tc_obvious_attackers, test_obvious_attackers_all_pieces);
 	suite_add_tcase(suite, tc_obvious_attackers);
+
+	tc_see = tcase_create("Static Exchange Evaluation");
+	tcase_add_test(tc_see, test_see_rook_wins_pawn);
+	tcase_add_test(tc_see, test_see_queen_hits_defended_pawn);
+	suite_add_tcase(suite, tc_see);
 
 	return suite;
 }

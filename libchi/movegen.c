@@ -22,7 +22,7 @@
 
 #include <libchi.h>
 
-#include "bitmasks.h"
+#include "bitmasks.c"
 
 chi_move * 
 chi_generate_captures(const chi_pos *pos, chi_position_context *ctx, chi_move *moves)
@@ -251,3 +251,5 @@ chi_check_check(const chi_pos *pos)
 #define KING_CASTLE_CROSS_MASK (((bitv64) 0x06) << 56)
 #define KING_CASTLE_MOVE (0x3b | (0x39 << 6) | ((~king & 0x7) << 13))
 #include "movegen_color.c"
+
+#include "see.c"
