@@ -23,6 +23,12 @@
 
 #include <sys/types.h>
 
+/* This source file gets #include'd itself by movegen.c which already
+ * included bitmasks.c.  But since an IDE does not know this, we include
+ * it hear once more in order to shut up warnings.
+ */
+#include "bitmasks.c"
+
 #include "libchi.h"
 #include "./magicmoves.h"
 
