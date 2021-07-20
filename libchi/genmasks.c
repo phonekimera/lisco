@@ -114,34 +114,29 @@ print_rank_state(unsigned char state)
 #endif
 
 static void
-bitv64_dump (from_mask, to_mask, piece_char, tabs)
-     bitv64 from_mask;
-     bitv64 to_mask;
-     int piece_char; 
-     int tabs;
+bitv64_dump (bitv64 from_mask, bitv64 to_mask, int piece_char, int tabs)
 {
-    int file, rank;
-    int tab;
+	int file, rank;
+	int tab;
 
-    for (rank = CHI_RANK_8; rank >= CHI_RANK_1 && rank <= CHI_RANK_8; --rank) {
-	for (tab = 0; tab < tabs; ++tab)
-	    fputc ('\t', stdout);
-	
-	printf ("   ");
-	for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
-	    int shift = chi_coords2shift (file, rank);
+	for (rank = CHI_RANK_8; rank >= CHI_RANK_1 && rank <= CHI_RANK_8; --rank) {
+		for (tab = 0; tab < tabs; ++tab)
+			fputc ('\t', stdout);
 
-	    if ((1ULL << shift) & from_mask) {
-		printf (" %c", piece_char);
-	    } else if ((1ULL << shift) & to_mask) {
-		printf (" X");
-	    } else {
-		printf (" .");
-	    }
+			printf ("   ");
+			for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
+				int shift = chi_coords2shift (file, rank);
+
+				if ((1ULL << shift) & from_mask) {
+					printf (" %c", piece_char);
+				} else if ((1ULL << shift) & to_mask) {
+					printf (" X");
+				} else {
+					printf (" .");
+			}
+		}
+		printf ("\n");
 	}
-	printf ("\n");
-    }
-
 }
 
 static const char*
