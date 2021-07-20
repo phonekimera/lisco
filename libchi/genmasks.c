@@ -161,12 +161,16 @@ obscured_dump (int from, int to, bitv64 obscured_mask,
 		for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
 			int shift = chi_coords2shift (file, rank);
 
-			if (shift == from) {
-				printf(" F");
+			if ((1ULL << shift) & obscured_mask) {
+				printf(" %c", direction);
+			} else if (shift == from) {
+				if (from == to) {
+					printf(" 0");
+				} else {
+					printf(" F");
+				}
 			} else if (shift == to) {
 				printf(" T");
-			} else if ((1ULL << shift) & obscured_mask) {
-				printf(" %c", direction);
 			} else {
 				printf(" .");
 			}
@@ -187,30 +191,71 @@ shift2label (shift)
 }
 
 static void
+print_binary(unsigned long long n)
+{
+	for (int i = 0; i < 64; ++i) {
+			putc(n & 1ULL << i ? '1' : '0', stderr);
+	}
+	putc('\n', stderr);
+}
+
+static void
 generate_obscured_masks()
 {
 	bitv64 obscured_masks[64][64];
 	bitv64 mask;
-
+	off_t condvar;
+	unsigned char directions[64][64];
+	
 	memset(obscured_masks, 0, sizeof(obscured_masks[0][0]) * 64 * 64);
+	memset(directions, '?', sizeof(directions[0][0]) * 64 * 64);
 
 	for (off_t from = 0; from < 64; ++from) {
 		/* North. */
-		mask = 0ULL;
 		for (off_t to = from + 8; to < 64; to += 8) {
-			for (off_t obscured = to + 8; obscured < 64; obscured += 8) {
+			off_t obscured;
+			mask = 0ULL;
+			for (obscured = to + 8; obscured < 64; obscured += 8) {
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
+			directions[from][to] = '|';
+		}
+
+		/* North-east. */
+		condvar = from % 8;
+		for (off_t to = from + 7; to % 8 < condvar && to < 64; to += 7) {
+			mask = 0ULL;
+			for (off_t obscured = to + 7;
+			     obscured % 8 < condvar && obscured < 64;
+			     obscured += 7) {
+				mask |= (1ULL << obscured);
+			}
+			obscured_masks[from][to] = mask;
+			directions[from][to] = '/';
+		}
+
+		/* East. */
+		condvar = from / 8;
+		for (off_t to = from - 1; to / 8 == condvar && to >= 0; to -= 1) {
+			mask = 0ULL;
+			for (off_t obscured = to - 1;
+			     obscured / 8 == condvar && obscured >= 0;
+			     obscured -= 1) {
+				mask |= (1ULL << obscured);
+			}
+			obscured_masks[from][to] = mask;
+			directions[from][to] = '-';
 		}
 
 		/* South. */
-		mask = 0ULL;
 		for (off_t to = from - 8; to >= 0; to -= 8) {
+			mask = 0ULL;
 			for (off_t obscured = to - 8; obscured >= 0; obscured -= 8) {
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
+			directions[from][to] = '|';
 		}
 	}
 
@@ -223,7 +268,8 @@ generate_obscured_masks()
 		for (off_t to = 0; to < 64; ++to) {
 			printf("\t\t/* From %lld (%s) to %lld (%s)\n",
 					from, shift2label(from), to, shift2label(to));
-			obscured_dump(from, to, obscured_masks[from][to], '|', 2);
+			obscured_dump(from, to, obscured_masks[from][to],
+					directions[from][to], 2);
 			printf("\t\t*/\n");
 			if (to != 63) {
 				printf("\t\t0x%016llx,\n", obscured_masks[from][to]);
