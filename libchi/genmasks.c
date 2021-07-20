@@ -33,8 +33,6 @@ static void generate_reverse_pawn_masks(void);
 
 static void generate_knight_masks(void);
 static void generate_king_masks(void);
-static void generate_rank_masks(void);
-static void generate_file_masks(void);
 
 static void generate_rook_king_attacks(void);
 /* FIXME! Get rid of this! */
@@ -80,8 +78,6 @@ main (argc, argv)
 	generate_reverse_pawn_masks();
     generate_knight_masks ();
     generate_king_masks ();
-    generate_rank_masks ();
-    generate_file_masks ();
 
     generate_bishop_king_attacks ();
     generate_bishop_king_intermediates ();
@@ -336,66 +332,6 @@ generate_knight_masks ()
 	printf ("\t/* (0x%016llx) N%s ->\n", 
 		(bitv64) 1 << i, shift2label (i));
 	bitv64_dump ((bitv64) 1 << i, to_mask[i], 'N', 1);
-	printf ("\t*/\n");
-	printf ("\t(bitv64) 0x%016llx,\n", to_mask[i]);
-    }
-
-    printf ("};\n");
-}
-
-static void
-generate_rank_masks ()
-{
-    bitv64 to_mask[64];
-    int file, rank, i;
-
-    memset (to_mask, 0, sizeof to_mask);
-
-    for (rank = CHI_RANK_1; rank <= CHI_RANK_8; ++rank) {
-	bitv64 mask = ((bitv64) 0xff) << (rank * 8);
-
-	for (file = CHI_FILE_H; file >= CHI_FILE_A; --file) {
-	    to_mask[chi_coords2shift (file, rank)] = mask;
-	}
-    }
-
-    printf ("\n/* Rank masks.  */\n");
-    printf ("static const bitv64 rank_masks[64] = {\n");
-
-    for (i = 0; i < 64; ++i) {
-	printf ("\t/* (0x%016llx) %s ->\n", 
-		(bitv64) 1 << i, shift2label (i));
-	bitv64_dump ((bitv64) 1 << i, to_mask[i], 'O', 1);
-	printf ("\t*/\n");
-	printf ("\t(bitv64) 0x%016llx,\n", to_mask[i]);
-    }
-
-    printf ("};\n");
-}
-
-static void
-generate_file_masks ()
-{
-    bitv64 to_mask[64];
-    int file, rank, i;
-
-    memset (to_mask, 0, sizeof to_mask);
-
-    for (rank = CHI_RANK_8; rank >= CHI_RANK_1; --rank) {
-	bitv64 mask = ((bitv64) 0xff) << ((7 - rank) * 8);
-
-	for (file = CHI_FILE_H; file >= CHI_FILE_A; --file) {
-	    to_mask[chi_coords2shift90 (file, rank)] = mask;
-	}
-    }
-
-    printf ("\n/* File masks.  */\n");
-    printf ("static const bitv64 file_masks[64] = {\n");
-
-    for (i = 0; i < 64; ++i) {
-	printf ("\t/* (0x%016llx) %s ->\n", 
-		(bitv64) 1 << i, shift2label (i));
-	bitv64_dump ((bitv64) 1 << i, to_mask[i], 'O', 1);
 	printf ("\t*/\n");
 	printf ("\t(bitv64) 0x%016llx,\n", to_mask[i]);
     }
