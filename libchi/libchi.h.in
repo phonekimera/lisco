@@ -453,7 +453,10 @@ typedef unsigned int chi_move;
 #define chi_move_attacker(m) (((~m) >> 13) & 0x7)
 #define chi_move_victim(m) (((m) >> 16) & 0x7)
 #define chi_move_promote(m) (((m) >> 19) & 0x7)
-#define chi_move_is_ep(m) ((m) & 0x1000)
+// chi_obvious_attackers() depends on the exact position of the ep flag
+// offset.
+#define chi_move_ep_offset 12
+#define chi_move_is_ep(m) ((m) & (1 << chi_move_ep_offset))
 #define chi_move_material(m) ((m) >> 22)
 
 /* Macros for setting particular values for a move.  They are all
@@ -802,12 +805,60 @@ void chi_mm_init(void);
  * Static Exchange Evaluation. *
  *******************************/
 
-/* From position POS find all pieces that attack the target square of the
- * piece moving in MOVE and place them into the bitboards W and B for white
- * and black respectively.  X-Ray attacks are NOT handled!
+/**
+ * From position POS find all pieces that attack the target square of the
+ * piece moving in MOVE and place them in WHITW_ATTACKERS and BLACK_ATTACKERS
+ * respectively.  X-Ray attacks are NOT handled!
+ * 
+ * The two result array must be at least 32 INTs bigs.  The first 16 slots are
+ * for white, the second 16 slots for black. For each slot, the least
+ * significant byte in host order encodes the start field, the second byte
+ * encodes the piece that takes:
+ * 
+ * 	1 - Pawn
+ * 	2 - Knight or Bishop (!)
+ * 	4 - Rook
+ * 	5 - Queen
+ * 	6 - King
+ * 
+ * This is almost the same as the definition of chi_piece_t with the exception
+ * that bishops are treated like knights.  The reason for this is that they
+ * are treated the same in the context of static exchange evaluation.
+ *
+ * The first (and only the first) unused slot is set to 0.
+ * It would be possible to stuff that information into as little as 12 bits but
+ * encoding/decoding would be a lot slower then.
+ * 
+ * To see why 15 ints plus the terminating 0 int are enough, look at the
+ * position 8/2n1n3/1Nqqqn2/2qpk3/1nqqqn2/2n1n3/8/7K w - - 0 1:
+ *
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   |   |   |   |   |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   | n |   | n |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   | N | q | q | q | n |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   | q | p | k |   |   |   | Half moves: 0.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   | n | q | q | q | n |   |   | Material: -82.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   | n |   | n |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   | K |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+ *
+ * When calculating the static exchange evaluation for e5, at least one of
+ * the attacking pieces must be of the opposite color - here the white knight
+ * on b6 - because one of the pieces must hit.
+ * 
  */
 void chi_obvious_attackers(const chi_pos *pos, chi_move move,
-	bitv64* w, bitv64 *b);
+	int *white_attackers, int *black_attackers);
 
 CHI_END_DECLS
 

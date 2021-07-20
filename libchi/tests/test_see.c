@@ -27,7 +27,6 @@
 /* Example from
  * http://mediocrechess.blogspot.com/2007/03/guide-static-exchange-evaluation-see.html
  */
-#include <stdio.h>
 START_TEST(test_obvious_attackers_lone_pawn)
 {
 	const char *fen_white = "7k/p7/1p6/8/8/1Q6/8/7K w - - 0 1";
@@ -55,8 +54,7 @@ START_TEST(test_obvious_attackers_lone_pawn)
 
 	chi_pos position;
 	int errnum;
-	bitv64 white_attackers, black_attackers;
-	bitv64 expect_white_attackers, expect_black_attackers;
+	int white_attackers[16], black_attackers[16];
 	chi_move move;
 
 	errnum = chi_set_position(&position, fen_white);
@@ -65,11 +63,11 @@ START_TEST(test_obvious_attackers_lone_pawn)
 	errnum = chi_parse_move(&position, &move, "Qxb6");
 	ck_assert_int_eq(errnum, 0);
 
-	expect_white_attackers = 0ULL;
-	expect_black_attackers = CHI_A7_MASK;
-	chi_obvious_attackers(&position, move, &white_attackers, &black_attackers);
-	ck_assert_int_eq(white_attackers, expect_white_attackers);
-	ck_assert_int_eq(black_attackers, expect_black_attackers);
+	chi_obvious_attackers(&position, move, white_attackers, black_attackers);
+
+	ck_assert_int_eq(white_attackers[0], 0);
+	ck_assert_int_eq(black_attackers[0], CHI_A7 | pawn << 8);
+	ck_assert_int_eq(black_attackers[1], 0);
 
 	const char *fen_black = "7K/8/1q6/8/8/1P6/P7/7k b - - 0 1";
 	/*
@@ -100,11 +98,110 @@ START_TEST(test_obvious_attackers_lone_pawn)
 	errnum = chi_parse_move(&position, &move, "Qxb3");
 	ck_assert_int_eq(errnum, 0);
 
-	expect_white_attackers = CHI_A2_MASK;
-	expect_black_attackers = 0ULL;
-	chi_obvious_attackers(&position, move, &white_attackers, &black_attackers);
-	ck_assert_int_eq(white_attackers, expect_white_attackers);
-	ck_assert_int_eq(black_attackers, expect_black_attackers);
+	chi_obvious_attackers(&position, move, white_attackers, black_attackers);
+
+	ck_assert_int_eq(white_attackers[0], CHI_A2 | pawn << 8);
+	ck_assert_int_eq(white_attackers[1], 0);
+	ck_assert_int_eq(black_attackers[0], 0);
+}
+END_TEST
+
+#include <stdio.h>
+START_TEST(test_obvious_attackers_all_pieces)
+{
+	/* This position is actually not a legal position because the last move
+	 * must have been e7-e5 (en passant field is e6!) but e7 is occupied by
+	 * the black king.  Who cares?
+	 */
+	const char *fen_white = "8/3pkB2/7Q/2KPpPn1/8/4r3/8/8 w - e6 0 1";
+	/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   |   |   |   |   |   |   |   | En passant possible on file e.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   | p | k | B |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   | Q | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   | K | P | p | P | n |   | Half moves: 0.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: +4.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   | r |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+	*/
+	chi_pos position;
+	int errnum;
+	int white_attackers[16], black_attackers[16];
+	chi_move move;
+
+	errnum = chi_set_position(&position, fen_white);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&position, &move, "dxe");
+	ck_assert_int_eq(errnum, 0);
+
+	chi_obvious_attackers(&position, move, white_attackers, black_attackers);
+
+	ck_assert_int_eq(white_attackers[0], CHI_F5 | pawn << 8);
+	/* Note that a bishop is counted as a knight to avoid branching.  */
+	ck_assert_int_eq(white_attackers[1], CHI_F7 | knight << 8);
+	ck_assert_int_eq(white_attackers[2], CHI_H6 | queen << 8);
+	ck_assert_int_eq(white_attackers[3], 0);
+
+	ck_assert_int_eq(black_attackers[0], CHI_D7 | pawn << 8);
+	ck_assert_int_eq(black_attackers[1], CHI_G5 | knight << 8);
+	ck_assert_int_eq(black_attackers[2], CHI_E3 | rook << 8);
+	ck_assert_int_eq(black_attackers[3], CHI_E7 | king << 8);
+	ck_assert_int_eq(white_attackers[4], 0);
+
+	const char *fen_black = "8/8/4R3/8/2kpPpN1/7q/3PKb2/8 b - e3 0 1";
+	/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   |   |   |   |   |   |   |   | En passant possible on file e.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   | R |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 1.
+   +---+---+---+---+---+---+---+---+ Next move: black.
+ 4 |   |   | k | p | P | p | N |   | Material: -4.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   | q | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   | P | K | b |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+	*/
+
+	errnum = chi_set_position(&position, fen_black);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&position, &move, "dxe");
+	ck_assert_int_eq(errnum, 0);
+
+	chi_obvious_attackers(&position, move, white_attackers, black_attackers);
+
+	ck_assert_int_eq(white_attackers[0], CHI_D2 | pawn << 8);
+	ck_assert_int_eq(white_attackers[1], CHI_G4 | knight << 8);
+	ck_assert_int_eq(white_attackers[2], CHI_E6 | rook << 8);
+	ck_assert_int_eq(white_attackers[3], CHI_E2 | king << 8);
+	ck_assert_int_eq(white_attackers[4], 0);
+
+	ck_assert_int_eq(black_attackers[0], CHI_F4 | pawn << 8);
+	/* Note that a bishop is counted as a knight to avoid branching.  */
+	ck_assert_int_eq(black_attackers[1], CHI_F2 | knight << 8);
+	ck_assert_int_eq(black_attackers[2], CHI_H3 | queen << 8);
+	ck_assert_int_eq(black_attackers[3], 0);
 }
 END_TEST
 
@@ -118,6 +215,7 @@ see_suite(void)
 
 	tc_obvious_attackers = tcase_create("Obvious Attackers");
 	tcase_add_test(tc_obvious_attackers, test_obvious_attackers_lone_pawn);
+	tcase_add_test(tc_obvious_attackers, test_obvious_attackers_all_pieces);
 	suite_add_tcase(suite, tc_obvious_attackers);
 
 	return suite;
