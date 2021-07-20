@@ -23,11 +23,15 @@
 #include <libchi.h>
 
 #include <stdio.h>
-
 #include <string.h>
+#include <sys/types.h>
 
 static void bitv64_dump(bitv64, bitv64, int, int);
+static void obscured_dump(int from, int to, bitv64 mask,
+	unsigned char direction, size_t tabs);
 static const char* shift2label(unsigned int);
+
+static void generate_obscured_masks(void);
 
 static void generate_reverse_pawn_masks(void);
 
@@ -35,11 +39,11 @@ static void generate_knight_masks(void);
 static void generate_king_masks(void);
 
 static void generate_rook_king_attacks(void);
-/* FIXME! Get rid of this! */
+/* FIXME! Get rid of this? */
 static void generate_rook_king_intermediates(void);
 
 static void generate_bishop_king_attacks(void);
-/* FIXME! Get rid of this! */
+/* FIXME! Get rid of this? */
 static void generate_bishop_king_intermediates(void);
 
 #ifdef PAWN_LOOKUP
@@ -75,15 +79,18 @@ main (argc, argv)
    The attack masks for knights and kings map a bitshift value into a\n\
    bitmask of fields attacked by that piece.  */\n"); 
 
+	generate_obscured_masks();
+
 	generate_reverse_pawn_masks();
-    generate_knight_masks ();
-    generate_king_masks ();
 
-    generate_bishop_king_attacks ();
-    generate_bishop_king_intermediates ();
+	generate_knight_masks ();
+	generate_king_masks ();
 
-    generate_rook_king_attacks ();
-    generate_rook_king_intermediates ();
+	generate_bishop_king_attacks ();
+	generate_bishop_king_intermediates ();
+
+	generate_rook_king_attacks ();
+	generate_rook_king_intermediates ();
 
 #ifdef PAWN_LOOKUP
     generate_wpawn_sg_steps ();
@@ -139,6 +146,36 @@ bitv64_dump (bitv64 from_mask, bitv64 to_mask, int piece_char, int tabs)
 	}
 }
 
+static void
+obscured_dump (int from, int to, bitv64 obscured_mask,
+		unsigned char direction, size_t tabs)
+{
+	int file, rank;
+
+	for (rank = CHI_RANK_8; rank >= CHI_RANK_1 && rank <= CHI_RANK_8; --rank) {
+		for (size_t tab = 0; tab < tabs; ++tab) {
+			fputc ('\t', stdout);
+		}
+
+		printf ("   ");
+		for (file = CHI_FILE_A; file <= CHI_FILE_H; ++file) {
+			int shift = chi_coords2shift (file, rank);
+
+			if (shift == from) {
+				printf(" F");
+			} else if (shift == to) {
+				printf(" T");
+			} else if ((1ULL << shift) & obscured_mask) {
+				printf(" %c", direction);
+			} else {
+				printf(" .");
+			}
+		}
+
+		printf ("\n");
+	}
+}
+
 static const char*
 shift2label (shift)
      unsigned int shift;
@@ -147,6 +184,61 @@ shift2label (shift)
 		return coordinates[shift];
 	else
 		return "??";
+}
+
+static void
+generate_obscured_masks()
+{
+	bitv64 obscured_masks[64][64];
+	bitv64 mask;
+
+	memset(obscured_masks, 0, sizeof(obscured_masks[0][0]) * 64 * 64);
+
+	for (off_t from = 0; from < 64; ++from) {
+		/* North. */
+		mask = 0ULL;
+		for (off_t to = from + 8; to < 64; to += 8) {
+			for (off_t obscured = to + 8; obscured < 64; obscured += 8) {
+				mask |= (1ULL << obscured);
+			}
+			obscured_masks[from][to] = mask;
+		}
+
+		/* South. */
+		mask = 0ULL;
+		for (off_t to = from - 8; to >= 0; to -= 8) {
+			for (off_t obscured = to - 8; obscured >= 0; obscured -= 8) {
+				mask |= (1ULL << obscured);
+			}
+			obscured_masks[from][to] = mask;
+		}
+	}
+
+	printf("\n/* Obscured masks (fields obscured by a move from F to T).  */\n");
+	printf("static const bitv64 obscured_masks[64][64] = {\n");
+
+	for (off_t from = 0; from < 64; ++from) {
+		printf("\t/* From %lld (%s).  */\n", from, shift2label(from));
+		printf("\t{\n");
+		for (off_t to = 0; to < 64; ++to) {
+			printf("\t\t/* From %lld (%s) to %lld (%s)\n",
+					from, shift2label(from), to, shift2label(to));
+			obscured_dump(from, to, obscured_masks[from][to], '|', 2);
+			printf("\t\t*/\n");
+			if (to != 63) {
+				printf("\t\t0x%016llx,\n", obscured_masks[from][to]);
+			} else {
+				printf("\t\t0x%016llx\n", obscured_masks[from][to]);
+			}
+		}
+		if (from != 63) {
+			printf("\t},\n");
+		} else {
+			printf("\t}\n");
+		}
+	}
+
+	printf("};\n");
 }
 
 static void
