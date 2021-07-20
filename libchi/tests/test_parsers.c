@@ -455,7 +455,6 @@ START_TEST(test_move_material_ep)
 	ck_assert_int_eq(chi_move_material(move), 1);
 }
 
-#include <stdio.h>
 START_TEST(test_move_material_promotion)
 {
 	const char *fen = "qb6/knP5/pp6/8/4K3/8/8/8 w - - 0 1";
@@ -481,7 +480,6 @@ START_TEST(test_move_material_promotion_capture)
 	ck_assert_int_eq(errnum, 0);
 	errnum = chi_parse_move(&position, &move, "exd8=Q#");
 	ck_assert_int_eq(errnum, 0);
-	fprintf(stderr, "Move: 0x%08x\n", move);
 	ck_assert_int_eq(chi_move_material(move), 17);
 }
 
