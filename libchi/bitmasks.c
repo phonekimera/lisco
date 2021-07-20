@@ -3,6 +3,9 @@
    The attack masks for knights and kings map a bitshift value into a
    bitmask of fields attacked by that piece.  */
 
+#ifndef _BITMASKS_C
+# define _BITMASKS_C
+
 /* Obscured masks (fields obscured by a move from F to T).  */
 static const bitv64 obscured_masks[64][64] = {
 	/* From 0 (h1).  */
@@ -140651,3 +140654,5 @@ static const bitv64 rook_king_intermediates[64][64] = {
 		(bitv64) 0xffffffffffffffff,
 	},
 };
+
+#endif
