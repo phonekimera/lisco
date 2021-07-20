@@ -191,15 +191,6 @@ shift2label (shift)
 }
 
 static void
-print_binary(unsigned long long n)
-{
-	for (int i = 0; i < 64; ++i) {
-			putc(n & 1ULL << i ? '1' : '0', stderr);
-	}
-	putc('\n', stderr);
-}
-
-static void
 generate_obscured_masks()
 {
 	bitv64 obscured_masks[64][64];
@@ -237,15 +228,28 @@ generate_obscured_masks()
 
 		/* East. */
 		condvar = from / 8;
-		for (off_t to = from - 1; to / 8 == condvar && to >= 0; to -= 1) {
+		for (off_t to = from - 1; to / 8 == condvar && to >= 0; --to) {
 			mask = 0ULL;
 			for (off_t obscured = to - 1;
 			     obscured / 8 == condvar && obscured >= 0;
-			     obscured -= 1) {
+			     --obscured) {
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
 			directions[from][to] = '-';
+		}
+
+		/* South-east. */
+		condvar = from % 8;
+		for (off_t to = from - 9; to % 8 < condvar && to >= 0; to -= 9) {
+			mask = 0ULL;
+			for (off_t obscured = to - 9;
+			     obscured % 8 < condvar && obscured >= 0;
+			     obscured -= 9) {
+				mask |= (1ULL << obscured);
+			}
+			obscured_masks[from][to] = mask;
+			directions[from][to] = '\\';
 		}
 
 		/* South. */
@@ -256,6 +260,45 @@ generate_obscured_masks()
 			}
 			obscured_masks[from][to] = mask;
 			directions[from][to] = '|';
+		}
+
+		/* South-west. */
+		condvar = from % 8;
+		for (off_t to = from - 7; to % 8 > condvar && to >= 0; to -= 7) {
+			mask = 0ULL;
+			for (off_t obscured = to - 7;
+			     obscured % 8 > condvar && obscured >= 0;
+			     obscured -= 7) {
+				mask |= (1ULL << obscured);
+			}
+			obscured_masks[from][to] = mask;
+			directions[from][to] = '/';
+		}
+
+		/* West. */
+		condvar = from / 8;
+		for (off_t to = from + 1; to / 8 == condvar && to < 64; ++to) {
+			mask = 0ULL;
+			for (off_t obscured = to + 1;
+			     obscured / 8 == condvar && obscured < 64;
+			     ++obscured) {
+				mask |= (1ULL << obscured);
+			}
+			obscured_masks[from][to] = mask;
+			directions[from][to] = '-';
+		}
+
+		/* Nort-west. */
+		condvar = from % 8;
+		for (off_t to = from + 9; to % 8 > condvar && to < 64; to += 9) {
+			mask = 0ULL;
+			for (off_t obscured = to + 9;
+			     obscured % 8 > condvar && obscured < 64;
+			     obscured += 9) {
+				mask |= (1ULL << obscured);
+			}
+			obscured_masks[from][to] = mask;
+			directions[from][to] = '\\';
 		}
 	}
 
@@ -284,6 +327,34 @@ generate_obscured_masks()
 		}
 	}
 
+	printf("};\n");
+
+	printf("/* Obscurance types, 0 for bishops and 1 for rooks.  */\n");
+	printf("static const unsigned char obscurance_types[64][64] = {\n");
+	for (off_t from = 0; from < 64; ++from) {
+		printf("\t{\n");
+		for (off_t to = 0; to < 64; ++to) {
+			if ((to & 7) == 0) {
+				printf("\t\t");
+			}
+			if (directions[from][to] == '-' || directions[from][to] == '|') {
+				putc('1', stdout);
+			} else {
+				putc('0', stdout);
+			}
+			if (to != 63) {
+				putc(',', stdout);
+			}
+			if ((to & 7) == 7) {
+				putc('\n', stdout);
+			} else {
+				putc(' ', stdout);
+			}
+		}
+		printf("\t}");
+		if (from != 63) putc(',', stdout);
+		printf("\t\n");
+	}
 	printf("};\n");
 }
 
