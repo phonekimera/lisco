@@ -130,70 +130,70 @@ static SEETest tests[] = {
 		__FILE__,
 		__LINE__,
 		"rnbq1rk1/pppp1ppp/4pn2/8/1bPP4/P1N5/1PQ1PPPP/R1B1KBNR b KQ - 1 1",
-		Move(B4,C3),
+		"Bxc3",
 		N - B
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"r4rk1/3nppbp/bq1p1np1/2pP4/8/2N2NPP/PP2PPB1/R1BQR1K1 b - - 1 1",
-		Move(B6,B2),
+		"Qxb2",
 		P - Q
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"r4rk1/1q1nppbp/b2p1np1/2pP4/8/2N2NPP/PP2PPB1/R1BQR1K1 b - - 1 1",
-		Move(F6,D5),
+		"Nxd5",
 		P - N
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"1r3r2/5p2/4p2p/2k1n1P1/2PN1nP1/1P3P2/8/2KR1B1R b - - 0 29",
-		Move(B8,B3),
+		"Rxb3",
 		P - R
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"1r3r2/5p2/4p2p/4n1P1/kPPN1nP1/5P2/8/2KR1B1R b - - 0 1",
-		Move(B8,B4),
+		"Rxb4",
 		P
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"2r2rk1/5pp1/pp5p/q2p4/P3n3/1Q3NP1/1P2PP1P/2RR2K1 b - - 1 22",
-		Move(C8,C1),
+		"Rxc1",
 		R - R
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"1r3r1k/p4pp1/2p1p2p/qpQP3P/2P5/3R4/PP3PP1/1K1R4 b - - 0 1",
-		Move(A5,A2),
+		"Qxa2",
 		P - Q
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"1r5k/p4pp1/2p1p2p/qpQP3P/2P2P2/1P1R4/P4rP1/1K1R4 b - - 0 1",
-		Move(A5,A2),
+		"Qxa2",
 		P
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"r2q1rk1/1b2bppp/p2p1n2/1ppNp3/3nP3/P2P1N1P/BPP2PP1/R1BQR1K1 w - - 4 14",
-		Move(D5,E7),
+		"Nxe7",
 		B - N
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"rnbqrbn1/pp3ppp/3p4/2p2k2/4p3/3B1K2/PPP2PPP/RNB1Q1NR w - - 0 1",
-		Move(D3,E4),
+		"Bxe4",
 		P
 	},
 		/* Non-capture initial move. */
@@ -201,63 +201,64 @@ static SEETest tests[] = {
 		__FILE__,
 		__LINE__,
 		"rnb1k2r/p3p1pp/1p3p1b/7n/1N2N3/3P1PB1/PPP1P1PP/R2QKB1R w KQkq - 0 1",
-		Move(E4,D6),
+		"Nxd6",
 		0 - N + P
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"r1b1k2r/p4npp/1pp2p1b/7n/1N2N3/3P1PB1/PPP1P1PP/R2QKB1R w KQkq - 0 1",
-		Move(E4,D6),
+		"Nd6",
 		0 - N + N
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"2r1k2r/pb4pp/5p1b/2KB3n/4N3/2NP1PB1/PPP1P1PP/R2Q3R w k - 0 1",	
-		Move(D5,C6),
+		"Bc6",
 		0 - B
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"2r1k2r/pb4pp/5p1b/2KB3n/1N2N3/3P1PB1/PPP1P1PP/R2Q3R w k - 0 1",
-		Move(D5,C6),
+		"Bc6",
 		0 - B + B
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"2r1k3/pbr3pp/5p1b/2KB3n/1N2N3/3P1PB1/PPP1P1PP/R2Q3R w - - 0 1",
-		Move(D5,C6), 0 - B + B - N
+		"Bc6",
+		0 - B + B - N
 	},
 	/* Initial move promotion. */
 	{
 		__FILE__,
 		__LINE__,
 		"5k2/p2P2pp/1b6/1p6/1Nn1P1n1/8/PPP4P/R2QK1NR w KQ - 0 1",
-		Move(D7,D8q),
+		"d8Q",
 		0 + ( -P + Q ) - Q + B
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"4kbnr/p1P1pppp/b7/4q3/7n/8/PP1PPPPP/RNBQKBNR w KQk - 0 1",
-		Move(C7,C8q),
+		"c8q",
 		0 + (-P + Q) - Q
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"4kbnr/p1P1pppp/b7/4q3/7n/8/PPQPPPPP/RNB1KBNR w KQk - 0 1",
-		Move(C7,C8),
+		"c8q",
 		0 + (-P + Q) - Q + B
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"4kbnr/p1P1pppp/b7/4q3/7n/8/PPQPPPPP/RNB1KBNR w KQk - 0 1",
-		Move(C7,C8n),
+		"c8n",
 		0 + (-P + N)
 	},
 	/* Initial move En Passant.  */
@@ -265,42 +266,36 @@ static SEETest tests[] = {
 		__FILE__,
 		__LINE__,
 		"4kbnr/p1P4p/b1q5/5pP1/4n3/5Q2/PP1PPP1P/RNB1KBNR w KQk f6 0 2",
-		Move(G5,F6),
+		"gxf6",
 		P - P
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"4kbnr/p1P4p/b1q5/5pP1/4n2Q/8/PP1PPP1P/RNB1KBNR w KQk f6 0 2",
-		Move(G5,F6), P - P
-	},
-	{
-		__FILE__,
-		__LINE__,
-		"4kb1r/p1P4p/b4Q2/8/8/8/PP1PPP1P/RNB1KBNR b KQk - 0 3 ",
-		Move(G5,F6),
-		P
+		"gxf6",
+		P - P
 	},
 	/* Initial move capture promotion.  */
 	{
 		__FILE__,
 		__LINE__,
 		"1n2kb1r/p1P4p/2qb4/5pP1/4n2Q/8/PP1PPP1P/RNB1KBNR w KQk - 0 1",	
-		Move(C7,B8Q),
+		"cxb8q",
 		N + (-P + Q) -Q
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"rnbqk2r/pp3ppp/2p1pn2/3p4/3P4/N1P1BN2/PPB1PPPb/R2Q1RK1 w kq - 0 1",
-		Move(G1,H2),
+		"Kxh2",
 		B
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"3N4/2K5/2n5/1k6/8/8/8/8 b - - 0 1",
-		Move(C6,D8),
+		"Nxd8",
 		0
 	},
 	/* Promotion inside the loop. */
@@ -308,28 +303,28 @@ static SEETest tests[] = {
 		__FILE__,
 		__LINE__,
 		"3N4/2P5/2n5/1k6/8/8/8/4K3 b - - 0 1",
-		Move(C6,D8),
+		"Nxd8",
 		N - (N - P + Q)
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"3N4/2P5/2n5/1k6/8/8/8/4K3 b - - 0 1",
-		Move(C6,B8),
+		"Nb8",
 		0 - (N - P + Q)
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"3n3r/2P5/8/1k6/8/8/3Q4/4K3 w - - 0 1",
-		Move(D2,D8),
+		"Qxd8",
 		N
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"3n3r/2P5/8/1k6/8/8/3Q4/4K3 w - - 0 1",
-		Move(C7,D8q),
+		"cxdq",
 		(N - P + Q) - Q + R
 	},
 	/* Double promotion inside the loop. */
@@ -337,28 +332,28 @@ static SEETest tests[] = {
 		__FILE__,
 		__LINE__,
 		"r2n3r/2P1P3/4N3/1k6/8/8/8/4K3 w - - 0 1",
-		Move(E6,D8),
+		"Nxd8",
 		N
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"8/8/8/1k6/6b1/4N3/2p3K1/3n4 w - - 0 1",
-		Move(E3,D1),
+		"Nxd1",
 		N - (N - P + Q)
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"8/8/1k6/8/8/2N1N3/2p1p1K1/3n4 w - - 0 1",
-		Move(C3,D1),
+		"Nexd1",
 		N - (N - P + Q)
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"8/8/1k6/8/8/2N1N3/4p1K1/3n4 w - - 0 1",
-		Move(C3,D1),
+		"Ncxd1",
 		N - (N - P + Q) + Q
 	},
 	{
@@ -371,7 +366,7 @@ static SEETest tests[] = {
 };
 
 static void
-report_failure(const SEETest *test, const char *fmt, ...)
+report_failure(const SEETest *test, int errnum, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
@@ -384,6 +379,9 @@ report_failure(const SEETest *test, const char *fmt, ...)
 
 	va_end(ap);
 
+	if (errnum) {
+		fprintf(stderr, "Error code %d: %s\n", errnum, chi_strerror(errnum));
+	}
 	ck_abort();
 }
 
@@ -397,7 +395,13 @@ START_TEST(test_see_positions)
 		chi_pos position;
 		int errnum = chi_set_position(&position, test->fen);
 		if (errnum != 0) {
-			report_failure(test, "invalid position (error code %d)\n", errnum);
+			report_failure(test, errnum, "Invalid position.\n");
+		}
+
+		chi_move move;
+		errnum = chi_parse_move(&position, &move, test->san);
+		if (errnum != 0) {
+			report_failure(test, errnum, "Invalid move.\n");
 		}
 	}
 }
