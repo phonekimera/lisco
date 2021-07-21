@@ -24,8 +24,15 @@
 
 #include <check.h>
 
+#define P 100
+#define N 300
+#define B 300
+#define R 500
+#define Q 900
+#define K 10000
+
 static unsigned piece_values[6] = {
-	100, 300, 325, 500, 900, 10000
+	P, N, B, R, Q, K
 };
 
 /* Example from
@@ -290,6 +297,51 @@ START_TEST(test_see_queen_hits_defended_pawn)
 	ck_assert_int_eq(score, -800);
 }
 
+/* Example from
+ * https://www.chessprogramming.org/SEE_-_The_Swap_Algorithm#Position_2
+ */
+START_TEST(test_see_x_ray_attacks)
+{
+	const char *fen_white = "1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - - 0 1";
+	/*
+   +---+---+---+---+---+---+---+---+
+ 8 |   | k |   | r |   |   |   | q | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   | p | p | n |   |   |   | p | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 | p |   |   |   |   | b |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   | p |   |   |   | Half moves: 0.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 | P |   |   | N |   |   | P |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   | P | P |   | R |   | B | P |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   | K |   | Q |   |   |   |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+	*/
+	chi_pos position;
+	int errnum;
+	chi_move move;
+	int score;
+
+	errnum = chi_set_position(&position, fen_white);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&position, &move, "Nxe5");
+	ck_assert_int_eq(errnum, 0);
+
+	unsigned cpo_piece_values[6] = {
+		100, 325, 325, 500, 900, 10000
+	};
+
+	score = chi_see(&position, move, cpo_piece_values);
+	ck_assert_int_eq(score, -225);
+}
+
 Suite *
 see_suite(void)
 {
@@ -307,6 +359,7 @@ see_suite(void)
 	tc_see = tcase_create("Static Exchange Evaluation");
 	tcase_add_test(tc_see, test_see_rook_wins_pawn);
 	tcase_add_test(tc_see, test_see_queen_hits_defended_pawn);
+	tcase_add_test(tc_see, test_see_x_ray_attacks);
 	suite_add_tcase(suite, tc_see);
 
 	return suite;
