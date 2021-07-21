@@ -198,6 +198,14 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 	off_t attacker = chi_move_attacker(move);
 	unsigned to = chi_move_to(move);
 
+	/* One more reason to combine bishops and rooks of both sides into
+	 * one bitboard each.
+	 */
+	bitv64 sliding_mask = position->w_bishops | position->w_rooks
+			| position->b_bishops | position->b_rooks;
+	bitv64 sliding_bishop_mask = position->w_bishops | position->b_bishops;
+	bitv64 sliding_rooks_mask = position->w_rooks | position->b_rooks;
+
 	/*
 	 * These two pointers get incremented in turn.  If an x-ray attack is
 	 * detected, the currently moving piece gets replaced with the piece
@@ -220,8 +228,18 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 			break;
 
 		/* Add x-ray attackers.  */
-		bitv64 obscured = obscured_masks[from][to];
-		if (obscured) {
+		bitv64 obscured_mask = obscured_masks[from][to];
+		if (obscured_mask & sliding_mask) {
+			/* This is now the slow but unlikely part.  */
+			unsigned obscurance_type_bishop = obscurance_types[from][to];
+			chi_color_t insert_color;
+			if (obscurance_type_bishop
+			    && (obscured_mask & sliding_bishop_mask)) {
+
+			} else if (obscurance_type_bishop
+			           && (obscured_mask & sliding_bishop_mask)) {
+
+			}
 			// --attackers_ptr[side_to_move];
 		}
 		/*
