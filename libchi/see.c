@@ -181,6 +181,7 @@ max(int a, int b) {
 	return a - (diff & dsgn);
 }
 
+#include <stdio.h>
 int
 chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 {
@@ -196,9 +197,9 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 
 	off_t attacker = chi_move_attacker(move);
 
+	unsigned *attackers_ptr[2] = { attackers, attackers + 16 };
 	while(1) {
-		off_t attacker_idx = depth++ >> 1;
-		unsigned attacker_def = attackers[(side_to_move << 4) + attacker_idx];
+		unsigned attacker_def = *(attackers_ptr[side_to_move]++);
 		if (!attacker_def) break;
 
 		gain[depth] = piece_values[attacker - 1] - gain[depth - 1];
