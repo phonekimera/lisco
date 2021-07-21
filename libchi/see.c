@@ -196,7 +196,14 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 	gain[0] = piece_values[chi_move_victim(move) - 1];
 
 	off_t attacker = chi_move_attacker(move);
+	unsigned to = chi_move_to(move);
 
+	/*
+	 * These two pointers get incremented in turn.  If an x-ray attack is
+	 * detected, the currently moving piece gets replaced with the piece
+	 * that had been obscured, and the obscured piece is moved to its
+	 * correct position by continuous swaps.
+	 */
 	unsigned *attackers_ptr[2] = { attackers, attackers + 16 };
 	while(1) {
 		unsigned attacker_def = *(attackers_ptr[side_to_move]++);
@@ -206,13 +213,17 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 
 		// FIXME! Maybe cast attacker_def to an array of two shorts.
 		attacker = attacker_def >> 8;
-		//int from = attacker_def & 0xff;
+		unsigned from = attacker_def & 0xff;
 
 		/* Can we prune? */
 		if (max(-gain[depth - 1], gain[depth]) < 0)
 			break;
 
-		/* FIXME! Add x-ray attackers.  */
+		/* Add x-ray attackers.  */
+		bitv64 obscured = obscured_masks[from][to];
+		if (obscured) {
+			// --attackers_ptr[side_to_move];
+		}
 		/*
 			Before I forget ...
 

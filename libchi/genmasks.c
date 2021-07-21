@@ -211,7 +211,7 @@ generate_obscured_masks()
 		for (off_t to = from + 8; to < 64; to += 8) {
 			off_t obscured;
 			mask = 0ULL;
-			for (obscured = to + 8; obscured < 64; obscured += 8) {
+			for (obscured = from - 8; obscured >= 0; obscured -= 8) {
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
@@ -222,9 +222,9 @@ generate_obscured_masks()
 		condvar = from % 8;
 		for (off_t to = from + 7; to % 8 < condvar && to < 64; to += 7) {
 			mask = 0ULL;
-			for (off_t obscured = to + 7;
-			     obscured % 8 < condvar && obscured < 64;
-			     obscured += 7) {
+			for (off_t obscured = from - 7;
+			     obscured % 8 > condvar && obscured >= 0;
+			     obscured -= 7) {
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
@@ -235,9 +235,9 @@ generate_obscured_masks()
 		condvar = from / 8;
 		for (off_t to = from - 1; to / 8 == condvar && to >= 0; --to) {
 			mask = 0ULL;
-			for (off_t obscured = to - 1;
-			     obscured / 8 == condvar && obscured >= 0;
-			     --obscured) {
+			for (off_t obscured = from + 1;
+			     obscured / 8 == condvar && obscured < 64;
+			     ++obscured) {
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
@@ -248,9 +248,9 @@ generate_obscured_masks()
 		condvar = from % 8;
 		for (off_t to = from - 9; to % 8 < condvar && to >= 0; to -= 9) {
 			mask = 0ULL;
-			for (off_t obscured = to - 9;
-			     obscured % 8 < condvar && obscured >= 0;
-			     obscured -= 9) {
+			for (off_t obscured = from + 9;
+			     obscured % 8 > condvar && obscured < 64;
+			     obscured += 9) {
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
@@ -260,7 +260,7 @@ generate_obscured_masks()
 		/* South. */
 		for (off_t to = from - 8; to >= 0; to -= 8) {
 			mask = 0ULL;
-			for (off_t obscured = to - 8; obscured >= 0; obscured -= 8) {
+			for (off_t obscured = from + 8; obscured < 64; obscured += 8) {
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
@@ -271,9 +271,9 @@ generate_obscured_masks()
 		condvar = from % 8;
 		for (off_t to = from - 7; to % 8 > condvar && to >= 0; to -= 7) {
 			mask = 0ULL;
-			for (off_t obscured = to - 7;
-			     obscured % 8 > condvar && obscured >= 0;
-			     obscured -= 7) {
+			for (off_t obscured = from + 7;
+			     obscured % 8 < condvar && obscured < 64;
+			     obscured += 7) {
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
@@ -284,9 +284,9 @@ generate_obscured_masks()
 		condvar = from / 8;
 		for (off_t to = from + 1; to / 8 == condvar && to < 64; ++to) {
 			mask = 0ULL;
-			for (off_t obscured = to + 1;
-			     obscured / 8 == condvar && obscured < 64;
-			     ++obscured) {
+			for (off_t obscured = from - 1;
+			     obscured / 8 == condvar && obscured >= 0;
+			     --obscured) {
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
@@ -297,9 +297,9 @@ generate_obscured_masks()
 		condvar = from % 8;
 		for (off_t to = from + 9; to % 8 > condvar && to < 64; to += 9) {
 			mask = 0ULL;
-			for (off_t obscured = to + 9;
-			     obscured % 8 > condvar && obscured < 64;
-			     obscured += 9) {
+			for (off_t obscured = from - 9;
+			     obscured % 8 < condvar && obscured >= 0;
+			     obscured -= 9) {
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
