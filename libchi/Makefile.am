@@ -40,13 +40,16 @@ libchi_la_LDFLAGS += -no-undefined
 
 AM_CPPFLAGS = -I. -I$(srcdir) -I.. -I$(top_srcdir)/lib
 
-noinst_PROGRAMS = genmasks showfen
+noinst_PROGRAMS = genmasks showfen dump-bitboard
 # *Never* add -lchi here (bootstrapping problem).
 
 noinst_HEADERS = stringbuf.h
 
 showfen_LDADD = -lchi $(top_srcdir)/lib/liblisco.la
 showfen_DEPENDENCIES = $(srcdir)/libchi.la $(top_srcdir)/lib/liblisco.la
+
+dump_bitboard_LDADD = -lchi $(top_srcdir)/lib/liblisco.la
+dump_bitboard_DEPENDENCIES = $(srcdir)/libchi.la $(top_srcdir)/lib/liblisco.la
 
 bitmasks.c: genmasks
 	./genmasks >$@.tmp
