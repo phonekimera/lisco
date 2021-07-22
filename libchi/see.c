@@ -82,8 +82,8 @@ chi_obvious_attackers(const chi_pos *pos, chi_move mv,
 	 */
 	int ep_to_offsets[2] = { -8, +8 };
 	bitv64 occupancy = (pos->w_pieces | pos->b_pieces)
-		& ~(-(chi_move_is_ep(mv) >> chi_move_ep_offset)
-		    & (1 << (to + ep_to_offsets[chi_on_move(pos)]))); // Not 1ULL!
+		& ~(-((bitv64) (chi_move_is_ep(mv) >> chi_move_ep_offset))
+		    & (1ULL << (to + ep_to_offsets[chi_on_move(pos)])));
 	bitv64 bishop_mask = Bmagic(to, occupancy) & not_from_mask;
 	bitv64 rook_mask = Rmagic(to, occupancy) & not_from_mask;
 	bitv64 queen_mask = bishop_mask | rook_mask;

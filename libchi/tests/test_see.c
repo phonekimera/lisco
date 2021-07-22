@@ -403,6 +403,14 @@ START_TEST(test_see_positions)
 		if (errnum != 0) {
 			report_failure(test, errnum, "Invalid move.\n");
 		}
+
+#if 0
+		int score = chi_see(&position, move, piece_values);
+		if (score != test->score) {
+			report_failure(test, 0, "Expected score %d, got score %d.\n",
+					test->score, score);
+		}
+#endif
 	}
 }
 END_TEST
@@ -541,7 +549,7 @@ START_TEST(test_obvious_attackers_all_pieces)
 	ck_assert_int_eq(black_attackers[1], CHI_G5 | knight << 8);
 	ck_assert_int_eq(black_attackers[2], CHI_E3 | rook << 8);
 	ck_assert_int_eq(black_attackers[3], CHI_E7 | king << 8);
-	ck_assert_int_eq(white_attackers[4], 0);
+	ck_assert_int_eq(black_attackers[4], 0);
 
 	const char *fen_black = "8/8/4R3/8/2kpPpN1/7q/3PKb2/8 b - e3 0 1";
 	/*
@@ -709,11 +717,11 @@ START_TEST(test_see_x_ray_attacks)
 	errnum = chi_parse_move(&position, &move, "Nxe5");
 	ck_assert_int_eq(errnum, 0);
 
-	unsigned cpo_piece_values[6] = {
+	unsigned local_piece_values[6] = {
 		100, 325, 325, 500, 900, 10000
 	};
 
-	score = chi_see(&position, move, cpo_piece_values);
+	score = chi_see(&position, move, local_piece_values);
 	ck_assert_int_eq(score, -225);
 }
 
