@@ -43,7 +43,7 @@
 #define DRAW 20
 #define MAX_POS_SCORE 99999
 
-#include <libchi/bitmasks.h>
+#include <libchi/bitmasks.c>
 
 static int evaluate_dev_white(Tree *tree, int ply);
 static int evaluate_dev_black(Tree *tree, int ply);
