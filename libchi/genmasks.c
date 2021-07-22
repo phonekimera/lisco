@@ -201,9 +201,11 @@ generate_obscured_masks()
 	bitv64 obscured_masks[64][64];
 	bitv64 mask;
 	off_t condvar;
+	unsigned char orientations[64][64];
 	unsigned char directions[64][64];
 	
 	memset(obscured_masks, 0, sizeof(obscured_masks[0][0]) * 64 * 64);
+	memset(orientations, '?', sizeof(orientations[0][0]) * 64 * 64);
 	memset(directions, '?', sizeof(directions[0][0]) * 64 * 64);
 
 	for (off_t from = 0; from < 64; ++from) {
@@ -215,7 +217,8 @@ generate_obscured_masks()
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
-			directions[from][to] = '|';
+			orientations[from][to] = '|';
+			directions[from][to] = 0;
 		}
 
 		/* North-east. */
@@ -228,7 +231,8 @@ generate_obscured_masks()
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
-			directions[from][to] = '/';
+			orientations[from][to] = '/';
+			directions[from][to] = 0;
 		}
 
 		/* East. */
@@ -241,7 +245,8 @@ generate_obscured_masks()
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
-			directions[from][to] = '-';
+			orientations[from][to] = '-';
+			directions[from][to] = 1;
 		}
 
 		/* South-east. */
@@ -254,7 +259,8 @@ generate_obscured_masks()
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
-			directions[from][to] = '\\';
+			orientations[from][to] = '\\';
+			directions[from][to] = 1;
 		}
 
 		/* South. */
@@ -264,7 +270,8 @@ generate_obscured_masks()
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
-			directions[from][to] = '|';
+			orientations[from][to] = '|';
+			directions[from][to] = 1;
 		}
 
 		/* South-west. */
@@ -277,7 +284,8 @@ generate_obscured_masks()
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
-			directions[from][to] = '/';
+			orientations[from][to] = '/';
+			directions[from][to] = 1;
 		}
 
 		/* West. */
@@ -290,7 +298,8 @@ generate_obscured_masks()
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
-			directions[from][to] = '-';
+			orientations[from][to] = '-';
+			directions[from][to] = 0;
 		}
 
 		/* Nort-west. */
@@ -303,7 +312,8 @@ generate_obscured_masks()
 				mask |= (1ULL << obscured);
 			}
 			obscured_masks[from][to] = mask;
-			directions[from][to] = '\\';
+			orientations[from][to] = '\\';
+			directions[from][to] = 0;
 		}
 	}
 
@@ -317,7 +327,7 @@ generate_obscured_masks()
 			printf("\t\t/* From %lld (%s) to %lld (%s)\n",
 					from, shift2label(from), to, shift2label(to));
 			obscured_dump(from, to, obscured_masks[from][to],
-					directions[from][to], 2);
+					orientations[from][to], 2);
 			printf("\t\t*/\n");
 			if (to != 63) {
 				printf("\t\t0x%016llx,\n", obscured_masks[from][to]);
@@ -334,19 +344,31 @@ generate_obscured_masks()
 
 	printf("};\n");
 
-	printf("/* Obscurance types, 0 for bishops and 1 for rooks.  */\n");
-	printf("static const unsigned char obscurance_types[64][64] = {\n");
+	printf("/* Obscurance directions. The lower bit denotes whether this is\n"
+	       " * a bishop movement (1) or rook (0), the upper bit denotes\n"
+	       " * whether the obscured squares are bitwise to the left/higher (1)\n"
+	       " * or to the right/lower (0) of the movement.\n"
+	       " */\n");
+	printf("static const unsigned char obscurance_directions[64][64] = {\n");
 	for (off_t from = 0; from < 64; ++from) {
+		printf("\t/* From %lld (%s).  */\n", from, shift2label(from));
 		printf("\t{\n");
 		for (off_t to = 0; to < 64; ++to) {
 			if ((to & 7) == 0) {
 				printf("\t\t");
 			}
-			if (directions[from][to] == '-' || directions[from][to] == '|') {
-				putc('1', stdout);
+			unsigned char direction;
+			if (obscured_masks[from][to]
+			    && (orientations[from][to] == '-'
+			        || orientations[from][to] == '|')) {
+				direction = 1;
 			} else {
-				putc('0', stdout);
+				direction = 0;
 			}
+			if (obscured_masks[from][to] && directions[from][to]) {
+				direction |= 2;
+			}
+			printf("%d", direction);
 			if (to != 63) {
 				putc(',', stdout);
 			}
