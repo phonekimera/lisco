@@ -671,6 +671,9 @@ START_TEST(test_see_queen_hits_defended_pawn)
 
 /* Example from
  * https://www.chessprogramming.org/SEE_-_The_Swap_Algorithm#Position_2
+ *
+ * It is actually a bad example because the x-ray attacks do not change the
+ * result at all.
  */
 START_TEST(test_see_x_ray_attacks)
 {

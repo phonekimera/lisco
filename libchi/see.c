@@ -250,11 +250,11 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 			}
 			if (sliding_mask) {
 				if (direction == 0) {
-					/* Left/higher.  Least significant bit.  */
-					piece_mask = chi_clear_but_least_set(obscured_mask & sliding_mask);
-				} else {
 					/* Right/lower.  Most significant bit.  */
 					piece_mask = chi_clear_but_most_set(obscured_mask & sliding_mask);
+				} else {
+					/* Left/higher.  Least significant bit.  */
+					piece_mask = chi_clear_but_least_set(obscured_mask & sliding_mask);
 				}
 			}
 			if (piece_mask) {
@@ -269,22 +269,20 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 					}
 				}
 
-				/* TODO! Insert the piece.  */
+				/* Now insert the x-ray attacker into the list.  Since the
+				 * piece is encoded in the upper byte, we can do a simple,
+				 * unmasked comparison.
+				 */
+#define swap(a, b) ((((a) -= (b)), ((b) += (a)), ((a) = (b) - (a))))
+				unsigned *ptr = --attackers_ptr[color];
+				*ptr = piece << 16 | chi_bitv2shift(piece_mask);
+				while (*++ptr) {
+					if (ptr[0] < ptr[-1]) {
+						swap(ptr[-1], ptr[0]);
+					}
+				}
 			}
-			// --attackers_ptr[side_to_move];
 		}
-		/*
-			Before I forget ...
-
-			Finding an obscured attacker is trivial.  Inserting it would
-			require to memmove attackers.  But we can take advantage of the 
-			fact that we insert just one attacker.  And that should be
-			possible by overwriting the current one and not incrementing
-			the index. Unfortunately that idea conflicts with two distinct
-			attacker arrays for white and black.  But there should be some
-			solution, when the attackers simply get re-organized or by
-			maintaing separate indices for black and white.
-		 */
 
 		side_to_move = ~side_to_move & 0x1;
 	}
