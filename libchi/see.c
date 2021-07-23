@@ -198,6 +198,13 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 
 	off_t attacker = chi_move_attacker(move);
 
+	unsigned promote = chi_move_promote(move);
+	if (promote) {
+		/* unlikely */
+		gain[0] += piece_values[promote] - piece_values[pawn];
+		attacker = promote;
+	}
+
 	/* One more reason to combine bishops and rooks of both sides into
 	 * one bitboard each.
 	 */

@@ -113,14 +113,16 @@ static SEETest tests[] = {
 	{
 		__FILE__,
 		__LINE__,
-		"7R/5P2/8/8/8/3K2r1/5p2/4k3 w - -",
+		/* Moved the rook so that the white king is not in chess.  */
+		"7R/5P2/8/8/6r1/3K4/5p2/4k3 w - - 0 1",
 		"f8=Q",
 		Q - P
 	},
 	{
 		__FILE__,
 		__LINE__,
-		"7R/5P2/8/8/8/3K2r1/5p2/4k3 w - -",
+		/* Moved the rook so that the white king is not in chess.  */
+		"7R/5P2/8/8/6r1/3K4/5p2/4k3 w - - 0 1",
 		"f8=B",
 		B - P
 	},
