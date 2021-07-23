@@ -209,9 +209,6 @@ generate_obscured_masks()
 	memset(directions, '?', sizeof(directions[0][0]) * 64 * 64);
 
 	for (off_t from = 0; from < 64; ++from) {
-		if (from == 42) {
-			printf("/* Here */");
-		}
 		/* North. */
 		for (off_t to = from + 8; to < 64; to += 8) {
 			off_t obscured;
@@ -333,9 +330,9 @@ generate_obscured_masks()
 					orientations[from][to], 2);
 			printf("\t\t*/\n");
 			if (to != 63) {
-				printf("\t\t0x%016llx,\n", obscured_masks[from][to]);
+				printf("\t\t0x%016llxULL,\n", obscured_masks[from][to]);
 			} else {
-				printf("\t\t0x%016llx\n", obscured_masks[from][to]);
+				printf("\t\t0x%016llxULL\n", obscured_masks[from][to]);
 			}
 		}
 		if (from != 63) {
