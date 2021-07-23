@@ -826,26 +826,20 @@ void chi_mm_init(void);
  * From position POS find all pieces that attack the target square of the
  * piece moving in MOVE and place them in WHITW_ATTACKERS and BLACK_ATTACKERS
  * respectively.  X-Ray attacks are NOT handled!
- * 
+ *
+ * The array PIECE_VALUES must have 7 elements (for no piece, pawn, knight,
+ * bishop, rook, queen, and king, in that order).  The first element should
+ * be 0 for obvious reasons.
+ *
  * The function returns the occupancy of the board.  The victim is only
  * removed from this board if it was hit en passant.  This is mostly
  * because exactly this value is used by the caller (see()).
  * 
  * The two result array must be at least 32 INTs bigs.  The first 16 slots are
  * for white, the second 16 slots for black. For each slot, the least
- * significant byte in host order encodes the start field, the second byte
- * encodes the piece that takes:
+ * significant byte in host order encodes the start field, the rest encodes
+ * the value of the piece that has taken.
  * 
- * 	1 - Pawn
- * 	2 - Knight or Bishop (!)
- * 	4 - Rook
- * 	5 - Queen
- * 	6 - King
- * 
- * This is almost the same as the definition of chi_piece_t with the exception
- * that bishops are treated like knights.  The reason for this is that they
- * are treated the same in the context of static exchange evaluation.
- *
  * The first (and only the first) unused slot is set to 0.
  * It would be possible to stuff that information into as little as 12 bits but
  * encoding/decoding would be a lot slower then.
@@ -876,10 +870,11 @@ void chi_mm_init(void);
  * When calculating the static exchange evaluation for e5, at least one of
  * the attacking pieces must be of the opposite color - here the white knight
  * on b6 - because one of the pieces must hit.
- * 
  */
 @BITV64@ chi_obvious_attackers(const chi_pos *pos, chi_move move,
-		unsigned *white_attackers, unsigned *black_attackers);
+		unsigned *white_attackers, unsigned *black_attackers,
+		/* FIXME! This should be something like uint32.  */
+		unsigned *piece_values);
 
 /* Return the static exchange evaluation of (capturing!) move MOVE for
  * in POSITION.  The score is given in centipawns from white's perspective.
