@@ -26,17 +26,6 @@
 
 #include <check.h>
 
-#define P 100
-#define N 300
-#define B 300
-#define R 500
-#define Q 900
-#define K 10000
-
-static unsigned piece_values[7] = {
-	0, P, N, B, R, Q, K
-};
-
 typedef struct SEETest {
 	const char *filename;
 	int lineno;
@@ -52,63 +41,63 @@ static SEETest tests[] = {
 		__LINE__,
 		"4R3/2r3p1/5bk1/1p1r3p/p2PR1P1/P1BK1P2/1P6/8 b - - 0 1",
 		"hxg4",
-		0
+		CHI_SEE_NO_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"4R3/2r3p1/5bk1/1p1r1p1p/p2PR1P1/P1BK1P2/1P6/8 b - -",
 		"hxg4",
-		0
+		CHI_SEE_NO_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"4r1k1/5pp1/nbp4p/1p2p2q/1P2P1b1/1BP2N1P/1B2QPPK/3R4 b - -",
 		"Bxf3",
-		0
+		CHI_SEE_NO_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"2r1r1k1/pp1bppbp/3p1np1/q3P3/2P2P2/1P2B3/P1N1B1PP/2RQ1RK1 b - -",
 		"dxe5",
-		P
+		CHI_SEE_PAWN_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"7r/5qpk/p1Qp1b1p/3r3n/BB3p2/5p2/P1P2P2/4RK1R w - -",
 		"Re8",
-		0
+		CHI_SEE_NO_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"6rr/6pk/p1Qp1b1p/2n5/1B3p2/5p2/P1P2P2/4RK1R w - -",
 		"Re8",
-		-R
+		-CHI_SEE_ROOK_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"7r/5qpk/2Qp1b1p/1N1r3n/BB3p2/5p2/P1P2P2/4RK1R w - -",
 		"Re8",
-		-R
+		-CHI_SEE_ROOK_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"6RR/4bP2/8/8/5r2/3K4/5p2/4k3 w - -",
 		"f8=Q",
-		B - P,
+		CHI_SEE_BISHOP_VALUE - CHI_SEE_PAWN_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"6RR/4bP2/8/8/5r2/3K4/5p2/4k3 w - -",
 		"f8=N",
-		N - P
+		CHI_SEE_KNIGHT_VALUE - CHI_SEE_PAWN_VALUE
 	},
 	{
 		__FILE__,
@@ -116,7 +105,7 @@ static SEETest tests[] = {
 		/* Moved the rook so that the white king is not in chess.  */
 		"7R/5P2/8/8/6r1/3K4/5p2/4k3 w - - 0 1",
 		"f8=Q",
-		Q - P
+		CHI_SEE_QUEEN_VALUE - CHI_SEE_PAWN_VALUE
 	},
 	{
 		__FILE__,
@@ -124,104 +113,104 @@ static SEETest tests[] = {
 		/* Moved the rook so that the white king is not in chess.  */
 		"7R/5P2/8/8/6r1/3K4/5p2/4k3 w - - 0 1",
 		"f8=B",
-		B - P
+		CHI_SEE_BISHOP_VALUE - CHI_SEE_PAWN_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"7R/4bP2/8/8/1q6/3K4/5p2/4k3 w - -",
 		"f8=R",
-		-P
+		-CHI_SEE_PAWN_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"8/4kp2/2npp3/1Nn5/1p2PQP1/7q/1PP1B3/4KR1r b - -",
 		"Rxf1+",
-		0
+		CHI_SEE_NO_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"8/4kp2/2npp3/1Nn5/1p2P1P1/7q/1PP1B3/4KR1r b - -",
 		"Rxf1+",
-		0
+		CHI_SEE_NO_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"2r2r1k/6bp/p7/2q2p1Q/3PpP2/1B6/P5PP/2RR3K b - -",
 		"Qxc1",
-		2 * R - Q
+		2 * CHI_SEE_ROOK_VALUE - CHI_SEE_QUEEN_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"r2qk1nr/pp2ppbp/2b3p1/2p1p3/8/2N2N2/PPPP1PPP/R1BQR1K1 w kq -",
 		"Nxe5",
-		P
+		CHI_SEE_PAWN_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"6r1/4kq2/b2p1p2/p1pPb3/p1P2B1Q/2P4P/2B1R1P1/6K1 w - -",
 		"Bxe5",
-		0
+		CHI_SEE_NO_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R4B/PQ3P1P/3R2K1 w - h6",
 		"gxh6",
-		0
+		CHI_SEE_NO_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R1B2B/PQ3P1P/3R2K1 w - h6",
 		"gxh6",
-		P
+		CHI_SEE_PAWN_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"2r4r/1P4pk/p2p1b1p/7n/BB3p2/2R2p2/P1P2P2/4RK2 w - -",
 		"Rxc8",
-		R
+		CHI_SEE_ROOK_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"2r5/1P4pk/p2p1b1p/5b1n/BB3p2/2R2p2/P1P2P2/4RK2 w - -",
 		"Rxc8",
-		B // FIXME! Should be R!
+		CHI_SEE_BISHOP_VALUE // FIXME! Should be R!
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"2r4k/2r4p/p7/2b2p1b/4pP2/1BR5/P1R3PP/2Q4K w - -",
 		"Rxc5",
-		B
+		CHI_SEE_BISHOP_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"8/pp6/2pkp3/4bp2/2R3b1/2P5/PP4B1/1K6 w - -",
 		"Bxc6",
-		P - B
+		CHI_SEE_PAWN_VALUE - CHI_SEE_BISHOP_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"4q3/1p1pr1k1/1B2rp2/6p1/p3PP2/P3R1P1/1P2R1K1/4Q3 b - -",
 		"Rxe4",
-		P - R
+		CHI_SEE_PAWN_VALUE - CHI_SEE_ROOK_VALUE
 	},
 	{
 		__FILE__,
 		__LINE__,
 		"4q3/1p1pr1kb/1B2rp2/6p1/p3PP2/P3R1P1/1P2R1K1/4Q3 b - -","Bxe4",
-		P
+		CHI_SEE_PAWN_VALUE
 	},
 };
 
@@ -265,7 +254,7 @@ fprintf(stderr, "Doing test %s:%d\n", test->filename, test->lineno);
 			report_failure(test, errnum, "Invalid move.\n");
 		}
 
-		int score = chi_see(&position, move, piece_values);
+		int score = chi_see(&position, move);
 		if (score != test->score) {
 			report_failure(test, 0, "Expected score %d, got score %d.\n",
 					test->score, score);
@@ -313,11 +302,10 @@ START_TEST(test_obvious_attackers_lone_pawn)
 	errnum = chi_parse_move(&position, &move, "Qxb6");
 	ck_assert_int_eq(errnum, 0);
 
-	chi_obvious_attackers(&position, move, white_attackers, black_attackers,
-			piece_values);
+	chi_obvious_attackers(&position, move, white_attackers, black_attackers);
 
 	ck_assert_int_eq(white_attackers[0], 0);
-	ck_assert_int_eq(black_attackers[0], CHI_A7 | piece_values[pawn] << 8);
+	ck_assert_int_eq(black_attackers[0], CHI_A7 | CHI_SEE_PAWN_VALUE << 8);
 	ck_assert_int_eq(black_attackers[1], 0);
 
 	const char *fen_black = "7K/8/1q6/8/8/1P6/P7/7k b - - 0 1";
@@ -349,16 +337,14 @@ START_TEST(test_obvious_attackers_lone_pawn)
 	errnum = chi_parse_move(&position, &move, "Qxb3");
 	ck_assert_int_eq(errnum, 0);
 
-	chi_obvious_attackers(&position, move, white_attackers, black_attackers,
-		piece_values);
+	chi_obvious_attackers(&position, move, white_attackers, black_attackers);
 
-	ck_assert_int_eq(white_attackers[0], CHI_A2 | piece_values[pawn] << 8);
+	ck_assert_int_eq(white_attackers[0], CHI_A2 | CHI_SEE_PAWN_VALUE << 8);
 	ck_assert_int_eq(white_attackers[1], 0);
 	ck_assert_int_eq(black_attackers[0], 0);
 }
 END_TEST
 
-#include <stdio.h>
 START_TEST(test_obvious_attackers_all_pieces)
 {
 	/* This position is actually not a legal position because the last move
@@ -398,19 +384,18 @@ START_TEST(test_obvious_attackers_all_pieces)
 	errnum = chi_parse_move(&position, &move, "dxe");
 	ck_assert_int_eq(errnum, 0);
 
-	chi_obvious_attackers(&position, move, white_attackers, black_attackers,
-			piece_values);
+	chi_obvious_attackers(&position, move, white_attackers, black_attackers);
 
-	ck_assert_int_eq(white_attackers[0], CHI_F5 | piece_values[pawn] << 8);
+	ck_assert_int_eq(white_attackers[0], CHI_F5 | CHI_SEE_PAWN_VALUE << 8);
 	/* Note that a bishop is counted as a knight to avoid branching.  */
-	ck_assert_int_eq(white_attackers[1], CHI_F7 | piece_values[knight] << 8);
-	ck_assert_int_eq(white_attackers[2], CHI_H6 | piece_values[queen] << 8);
+	ck_assert_int_eq(white_attackers[1], CHI_F7 | CHI_SEE_KNIGHT_VALUE << 8);
+	ck_assert_int_eq(white_attackers[2], CHI_H6 | CHI_SEE_QUEEN_VALUE << 8);
 	ck_assert_int_eq(white_attackers[3], 0);
 
-	ck_assert_int_eq(black_attackers[0], CHI_D7 | piece_values[pawn] << 8);
-	ck_assert_int_eq(black_attackers[1], CHI_G5 | piece_values[knight] << 8);
-	ck_assert_int_eq(black_attackers[2], CHI_E3 | piece_values[rook] << 8);
-	ck_assert_int_eq(black_attackers[3], CHI_E7 | piece_values[king] << 8);
+	ck_assert_int_eq(black_attackers[0], CHI_D7 | CHI_SEE_PAWN_VALUE << 8);
+	ck_assert_int_eq(black_attackers[1], CHI_G5 | CHI_SEE_KNIGHT_VALUE << 8);
+	ck_assert_int_eq(black_attackers[2], CHI_E3 | CHI_SEE_ROOK_VALUE << 8);
+	ck_assert_int_eq(black_attackers[3], CHI_E7 | CHI_SEE_KING_VALUE << 8);
 	ck_assert_int_eq(black_attackers[4], 0);
 
 	const char *fen_black = "8/8/4R3/8/2kpPpN1/7q/3PKb2/8 b - e3 0 1";
@@ -442,20 +427,105 @@ START_TEST(test_obvious_attackers_all_pieces)
 	errnum = chi_parse_move(&position, &move, "dxe");
 	ck_assert_int_eq(errnum, 0);
 
-	chi_obvious_attackers(&position, move, white_attackers, black_attackers,
-			piece_values);
+	chi_obvious_attackers(&position, move, white_attackers, black_attackers);
 
-	ck_assert_int_eq(white_attackers[0], CHI_D2 | piece_values[pawn] << 8);
-	ck_assert_int_eq(white_attackers[1], CHI_G4 | piece_values[knight] << 8);
-	ck_assert_int_eq(white_attackers[2], CHI_E6 | piece_values[rook] << 8);
-	ck_assert_int_eq(white_attackers[3], CHI_E2 | piece_values[king] << 8);
+	ck_assert_int_eq(white_attackers[0], CHI_D2 | CHI_SEE_PAWN_VALUE << 8);
+	ck_assert_int_eq(white_attackers[1], CHI_G4 | CHI_SEE_KNIGHT_VALUE << 8);
+	ck_assert_int_eq(white_attackers[2], CHI_E6 | CHI_SEE_ROOK_VALUE << 8);
+	ck_assert_int_eq(white_attackers[3], CHI_E2 | CHI_SEE_KING_VALUE << 8);
 	ck_assert_int_eq(white_attackers[4], 0);
 
-	ck_assert_int_eq(black_attackers[0], CHI_F4 | piece_values[pawn] << 8);
+	ck_assert_int_eq(black_attackers[0], CHI_F4 | CHI_SEE_PAWN_VALUE << 8);
 	/* Note that a bishop is counted as a knight to avoid branching.  */
-	ck_assert_int_eq(black_attackers[1], CHI_F2 | piece_values[knight] << 8);
-	ck_assert_int_eq(black_attackers[2], CHI_H3 | piece_values[queen] << 8);
+	ck_assert_int_eq(black_attackers[1], CHI_F2 | CHI_SEE_KNIGHT_VALUE << 8);
+	ck_assert_int_eq(black_attackers[2], CHI_H3 | CHI_SEE_QUEEN_VALUE << 8);
 	ck_assert_int_eq(black_attackers[3], 0);
+}
+END_TEST
+
+START_TEST(test_obvious_attackers_promotion)
+{
+	const char *white_fen = "1R2q1rk/2pP1Q2/8/8/8/8/8/4R2K w - - 0 1";
+	/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   | R |   |   | q |   | r | k | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   | p | P |   | Q |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 0.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   |   | Material: +5.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   | R |   |   | K |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+	*/
+	chi_pos position;
+	int errnum;
+	unsigned white_attackers[16], black_attackers[16];
+	chi_move move;
+
+	errnum = chi_set_position(&position, white_fen);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&position, &move, "Rbxe8");
+	ck_assert_int_eq(errnum, 0);
+
+	chi_obvious_attackers(&position, move, white_attackers, black_attackers);
+
+	ck_assert_int_eq(white_attackers[0], CHI_E1 | CHI_SEE_ROOK_VALUE << 8);
+	ck_assert_int_eq(white_attackers[1], CHI_D7 | CHI_SEE_QUAWN_VALUE << 8);
+	ck_assert_int_eq(white_attackers[2], CHI_F7 | CHI_SEE_QUEEN_VALUE << 8);
+	ck_assert_int_eq(white_attackers[3], 0);
+
+	ck_assert_int_eq(black_attackers[0], CHI_G8 | CHI_SEE_ROOK_VALUE << 8);
+	ck_assert_int_eq(black_attackers[1], 0);
+
+	const char *black_fen = "4r2k/8/8/8/8/8/2Pp1q2/1r2Q1RK b - - 0 1";
+	/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   |   |   |   | r |   |   | k | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 1.
+   +---+---+---+---+---+---+---+---+ Next move: black.
+ 4 |   |   |   |   |   |   |   |   | Material: -5.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   | P | p |   | q |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   | r |   |   | Q |   | R | K |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+	*/
+
+	errnum = chi_set_position(&position, black_fen);
+	ck_assert_int_eq(errnum, 0);
+
+	errnum = chi_parse_move(&position, &move, "Rbxe1");
+	ck_assert_int_eq(errnum, 0);
+
+	chi_obvious_attackers(&position, move, white_attackers, black_attackers);
+
+	ck_assert_int_eq(black_attackers[0], CHI_E8 | CHI_SEE_ROOK_VALUE << 8);
+	ck_assert_int_eq(black_attackers[1], CHI_D2 | CHI_SEE_QUAWN_VALUE << 8);
+	ck_assert_int_eq(black_attackers[2], CHI_F2 | CHI_SEE_QUEEN_VALUE << 8);
+	ck_assert_int_eq(black_attackers[3], 0);
+
+	ck_assert_int_eq(white_attackers[0], CHI_G1 | CHI_SEE_ROOK_VALUE << 8);
+	ck_assert_int_eq(white_attackers[1], 0);
 }
 END_TEST
 
@@ -494,7 +564,7 @@ START_TEST(test_see_rook_wins_pawn)
 	errnum = chi_parse_move(&position, &move, "Rxe5");
 	ck_assert_int_eq(errnum, 0);
 
-	score = chi_see(&position, move, piece_values);
+	score = chi_see(&position, move);
 	ck_assert_int_eq(score, 100);
 }
 
@@ -536,7 +606,7 @@ START_TEST(test_see_queen_hits_defended_pawn)
 	errnum = chi_parse_move(&position, &move, "Qxb6");
 	ck_assert_int_eq(errnum, 0);
 
-	score = chi_see(&position, move, piece_values);
+	score = chi_see(&position, move);
 	ck_assert_int_eq(score, -800);
 }
 
@@ -580,12 +650,8 @@ START_TEST(test_see_x_ray_attacks)
 	errnum = chi_parse_move(&position, &move, "Nxe5");
 	ck_assert_int_eq(errnum, 0);
 
-	unsigned local_piece_values[7] = {
-		0, 100, 325, 325, 500, 900, 10000
-	};
-
-	score = chi_see(&position, move, local_piece_values);
-	ck_assert_int_eq(score, -225);
+	score = chi_see(&position, move);
+	ck_assert_int_eq(score, -200);
 }
 
 Suite *
@@ -600,6 +666,7 @@ see_suite(void)
 	tc_obvious_attackers = tcase_create("Obvious Attackers");
 	tcase_add_test(tc_obvious_attackers, test_obvious_attackers_lone_pawn);
 	tcase_add_test(tc_obvious_attackers, test_obvious_attackers_all_pieces);
+	tcase_add_test(tc_obvious_attackers, test_obvious_attackers_promotion);
 	suite_add_tcase(suite, tc_obvious_attackers);
 
 	tc_see = tcase_create("Static Exchange Evaluation");
@@ -607,7 +674,7 @@ see_suite(void)
 	tcase_add_test(tc_see, test_see_queen_hits_defended_pawn);
 	tcase_add_test(tc_see, test_see_x_ray_attacks);
 	tcase_add_test(tc_see, test_see_positions);
-	//suite_add_tcase(suite, tc_see);
+	suite_add_tcase(suite, tc_see);
 
 	return suite;
 }

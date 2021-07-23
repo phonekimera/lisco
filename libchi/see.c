@@ -32,10 +32,13 @@
 #include "libchi.h"
 #include "./magicmoves.h"
 
+static unsigned piece_values[] = {
+	CHI_SEE_NO_VALUE, CHI_SEE_PAWN_VALUE, CHI_SEE_KNIGHT_VALUE, CHI_SEE_KNIGHT_VALUE, CHI_SEE_ROOK_VALUE, CHI_SEE_QUEEN_VALUE
+};
+
 bitv64
 chi_obvious_attackers(const chi_pos *pos, chi_move mv,
-	unsigned *white_attackers, unsigned *black_attackers,
-	unsigned *piece_values)
+	unsigned *white_attackers, unsigned *black_attackers)
 {
 	int to = chi_move_to(mv);
 	bitv64 not_from_mask = ~(1ULL << chi_move_from(mv));
@@ -89,13 +92,30 @@ chi_obvious_attackers(const chi_pos *pos, chi_move mv,
 	bitv64 rook_mask = Rmagic(to, occupancy) & not_from_mask;
 	bitv64 queen_mask = bishop_mask | rook_mask;
 
-	/* FIXME! Order that by piece, not by color! */
-	/* White pawn captures.  */
-	mask = reverse_pawn_attacks[chi_white][to] & pos->w_pawns & not_from_mask;
-	while (mask) {
-		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
-		*white_attackers++ = from | piece_values[pawn] << 8;
-		mask = chi_clear_least_set(mask);
+	/* Pawn captures are a little bit special:
+	 * - If the target rank is 8, only white pawn captures can occur and ...
+	 * - ... they collate between rook and queen captures.
+	 * - If the target rank is 1, only black pawn captures can occur and ...
+	 * - ... they collate between rook and queen captures.
+	 * 
+	 * That means that we only generate captures here for target ranks 2 to 7.
+	 */
+	if (to < CHI_H8 && to > CHI_A1) {
+		/* White pawn captures.  */
+		mask = reverse_pawn_attacks[chi_white][to] & pos->w_pawns & not_from_mask;
+		while (mask) {
+			int from = chi_bitv2shift(chi_clear_but_least_set(mask));
+			*white_attackers++ = from | CHI_SEE_PAWN_VALUE << 8;
+			mask = chi_clear_least_set(mask);
+		}
+
+		/* Black pawn captures.  */
+		mask = reverse_pawn_attacks[chi_black][to] & pos->b_pawns & not_from_mask;
+		while (mask) {
+			int from = chi_bitv2shift(chi_clear_but_least_set(mask));
+			*black_attackers++ = from | CHI_SEE_PAWN_VALUE << 8;
+			mask = chi_clear_least_set(mask);
+		}
 	}
 
 	/* White knight and bishop captures.  */
@@ -103,40 +123,7 @@ chi_obvious_attackers(const chi_pos *pos, chi_move mv,
 	mask |= bishop_mask & pos->w_bishops & ~pos->w_rooks;
 	while (mask) {
 		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
-		*white_attackers++ = from | piece_values[knight] << 8;
-		mask = chi_clear_least_set(mask);
-	}
-
-	/* White rook captures.  */
-	mask = rook_mask & ~pos->w_bishops & pos->w_rooks;
-	while (mask) {
-		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
-		*white_attackers++ = from | piece_values[rook] << 8;
-		mask = chi_clear_least_set(mask);
-	}
-
-	/* White queen captures.  */
-	mask = queen_mask & pos->w_bishops & pos->w_rooks;
-	while (mask) {
-		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
-		*white_attackers++ = from | piece_values[queen] << 8;
-		mask = chi_clear_least_set(mask);
-	}
-
-	/* White king captures.  */
-	mask = king_attacks[to] & pos->w_kings & not_from_mask;
-	if (mask) {
-		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
-		*white_attackers++ = from | piece_values[king] << 8;
-	}
-
-	*white_attackers++ = 0;
-
-	/* Black pawn captures.  */
-	mask = reverse_pawn_attacks[chi_black][to] & pos->b_pawns & not_from_mask;
-	while (mask) {
-		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
-		*black_attackers++ = from | piece_values[pawn] << 8;
+		*white_attackers++ = from | CHI_SEE_KNIGHT_VALUE << 8;
 		mask = chi_clear_least_set(mask);
 	}
 
@@ -145,7 +132,15 @@ chi_obvious_attackers(const chi_pos *pos, chi_move mv,
 	mask |= bishop_mask & pos->b_bishops & ~pos->b_rooks;
 	while (mask) {
 		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
-		*black_attackers++ = from | piece_values[knight] << 8;
+		*black_attackers++ = from | CHI_SEE_KNIGHT_VALUE << 8;
+		mask = chi_clear_least_set(mask);
+	}
+
+	/* White rook captures.  */
+	mask = rook_mask & ~pos->w_bishops & pos->w_rooks;
+	while (mask) {
+		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
+		*white_attackers++ = from | CHI_SEE_ROOK_VALUE << 8;
 		mask = chi_clear_least_set(mask);
 	}
 
@@ -153,7 +148,34 @@ chi_obvious_attackers(const chi_pos *pos, chi_move mv,
 	mask = rook_mask & ~pos->b_bishops & pos->b_rooks;
 	while (mask) {
 		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
-		*black_attackers++ = from | piece_values[rook] << 8;
+		*black_attackers++ = from | CHI_SEE_ROOK_VALUE << 8;
+		mask = chi_clear_least_set(mask);
+	}
+
+	/* Pawn promotions.. */
+	if (to >= CHI_H8) {
+		/* White pawn promotions.  */
+		mask = reverse_pawn_attacks[chi_white][to] & pos->w_pawns & not_from_mask;
+		while (mask) {
+			int from = chi_bitv2shift(chi_clear_but_least_set(mask));
+			*white_attackers++ = from | CHI_SEE_QUAWN_VALUE << 8;
+			mask = chi_clear_least_set(mask);
+		}
+	} else if (to <= CHI_A1) {
+		/* Black pawn promotions.  */
+		mask = reverse_pawn_attacks[chi_black][to] & pos->b_pawns & not_from_mask;
+		while (mask) {
+			int from = chi_bitv2shift(chi_clear_but_least_set(mask));
+			*black_attackers++ = from | CHI_SEE_QUAWN_VALUE << 8;
+			mask = chi_clear_least_set(mask);
+		}
+	}
+
+	/* White queen captures.  */
+	mask = queen_mask & pos->w_bishops & pos->w_rooks;
+	while (mask) {
+		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
+		*white_attackers++ = from | CHI_SEE_QUEEN_VALUE << 8;
 		mask = chi_clear_least_set(mask);
 	}
 
@@ -161,17 +183,25 @@ chi_obvious_attackers(const chi_pos *pos, chi_move mv,
 	mask = queen_mask & pos->b_bishops & pos->b_rooks;
 	while (mask) {
 		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
-		*black_attackers++ = from | piece_values[queen] << 8;
+		*black_attackers++ = from | CHI_SEE_QUEEN_VALUE << 8;
 		mask = chi_clear_least_set(mask);
+	}
+
+	/* White king captures.  */
+	mask = king_attacks[to] & pos->w_kings & not_from_mask;
+	if (mask) {
+		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
+		*white_attackers++ = from | CHI_SEE_KING_VALUE << 8;
 	}
 
 	/* Black king captures.  */
 	mask = king_attacks[to] & pos->b_kings & not_from_mask;
 	if (mask) {
 		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
-		*black_attackers++ = from | piece_values[king] << 8;
+		*black_attackers++ = from | CHI_SEE_KING_VALUE << 8;
 	}
 
+	*white_attackers++ = 0;
 	*black_attackers++ = 0;
 
 	return occupancy & not_from_mask;
@@ -186,7 +216,7 @@ max(int a, int b) {
 }
 
 int
-chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
+chi_see(chi_pos *position, chi_move move)
 {
 	unsigned attackers[32];
 	int gain[32];
@@ -194,17 +224,17 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 	chi_color_t side_to_move = ~chi_on_move(position) & 0x1;
 
 	bitv64 occupancy = chi_obvious_attackers(position, move,
-			attackers, attackers + 16, piece_values);
+			attackers, attackers + 16);
 
 	gain[0] = piece_values[chi_move_victim(move)];
 
-	off_t attacker = chi_move_attacker(move);
+	unsigned attacker_value = piece_values[chi_move_attacker(move)];
 
 	unsigned promote = chi_move_promote(move);
 	if (promote) {
 		/* unlikely */
 		gain[0] += piece_values[promote] - piece_values[pawn];
-		attacker = promote;
+		attacker_value = piece_values[promote];
 	}
 
 	/* One more reason to combine bishops and rooks of both sides into
@@ -228,7 +258,7 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 	while(1) {
 		++depth;
 
-		gain[depth] = piece_values[attacker] - gain[depth - 1];
+		gain[depth] = attacker_value - gain[depth - 1];
 
 		/* Add x-ray attackers.  */
 		bitv64 obscured_mask = obscured_masks[from][to];
@@ -270,12 +300,12 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 					}
 
 					/* Now insert the x-ray attacker into the list.  Since the
-					* piece is encoded in the upper byte, we can do a simple,
+					* piece is encoded in the upper bytes, we can do a simple,
 					* unmasked comparison.
 					*/
-	#define swap(a, b) ((((a) -= (b)), ((b) += (a)), ((a) = (b) - (a))))
+#define swap(a, b) ((((a) -= (b)), ((b) += (a)), ((a) = (b) - (a))))
 					unsigned *ptr = --attackers_ptr[color];
-					*ptr = piece << 16 | chi_bitv2shift(piece_mask);
+					*ptr = piece_values[piece] << 8 | chi_bitv2shift(piece_mask);
 					while (*++ptr) {
 						if (ptr[0] < ptr[-1]) {
 							swap(ptr[-1], ptr[0]);
@@ -289,7 +319,7 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 		if (!attacker_def) break;
 
 		// FIXME! Maybe cast attacker_def to an array of two shorts.
-		attacker = attacker_def >> 8;
+		attacker_value = attacker_def >> 8;
 		from = attacker_def & 0xff;
 
 		/* Can we prune? */

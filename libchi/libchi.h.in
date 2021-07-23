@@ -262,6 +262,15 @@ typedef enum chi_bool {
 #define CHI_VALUE_ROOK     500
 #define CHI_VALUE_QUEEN    900
 
+/* Values for the static exchange evaluation (SEE).  */
+#define CHI_SEE_NO_VALUE       0
+#define CHI_SEE_PAWN_VALUE   100
+#define CHI_SEE_KNIGHT_VALUE 300
+#define CHI_SEE_ROOK_VALUE   500
+#define CHI_SEE_QUAWN_VALUE  800
+#define CHI_SEE_QUEEN_VALUE  900
+#define CHI_SEE_KING_VALUE   999
+
 /* Possible reasons for game over */
 typedef enum chi_result {
 	chi_result_unknown = 0,
@@ -823,13 +832,11 @@ void chi_mm_init(void);
  *******************************/
 
 /**
+ * Internal!
+ * 
  * From position POS find all pieces that attack the target square of the
- * piece moving in MOVE and place them in WHITW_ATTACKERS and BLACK_ATTACKERS
+ * piece moving in MOVE and place them in WHITE_ATTACKERS and BLACK_ATTACKERS
  * respectively.  X-Ray attacks are NOT handled!
- *
- * The array PIECE_VALUES must have 7 elements (for no piece, pawn, knight,
- * bishop, rook, queen, and king, in that order).  The first element should
- * be 0 for obvious reasons.
  *
  * The function returns the occupancy of the board.  The victim is only
  * removed from this board if it was hit en passant.  This is mostly
@@ -872,21 +879,16 @@ void chi_mm_init(void);
  * on b6 - because one of the pieces must hit.
  */
 @BITV64@ chi_obvious_attackers(const chi_pos *pos, chi_move move,
-		unsigned *white_attackers, unsigned *black_attackers,
-		/* FIXME! This should be something like uint32.  */
-		unsigned *piece_values);
+		unsigned *white_attackers, unsigned *black_attackers);
 
 /* Return the static exchange evaluation of (capturing!) move MOVE for
  * in POSITION.  The score is given in centipawns from white's perspective.
- * The array PIECE_VALUES must have 7 elements (for no piece, pawn, knight,
- * bishop, rook, queen, and king, in that order).  The first element should
- * be 0 for obvious reasons.
  * 
  * If the value of a knight is considered higher than that of a bishop,
  * the function will not properly work because knight captures are always
  * evaluated before bishop captures.
  */
-int chi_see(chi_pos *position, chi_move move, unsigned *piece_values);
+int chi_see(chi_pos *position, chi_move move);
 
 CHI_END_DECLS
 
