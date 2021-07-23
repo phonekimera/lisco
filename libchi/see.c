@@ -32,7 +32,7 @@
 #include "libchi.h"
 #include "./magicmoves.h"
 
-void
+bitv64
 chi_obvious_attackers(const chi_pos *pos, chi_move mv,
 	unsigned *white_attackers, unsigned *black_attackers)
 {
@@ -171,6 +171,8 @@ chi_obvious_attackers(const chi_pos *pos, chi_move mv,
 	}
 
 	*black_attackers++ = 0;
+
+	return occupancy & not_from_mask;
 }
 
 int
@@ -189,7 +191,8 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 	off_t depth = 0;
 	chi_color_t side_to_move = ~chi_on_move(position) & 0x1;
 
-	chi_obvious_attackers(position, move, attackers, attackers + 16);
+	bitv64 occupancy =
+			chi_obvious_attackers(position, move, attackers, attackers + 16);
 
 	gain[0] = piece_values[chi_move_victim(move)];
 
@@ -228,9 +231,11 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 		if (max(-gain[depth - 1], gain[depth]) < 0)
 			break;
 
+		occupancy &= ~(1ULL << from);
+
 		/* Add x-ray attackers.  */
-		bitv64 obscured_mask;
-		if (sliding_mask && (obscured_mask = obscured_masks[from][to])) {
+		bitv64 obscured_mask = obscured_masks[from][to];
+		if (sliding_mask & obscured_mask) {
 			/* This is now the slow but unlikely part.  */
 			unsigned direction = obscurance_directions[from][to];
 			unsigned is_bishop = direction & 1;
@@ -241,13 +246,13 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 
 			if (is_bishop
 			    && (obscured_mask & sliding_bishops_mask)) {
-				mask = sliding_bishops_mask;
+				mask = sliding_bishops_mask & Bmagic(to, occupancy) & occupancy;
 			} else if (!is_bishop
 			           && (obscured_mask & sliding_rooks_mask)) {
-				mask = sliding_rooks_mask;
+				mask = sliding_rooks_mask & Rmagic(to, occupancy) & occupancy;
 				piece = rook;
 			}
-			if (mask) {
+			if (obscured_mask & mask) {
 				if (direction == 0) {
 					/* Right/lower.  Most significant bit.  */
 					piece_mask = chi_clear_but_most_set(obscured_mask & mask);
@@ -255,29 +260,29 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 					/* Left/higher.  Least significant bit.  */
 					piece_mask = chi_clear_but_least_set(obscured_mask & mask);
 				}
-			}
-			if (piece_mask) {
-				if (piece_mask & position->b_pieces) {
-					color = chi_black;
-					if (piece_mask & position->b_bishops & position->b_rooks) {
-						piece = queen;
+				if (piece_mask) {
+					if (piece_mask & position->b_pieces) {
+						color = chi_black;
+						if (piece_mask & position->b_bishops & position->b_rooks) {
+							piece = queen;
+						}
+					} else {
+						if (piece_mask & position->w_bishops & position->w_rooks) {
+							piece = queen;
+						}
 					}
-				} else {
-					if (piece_mask & position->w_bishops & position->w_rooks) {
-						piece = queen;
-					}
-				}
 
-				/* Now insert the x-ray attacker into the list.  Since the
-				 * piece is encoded in the upper byte, we can do a simple,
-				 * unmasked comparison.
-				 */
-#define swap(a, b) ((((a) -= (b)), ((b) += (a)), ((a) = (b) - (a))))
-				unsigned *ptr = --attackers_ptr[color];
-				*ptr = piece << 16 | chi_bitv2shift(piece_mask);
-				while (*++ptr) {
-					if (ptr[0] < ptr[-1]) {
-						swap(ptr[-1], ptr[0]);
+					/* Now insert the x-ray attacker into the list.  Since the
+					* piece is encoded in the upper byte, we can do a simple,
+					* unmasked comparison.
+					*/
+	#define swap(a, b) ((((a) -= (b)), ((b) += (a)), ((a) = (b) - (a))))
+					unsigned *ptr = --attackers_ptr[color];
+					*ptr = piece << 16 | chi_bitv2shift(piece_mask);
+					while (*++ptr) {
+						if (ptr[0] < ptr[-1]) {
+							swap(ptr[-1], ptr[0]);
+						}
 					}
 				}
 			}

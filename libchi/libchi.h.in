@@ -827,6 +827,10 @@ void chi_mm_init(void);
  * piece moving in MOVE and place them in WHITW_ATTACKERS and BLACK_ATTACKERS
  * respectively.  X-Ray attacks are NOT handled!
  * 
+ * The function returns the occupancy of the board.  The victim is only
+ * removed from this board if it was hit en passant.  This is mostly
+ * because exactly this value is used by the caller (see()).
+ * 
  * The two result array must be at least 32 INTs bigs.  The first 16 slots are
  * for white, the second 16 slots for black. For each slot, the least
  * significant byte in host order encodes the start field, the second byte
@@ -874,8 +878,8 @@ void chi_mm_init(void);
  * on b6 - because one of the pieces must hit.
  * 
  */
-void chi_obvious_attackers(const chi_pos *pos, chi_move move,
-	unsigned *white_attackers, unsigned *black_attackers);
+@BITV64@ chi_obvious_attackers(const chi_pos *pos, chi_move move,
+		unsigned *white_attackers, unsigned *black_attackers);
 
 /* Return the static exchange evaluation of (capturing!) move MOVE for
  * in POSITION.  The score is given in centipawns from white's perspective.
