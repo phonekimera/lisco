@@ -213,6 +213,7 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 	bitv64 sliding_bishops_mask = position->w_bishops | position->b_bishops;
 	bitv64 sliding_rooks_mask = position->w_rooks | position->b_rooks;
 	unsigned to = chi_move_to(move);
+	unsigned from = chi_move_from(move);
 
 	/*
 	 * These two pointers get incremented in turn.  If an x-ray attack is
@@ -227,19 +228,6 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 
 		gain[depth] = piece_values[attacker] - gain[depth - 1];
 
-		unsigned attacker_def = *(attackers_ptr[side_to_move]++);
-		if (!attacker_def) break;
-
-		// FIXME! Maybe cast attacker_def to an array of two shorts.
-		attacker = attacker_def >> 8;
-		unsigned from = attacker_def & 0xff;
-
-		/* Can we prune? */
-		if (max(-gain[depth - 1], gain[depth]) < 0)
-			break;
-
-		occupancy &= ~(1ULL << from);
-
 		/* Add x-ray attackers.  */
 		bitv64 obscured_mask = obscured_masks[from][to];
 		if (sliding_mask & obscured_mask) {
@@ -253,10 +241,10 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 
 			if (is_bishop
 			    && (obscured_mask & sliding_bishops_mask)) {
-				mask = sliding_bishops_mask & Bmagic(to, occupancy) & occupancy;
+				mask = sliding_bishops_mask & Bmagic(to, occupancy);
 			} else if (!is_bishop
 			           && (obscured_mask & sliding_rooks_mask)) {
-				mask = sliding_rooks_mask & Rmagic(to, occupancy) & occupancy;
+				mask = sliding_rooks_mask & Rmagic(to, occupancy);
 				piece = rook;
 			}
 			if (obscured_mask & mask) {
@@ -294,6 +282,19 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 				}
 			}
 		}
+
+		unsigned attacker_def = *(attackers_ptr[side_to_move]++);
+		if (!attacker_def) break;
+
+		// FIXME! Maybe cast attacker_def to an array of two shorts.
+		attacker = attacker_def >> 8;
+		from = attacker_def & 0xff;
+
+		/* Can we prune? */
+		if (max(-gain[depth - 1], gain[depth]) < 0)
+			break;
+
+		occupancy &= ~(1ULL << from);
 
 		side_to_move = ~side_to_move & 0x1;
 	}
