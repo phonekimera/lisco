@@ -552,7 +552,7 @@ typedef struct {
 
 /* Clear all but the most significant bit.  */
 #if defined(__GNUC__)  // GCC, Clang, ICC
-# define chi_clear_but_most_set(b) (1ULL << (63 - __builtin_ctzll(b)))
+# define chi_clear_but_most_set(b) (1ULL << (63 - __builtin_clzll(b)))
 #else
 inline @BITV64@
 chi_clear_but_most_set(@BITV64@ b)
@@ -879,8 +879,9 @@ void chi_obvious_attackers(const chi_pos *pos, chi_move move,
 
 /* Return the static exchange evaluation of (capturing!) move MOVE for
  * in POSITION.  The score is given in centipawns from white's perspective.
- * The array PIECE_VALUES must have 6 elements (for pawn, knight, bishop,
- * rook, queen, and king, in that order).
+ * The array PIECE_VALUES must have 7 elements (for no piece, pawn, knight,
+ * bishop, rook, queen, and king, in that order).  The first element should
+ * be 0 for obvious reasons.
  * 
  * If the value of a knight is considered higher than that of a bishop,
  * the function will not properly work because knight captures are always
