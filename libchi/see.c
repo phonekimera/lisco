@@ -191,8 +191,7 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 
 	chi_obvious_attackers(position, move, attackers, attackers + 16);
 
-	/* This will crash for non-captures.  */
-	gain[0] = piece_values[chi_move_victim(move) - 1];
+	gain[0] = piece_values[chi_move_victim(move)];
 
 	off_t attacker = chi_move_attacker(move);
 
@@ -216,10 +215,10 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 	while(1) {
 		++depth;
 
+		gain[depth] = piece_values[attacker] - gain[depth - 1];
+
 		unsigned attacker_def = *(attackers_ptr[side_to_move]++);
 		if (!attacker_def) break;
-
-		gain[depth] = piece_values[attacker - 1] - gain[depth - 1];
 
 		// FIXME! Maybe cast attacker_def to an array of two shorts.
 		attacker = attacker_def >> 8;
@@ -230,31 +229,31 @@ chi_see(chi_pos *position, chi_move move, unsigned *piece_values)
 			break;
 
 		/* Add x-ray attackers.  */
-		bitv64 obscured_mask = obscured_masks[from][to];
-		if (obscured_mask & sliding_mask) {
+		bitv64 obscured_mask;
+		if (sliding_mask && (obscured_mask = obscured_masks[from][to])) {
 			/* This is now the slow but unlikely part.  */
 			unsigned direction = obscurance_directions[from][to];
 			unsigned is_bishop = direction & 1;
 			direction >>= 1;
-			bitv64 sliding_mask = 0, piece_mask = 0;
+			bitv64 mask = 0, piece_mask = 0;
 			chi_color_t color = chi_white;
 			chi_piece_t piece = bishop;
 
 			if (is_bishop
 			    && (obscured_mask & sliding_bishops_mask)) {
-				sliding_mask = sliding_bishops_mask;
+				mask = sliding_bishops_mask;
 			} else if (!is_bishop
 			           && (obscured_mask & sliding_rooks_mask)) {
-				sliding_mask = sliding_rooks_mask;
+				mask = sliding_rooks_mask;
 				piece = rook;
 			}
-			if (sliding_mask) {
+			if (mask) {
 				if (direction == 0) {
 					/* Right/lower.  Most significant bit.  */
-					piece_mask = chi_clear_but_most_set(obscured_mask & sliding_mask);
+					piece_mask = chi_clear_but_most_set(obscured_mask & mask);
 				} else {
 					/* Left/higher.  Least significant bit.  */
-					piece_mask = chi_clear_but_least_set(obscured_mask & sliding_mask);
+					piece_mask = chi_clear_but_least_set(obscured_mask & mask);
 				}
 			}
 			if (piece_mask) {
