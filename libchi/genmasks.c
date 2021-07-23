@@ -33,7 +33,7 @@ static const char* shift2label(unsigned int);
 
 static void generate_obscured_masks(void);
 
-static void generate_reverse_pawn_masks(void);
+static void generate_reverse_pawn_attacks(void);
 
 static void generate_knight_masks(void);
 static void generate_king_masks(void);
@@ -84,7 +84,7 @@ main (argc, argv)
 
 	generate_obscured_masks();
 
-	generate_reverse_pawn_masks();
+	generate_reverse_pawn_attacks();
 
 	generate_knight_masks ();
 	generate_king_masks ();
@@ -386,25 +386,27 @@ generate_obscured_masks()
 }
 
 static void
-generate_reverse_pawn_masks()
+generate_reverse_pawn_attacks()
 {
 	bitv64 white_to_mask[64], black_to_mask[64];
 
 	for (int i = 0; i < 64; ++i) {
-		if (i < 8 || i >= 56) {
-			white_to_mask[i] = black_to_mask[i] = 0ULL;
-		} else {
-			bitv64 from_mask = 1ULL << i;
-			white_to_mask[i] = black_to_mask[i] = 0ULL;
-			if (from_mask & ~CHI_H_MASK) {
-				white_to_mask[i] |= 1ULL << (i - 9);
-				black_to_mask[i] |= 1ULL << (i + 7);
-			}
-			if (from_mask & ~CHI_A_MASK) {
-				white_to_mask[i] |= 1ULL << (i - 7);
-				black_to_mask[i] |= 1ULL << (i + 9);
-			}
+		bitv64 from_mask = 1ULL << i;
+		white_to_mask[i] = black_to_mask[i] = 0ULL;
+		if (from_mask & ~CHI_H_MASK) {
+			white_to_mask[i] |= 1ULL << (i - 9);
+			black_to_mask[i] |= 1ULL << (i + 7);
 		}
+		if (from_mask & ~CHI_A_MASK) {
+			white_to_mask[i] |= 1ULL << (i - 7);
+			black_to_mask[i] |= 1ULL << (i + 9);
+		}
+		if (i < 8) {
+			white_to_mask[i] = 0ULL;
+		} else if (i >= 56) {
+			black_to_mask[i] = 0ULL;
+		}
+
 	}
 
 	printf ("\n/* Reverse pawn attack masks.  */\n");
@@ -413,21 +415,21 @@ generate_reverse_pawn_masks()
 	printf("\t/* White pawns.  */\n");
 	printf("\t{\n");
 	for (int i = 0; i < 64; ++i) {
-		printf("\t/* (0x%016llx) %s(%d) ->\n",
+		printf("\t\t/* (0x%016llx) %s(%d) ->\n",
 				(bitv64) 1 << i, shift2label (i), i);
-		bitv64_dump((bitv64) 1 << i, white_to_mask[i], 'O', 1);
-		printf("\t*/\n");
-		printf("\t(bitv64) 0x%016llxULL,\n", white_to_mask[i]);
+		bitv64_dump((bitv64) 1 << i, white_to_mask[i], 'O', 2);
+		printf("\t\t*/\n");
+		printf("\t\t(bitv64) 0x%016llxULL,\n", white_to_mask[i]);
 	}
 	printf("\t},\n");
 
 	printf("\t/* Black pawns.  */\n");
 	printf("\t{\n");
 	for (int i = 0; i < 64; ++i) {
-		printf("\t/* (0x%016llx) %s ->\n",  (bitv64) 1 << i, shift2label (i));
-		bitv64_dump((bitv64) 1 << i, black_to_mask[i], 'O', 1);
-		printf("\t*/\n");
-		printf("\t(bitv64) 0x%016llxULL,\n", black_to_mask[i]);
+		printf("\t\t/* (0x%016llx) %s ->\n",  (bitv64) 1 << i, shift2label (i));
+		bitv64_dump((bitv64) 1 << i, black_to_mask[i], 'O', 2);
+		printf("\t\t*/\n");
+		printf("\t\t(bitv64) 0x%016llxULL,\n", black_to_mask[i]);
 	}
 	printf("\t},\n");
 	printf("};\n");
