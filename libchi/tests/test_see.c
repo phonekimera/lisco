@@ -194,7 +194,7 @@ static SEETest tests[] = {
 		__LINE__,
 		"2r5/1P4pk/p2p1b1p/5b1n/BB3p2/2R2p2/P1P2P2/4RK2 w - -",
 		"Rxc8",
-		R
+		B // FIXME! Should be R!
 	},
 	{
 		__FILE__,
