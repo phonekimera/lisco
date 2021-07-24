@@ -51,6 +51,7 @@ extern int uci_handle_uci(UCIEngineOptions *options, char *args, FILE *out);
 extern int uci_handle_debug(UCIEngineOptions *options, char *args, FILE *out);
 extern int uci_handle_position(UCIEngineOptions *options, char *args, FILE *out);
 extern int uci_handle_go(UCIEngineOptions *options, char *args, FILE *out);
+extern int uci_handle_isready(UCIEngineOptions *options, char *args, FILE *out);
 #endif
 
 #ifdef __cplusplus

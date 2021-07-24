@@ -78,6 +78,11 @@ uci_main(UCIEngineOptions *options)
 					go_on = uci_handle_position(options, trim(trimmed), out);
 				}
 				break;
+			case 'i':
+				if(strcmp(command + 1, "sready") == 0) {
+					go_on = uci_handle_isready(options, trim(trimmed), out);
+				}
+				break;
 			case 'g':
 				if(strcmp(command + 1, "o") == 0) {
 					go_on = uci_handle_go(options, trim(trimmed), out);
@@ -287,6 +292,14 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 	} else {
 		fprintf(out, "bestmove 0000\n");
 	}
+
+	return 1;
+}
+
+int
+uci_handle_isready(UCIEngineOptions *options, char *args, FILE *out)
+{
+	fprintf(out, "readyok\n");
 
 	return 1;
 }
