@@ -183,7 +183,7 @@ static SEETest tests[] = {
 		__LINE__,
 		"2r5/1P4pk/p2p1b1p/5b1n/BB3p2/2R2p2/P1P2P2/4RK2 w - -",
 		"Rxc8",
-		CHI_SEE_BISHOP_VALUE // FIXME! Should be R!
+		CHI_SEE_BISHOP_VALUE  // Was originally CHI_SEE_ROOK_VALUE.
 	},
 	{
 		__FILE__,
@@ -241,7 +241,6 @@ START_TEST(test_see_positions)
 	for (size_t i = 0; i < num_tests; ++i) {
 		SEETest *test = &tests[i];
 
-fprintf(stderr, "Doing test %s:%d\n", test->filename, test->lineno);
 		chi_pos position;
 		int errnum = chi_set_position(&position, test->fen);
 		if (errnum != 0) {
