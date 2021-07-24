@@ -47,6 +47,7 @@ check_lisco_SOURCES = \
 		../evaluate.c \
 		../move-selector.c \
 		../perft.c \
+		../quiescence.c \
 		../rtime.c \
 		../state.c \
 		../think.c \

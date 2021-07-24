@@ -130,7 +130,7 @@ alphabeta(Tree *tree, int depth, int alpha, int beta)
 	}
 
 	if (depth == 0) {
-		return evaluate(tree, ply, alpha, beta);
+		return quiesce(tree, ply, alpha, beta);
 	}
 
 	/*
