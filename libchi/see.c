@@ -216,7 +216,7 @@ max(int a, int b) {
 }
 
 int
-chi_see(chi_pos *position, chi_move move)
+chi_see(const chi_pos *position, chi_move move)
 {
 	unsigned attackers[32];
 	int gain[32];

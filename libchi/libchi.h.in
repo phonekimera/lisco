@@ -889,7 +889,7 @@ void chi_mm_init(void);
  * the function will not properly work because knight captures are always
  * evaluated before bishop captures.
  */
-int chi_see(chi_pos *position, chi_move move);
+int chi_see(const chi_pos *position, chi_move move);
 
 CHI_END_DECLS
 
