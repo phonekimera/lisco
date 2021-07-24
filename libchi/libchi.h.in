@@ -426,9 +426,9 @@ typedef struct {
 
 #define chi_copy_pos(d, s) memcpy(d, s, sizeof *d)
 
-/* A move is represented by 32 bits in host order:
+/* A move is represented by 64 bits in host order:
 
-           28-32: unused
+           28-64: unused
            23-27: raw material balance (viewed from the side on move)
            20-22: promotion piece
            17-19: piece that gets removed
@@ -452,7 +452,7 @@ typedef struct {
    with 0xf0000000.
  */
 
-typedef unsigned int chi_move;
+typedef unsigned long long chi_move;
 
 /* Macros that extract a particular value of interest from a move.
    En-passant is treat as a flag rather than a value and therefore
