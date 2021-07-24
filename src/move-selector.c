@@ -26,7 +26,8 @@
 
 #include "lisco.h"
 
-void move_selector_init(MoveSelector *self, const Tree *tree, chi_move bestmove)
+void
+move_selector_init(MoveSelector *self, const Tree *tree, chi_move bestmove)
 {
 	chi_move *move_ptr = chi_legal_moves(&tree->position, self->moves);
 	self->num_moves = move_ptr - self->moves;
@@ -57,6 +58,40 @@ void move_selector_init(MoveSelector *self, const Tree *tree, chi_move bestmove)
 	/* FIXME! It probably doesn't make sense to sort the entire array but
 	 * only those moves with a material gain or a promotion.
 	 */
+	for (size_t step = 1; step < size; ++step) {
+		chi_move key = sorted[step];
+		int j = step - 1;
+
+		while (key > sorted[j] && j >= 0) {
+			sorted[j + 1] = sorted[j];
+			--j;
+		}
+		sorted[j + 1] = key;
+	}
+}
+
+#include <stdio.h>
+void
+move_selector_quiescence_init(MoveSelector *self, const Tree *tree)
+{
+	chi_move *move_ptr = chi_legal_moves(&tree->position, self->moves);
+	size_t size = move_ptr - self->moves;
+	self->selected = 0;
+	chi_move *sorted = self->moves;
+	size_t num_moves = 0;
+	const chi_pos *position = &tree->position;
+
+	/* First prune all non-captures, non-promotions and bad captures.  */
+	for (int i = 0; i < size; ++i) {
+		chi_move move = sorted[i];
+		bitv64 see;
+		if ((chi_move_victim(move) || chi_move_promote(move))
+		    && (see = chi_see(position, move) > 0)) {
+			sorted[num_moves++] = move | see << 32;
+		}
+	}
+	self->num_moves = num_moves;
+
 	for (size_t step = 1; step < size; ++step) {
 		chi_move key = sorted[step];
 		int j = step - 1;

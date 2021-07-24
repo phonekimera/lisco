@@ -116,6 +116,12 @@ extern void tt_destroy(void);
  */
 void move_selector_init(MoveSelector *self, const Tree *tree, chi_move bestmove);
 
+/* Initialize a move selector from a search tree TREE for the quiescence
+ * search.  That only produces good captures and promotions.  Good captures
+ * and promotions are moves with a positive SEE value.
+ */
+void move_selector_quiescence_init(MoveSelector *self, const Tree *tree);
+
 /* Get the next move from the pool or 0 if there are no more moves.  */
 chi_move move_selector_next(MoveSelector *self);
 
@@ -123,6 +129,9 @@ chi_move move_selector_next(MoveSelector *self);
  * advantage for the side on move.
  */
 extern int evaluate(Tree *tree, int ply, int alpha, int beta);
+
+/* Quiescence search.  */
+extern int quiesce(Tree *tree, int ply, int alpha, int beta);
 
 extern void init_ev_hash(size_t memuse);
 extern void clear_ev_hash(void);

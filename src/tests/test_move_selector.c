@@ -130,6 +130,94 @@ START_TEST(test_basic)
 }
 END_TEST
 
+
+START_TEST(test_quiescence)
+{
+	const char *fen = "1B1bR3/1K1pn2P/4kN2/6Qp/7p/7P/8/8 w - - 0 1";
+	/*
+	    a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   | B |   | b | R |   |   |   | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   | K |   | p | n |   |   | P | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   | k | N |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   | Q | p | Half moves: 0.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   |   |   |   |   | p | Material: +12.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   | P | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+	*/
+	Tree tree;
+	int errnum;
+
+	errnum = chi_set_position(&tree.position, fen);
+	ck_assert_int_eq(errnum, 0);
+
+	MoveSelector selector;
+	move_selector_quiescence_init(&selector, &tree);
+	ck_assert_int_eq(selector.num_moves, 8);
+	ck_assert_int_eq(selector.selected, 0);
+
+	chi_move move;
+
+	char *buf = NULL;
+	unsigned int bufsize = 0;
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "h8=Q");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "h8=R");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "Rxd8");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "h8=B");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "h8=N");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "Nxh5");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "Qxh5");
+
+	move = move_selector_next(&selector);
+	errnum = chi_print_move(&tree.position, move, &buf, &bufsize, 1);
+	ck_assert_int_eq(errnum, 0);
+	ck_assert_str_eq(buf, "Qxh4");
+
+	free(buf);
+
+	move = move_selector_next(&selector);
+	ck_assert_uint_eq(move, 0);
+}
+END_TEST
+
 Suite *
 move_selector_suite(void)
 {
@@ -140,6 +228,7 @@ move_selector_suite(void)
 
 	tc_basic = tcase_create("Basic");
 	tcase_add_test(tc_basic, test_basic);
+	tcase_add_test(tc_basic, test_quiescence);
 	suite_add_tcase(suite, tc_basic);
 
 	return suite;
