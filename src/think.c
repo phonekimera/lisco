@@ -23,11 +23,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "libchi.h"
+
 #include "lisco.h"
 #include "rtime.h"
 
 #define DEBUG_SEARCH 0
-#define DEBUG_TIME_CONTROL 1
+#define DEBUG_TIME_CONTROL 0
 
 static void update_tree(Tree *tree, int ply, chi_pos *position, chi_move move);
 
@@ -100,7 +102,7 @@ time_control(Tree *tree)
 	rtime_t now = rtime();
 	long elapsed = rdifftime(now, tree->start_time);
 	unsigned long long nps = 1000 * (tree->nodes / elapsed);
-	tree->nodes_to_tc = nps / 1000;
+	tree->nodes_to_tc = nps / 10;
 #if DEBUG_TIME_CONTROL
 	fprintf(stderr, "elapsed: %ld ms, nodes: %llu, nps: %lld, nodes to next tc: %lld.\n",
 		elapsed, tree->nodes, nps, tree->nodes_to_tc);
@@ -135,7 +137,16 @@ alphabeta(Tree *tree, int depth, int alpha, int beta)
 	}
 
 	if (depth == 0) {
-		return quiesce(tree, ply, alpha, beta);
+#if DEBUG_SEARCH
+		fprintf (stderr, "\tstart quiescence search (ply = %d, alpha = %d, beta = %d)\n",
+				ply, alpha, beta);
+#endif
+		int qscore = quiesce(tree, ply, alpha, beta);
+#if DEBUG_SEARCH
+		fprintf (stderr, "\end quiescence score: %d = (ply = %d, alpha = %d, beta = %d\n",
+				qscore, ply, alpha, beta);
+#endif
+		return qscore;
 	}
 
 	/*
@@ -237,9 +248,7 @@ root_search(Tree *tree, int max_depth)
 	tree->fixed_time = 120;
 	tree->score = 0;
 
-	// Initially assume 1,000 nodes per second.  That give us 100 nodes
-	// to estimate the timing.
-	tree->nodes_to_tc = 100;
+	tree->nodes_to_tc = 10000;
 
 	// Iterative deepening.
 	for (depth = 1; depth <= max_depth; ++depth) {

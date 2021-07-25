@@ -44,19 +44,12 @@ quiesce(Tree *tree, int ply, int alpha, int beta)
 
 	// FIXME! The move selector should only generate captures and promotions.
 	MoveSelector selector;
-	move_selector_init(&selector, tree, 0);
+	move_selector_quiescence_init(&selector, tree);
 
 	chi_move move;
 	while ((move = move_selector_next(&selector))) {
 		if (tree->move_now) {
 			return alpha;
-		}
-
-		/* Captures and promotions are returned first, so there is an early
-		 * exit here.
-		 */
-		if (!(chi_move_victim(move) || chi_move_promote(move))) {
-			break;
 		}
 
 		chi_apply_move(position, move);
