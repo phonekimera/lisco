@@ -35,8 +35,6 @@ noinst_HEADERS = \
 	liscoplay-option.h \
 	liscoplay-time-control.h \
 	think.h \
-	time-control.h \
-	time-management.h \
 	uci-engine.h \
 	util.h \
 	xboard-feature.h \
