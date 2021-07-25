@@ -37,6 +37,7 @@ libchi_la_SOURCES = libchi.h dump_pieces.c strerror.c make_move.c \
 libchi_la_LDFLAGS = -version-info 0:0:0
 
 libchi_la_LDFLAGS += -no-undefined
+libchi_la_LIBADD = ../lib/liblisco.la
 
 AM_CPPFLAGS = -I. -I$(srcdir) -I.. -I$(top_srcdir)/lib
 
