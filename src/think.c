@@ -27,6 +27,7 @@
 #include "rtime.h"
 
 #define DEBUG_SEARCH 0
+#define DEBUG_TIME_CONTROL 1
 
 static void update_tree(Tree *tree, int ply, chi_pos *position, chi_move move);
 
@@ -99,10 +100,14 @@ time_control(Tree *tree)
 	rtime_t now = rtime();
 	long elapsed = rdifftime(now, tree->start_time);
 	unsigned long long nps = 1000 * (tree->nodes / elapsed);
-	tree->nodes_to_tc = nps / 10;
+	tree->nodes_to_tc = nps / 1000;
+#if DEBUG_TIME_CONTROL
+	fprintf(stderr, "elapsed: %ld ms, nodes: %llu, nps: %lld, nodes to next tc: %lld.\n",
+		elapsed, tree->nodes, nps, tree->nodes_to_tc);
+#endif
 	if (elapsed > 1000 * tree->fixed_time - 200) {
 		tree->move_now = 1;
-#if DEBUG_SEARCH
+#if DEBUG_TIME_CONTROL
 		fprintf(stderr, "Time's up, move now!\n");
 #endif
 	}
@@ -232,9 +237,9 @@ root_search(Tree *tree, int max_depth)
 	tree->fixed_time = 120;
 	tree->score = 0;
 
-	// Initially assume 10,000 nodes per second.  That give us 10,000 nodes
+	// Initially assume 1,000 nodes per second.  That give us 100 nodes
 	// to estimate the timing.
-	tree->nodes_to_tc = 100000;
+	tree->nodes_to_tc = 100;
 
 	// Iterative deepening.
 	for (depth = 1; depth <= max_depth; ++depth) {
