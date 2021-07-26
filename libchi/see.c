@@ -93,12 +93,15 @@ chi_obvious_attackers(const chi_pos *pos, chi_move mv,
 	bitv64 queen_mask = bishop_mask | rook_mask;
 
 	/* Pawn captures are a little bit special:
+	 *
 	 * - If the target rank is 8, only white pawn captures can occur and ...
 	 * - ... they collate between rook and queen captures.
 	 * - If the target rank is 1, only black pawn captures can occur and ...
 	 * - ... they collate between rook and queen captures.
 	 * 
 	 * That means that we only generate captures here for target ranks 2 to 7.
+	 * Captures made by quawns (the pawns on the pre-promotion rank) are
+	 * added after the rook and before the queen captures.
 	 */
 	if (to < CHI_H8 && to > CHI_A1) {
 		/* White pawn captures.  */
@@ -152,9 +155,9 @@ chi_obvious_attackers(const chi_pos *pos, chi_move mv,
 		mask = chi_clear_least_set(mask);
 	}
 
-	/* Pawn promotions.. */
+	/* Quawn captures, that are captures made by pawns on the 1st or 8th rank. */
 	if (to >= CHI_H8) {
-		/* White pawn promotions.  */
+		/* White quawn captures.  */
 		mask = reverse_pawn_attacks[chi_white][to] & pos->w_pawns & not_from_mask;
 		while (mask) {
 			int from = chi_bitv2shift(chi_clear_but_least_set(mask));
@@ -162,7 +165,7 @@ chi_obvious_attackers(const chi_pos *pos, chi_move mv,
 			mask = chi_clear_least_set(mask);
 		}
 	} else if (to <= CHI_A1) {
-		/* Black pawn promotions.  */
+		/* Black quawn captures.  */
 		mask = reverse_pawn_attacks[chi_black][to] & pos->b_pawns & not_from_mask;
 		while (mask) {
 			int from = chi_bitv2shift(chi_clear_but_least_set(mask));
