@@ -22,6 +22,7 @@
 
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 
 #define TEST_UCI_ENGINE 1
 
@@ -231,6 +232,38 @@ uci_handle_position(UCIEngineOptions *options, char *args, FILE *out)
 	return 1;
 }
 
+static int is_coordinate_notation(char *movestr) {
+	movestr[0] = tolower(movestr[0]);
+	if (movestr[0] < 'a' || movestr[0] > 'h') {
+		return 0;
+	}
+
+	if (movestr[1] < '1' || movestr[1] > '8') {
+		return 0;
+	}
+
+	movestr[2] = tolower(movestr[2]);
+	if (movestr[2] < 'a' || movestr[2] > 'h') {
+		return 0;
+	}
+
+	if (movestr[3] < '1' || movestr[3] > '8') {
+		return 0;
+	}
+
+	if (movestr[4] == 0) {
+		return 1;
+	}
+
+	movestr[4] = tolower(movestr[4]);
+	if (movestr[4] != 'q' && movestr[4] != 'r'
+	    && movestr[4] != 'b' && movestr[4] != 'n') {
+		return 0;
+	}
+
+	return !movestr[5];
+}
+
 int
 uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 {
@@ -249,9 +282,38 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 	memset(&tree, 0, sizeof tree);
 	memset(&params, 0, sizeof params);
 
+	move_list_init(&params.move_list);
+
 	while ((token = next_token(&argptr)) != NULL) {
 		if (strcmp("searchmoves", token) == 0) {
-			fprintf(out, "info go option 'searchmoves' is not supported.\n");
+			// Protect against crashes caused by giving searchmoves
+			// multiple times.
+			move_list_destroy(&params.move_list);
+			move_list_init(&params.move_list);
+
+			while ((token = next_token(&argptr))) {
+				// Do a very basic check on the move syntax so that we can
+				// distinguish a move from other commands that are following.
+				// One of the many flaws in the UCI protocol ...
+				if (!is_coordinate_notation(token)) {
+					break;
+				}
+
+				chi_move move;
+				errnum = chi_parse_move(&lisco.position, &move, token);
+				if (errnum) {
+					fprintf(out, "info illegal move '%s': %s\n",
+					        token, chi_strerror(errnum));
+					move_list_destroy(&params.move_list);
+					return 1;
+				}
+				move_list_add(&params.move_list, move);
+			}
+
+			// An emtpy move list is ignored.
+			if (!params.move_list.num_moves) {
+				fprintf(out, "info 'searchmoves' without moves is ignored.\n");
+			}
 		} else if (strcmp("ponder", token) == 0) {
 			fprintf(out, "info go option 'ponder' is not supported.\n");
 		} else if (strcmp("wtime", token) == 0) {

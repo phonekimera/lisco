@@ -33,6 +33,11 @@
 #define INF ((-(MATE)) << 1)
 #define MAX_PLY 512
 
+typedef struct MoveList {
+	chi_move *moves;
+	size_t num_moves;
+} MoveList;
+
 typedef struct SearchParams {
 	unsigned long mytime;
 	unsigned long hertime;
@@ -43,6 +48,7 @@ typedef struct SearchParams {
 	unsigned long movetime;
 	unsigned long mate;
 	unsigned long depth;
+	MoveList move_list;
 	unsigned long long nodes;
 } SearchParams;
 
@@ -105,10 +111,6 @@ typedef struct MoveSelector {
 	size_t selected;
 } MoveSelector;
 
-typedef struct MoveList {
-	chi_move *moves;
-	size_t num_moves;
-} MoveList;
 
 #ifdef __cplusplus
 extern "C" {
