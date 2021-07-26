@@ -29,6 +29,17 @@
 
 START_TEST(test_fixed_time)
 {
+	SearchParams params;
+	Tree tree;
+
+	memset(&params, 0, sizeof params);
+	memset(&tree, 0, sizeof tree);
+
+	params.movetime = 120000;
+
+	process_search_params(&tree, &params);
+
+	ck_assert_uint_eq(tree.fixed_time, 120000);
 }
 END_TEST
 
