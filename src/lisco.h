@@ -25,7 +25,6 @@
 
 #include <libchi.h>
 
-#include "rtime.h"
 #include "uci-engine.h"
 
 #define LISCO_DEFAULT_TT_SIZE 16
@@ -86,7 +85,7 @@ typedef struct Tree {
 
 	Line line;
 
-	rtime_t start_time;
+	struct timeval start_time;
 	unsigned long long int nodes_to_tc;
 	long long int fixed_time;
 	int move_now;
@@ -155,6 +154,12 @@ extern void store_ev_entry (chi_pos *pos, bitv64 signature, int score);
 
 extern unsigned long long perft(chi_pos *position, unsigned int depth,
         unsigned long long *counts, FILE *out);
+
+/* Current date and time.  */
+extern struct timeval rtime(void);
+
+/* Difference in microseconds.  */
+extern long long int rdifftime(struct timeval end, struct timeval start);
 
 #ifdef __cplusplus
 extern }

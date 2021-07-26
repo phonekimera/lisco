@@ -26,7 +26,6 @@
 #include "libchi.h"
 
 #include "lisco.h"
-#include "rtime.h"
 
 #define DEBUG_SEARCH 0
 #define DEBUG_TIME_CONTROL 0
@@ -99,7 +98,7 @@ print_pv(Tree *tree, int depth)
 static void
 time_control(Tree *tree)
 {
-	rtime_t now = rtime();
+	struct timeval now = rtime();
 	long elapsed = rdifftime(now, tree->start_time);
 	unsigned long long nps = 1000 * (tree->nodes / elapsed);
 	tree->nodes_to_tc = nps / 10;

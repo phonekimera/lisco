@@ -26,7 +26,6 @@
 
 #include "libchi.h"
 #include "../src/lisco.h"
-#include "../src/rtime.h"
 
 typedef struct PerftTest {
 	const char *filename;
@@ -132,16 +131,13 @@ START_TEST(test_perft)
 			} else
 				chi_init_position(&pos);
 
-			rtime_t start = rtime();
+			struct timeval start = rtime();
 			unsigned long nodes = perft(&pos, depth,
 					(unsigned long long *) &counts, NULL);
 			unsigned long int elapsed = rdifftime (rtime (), start);
 			fprintf (stderr, " (nodes: %lu, %lu.%02lu s, nps: %lu)\n",
 				nodes, elapsed / 100, elapsed % 100,
 				(100 * nodes) / (elapsed ? elapsed : 1));
-const char *fen = chi_fen(&pos);
-fprintf(stderr, "        fen: %s\n", fen);
-free((void *) fen);
 
 			if (nodes != test->nodes[depth - 1])
 				report_failure(nodes, depth, test);

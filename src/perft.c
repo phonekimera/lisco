@@ -26,7 +26,6 @@
 #include <libchi.h>
 
 #include "lisco.h"
-#include "rtime.h"
 
 static unsigned long long do_perft(chi_pos *pos, unsigned int depth);
 
@@ -34,7 +33,7 @@ unsigned long long
 perft(chi_pos *position, unsigned int depth, unsigned long long *counts,
 		FILE *out)
 {
-	rtime_t start;
+	struct timeval start;
 	unsigned long int elapsed;
 	unsigned long long nodes = 0;
 	chi_move moves[CHI_MAX_MOVES];

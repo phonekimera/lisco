@@ -20,14 +20,13 @@
 # include <config.h>
 #endif
 
-#include "rtime.h"
-
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/time.h>
 
 long long int 
-rdifftime (rtime_t end, rtime_t start)
+rdifftime (struct timeval end, struct timeval start)
 {
 	long long int timediff = 1000 * (end.tv_sec - start.tv_sec);
 	timediff += (end.tv_usec - start.tv_usec) / 1000;
@@ -35,7 +34,7 @@ rdifftime (rtime_t end, rtime_t start)
 	return timediff;
 }
 
-rtime_t 
+struct timeval 
 rtime () 
 {
 	struct timeval now;

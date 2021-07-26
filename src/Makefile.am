@@ -23,7 +23,6 @@ noinst_HEADERS = \
 	basename.h \
 	board.h \
 	log.h \
-	rtime.h \
 	search.h \
 	lisco.h \
 	liscoplay-engine.h \
