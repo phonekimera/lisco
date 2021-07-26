@@ -40,6 +40,8 @@ src/liscoplay
 src/tests/check_common
 src/tests/check_lisco
 src/tests/check_liscoplay
+src/tests/check_move_list
+src/tests/check_perft
 
 libchi/dump-bitboard
 libchi/genmasks

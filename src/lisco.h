@@ -105,6 +105,11 @@ typedef struct MoveSelector {
 	size_t selected;
 } MoveSelector;
 
+typedef struct MoveList {
+	const chi_move *moves;
+	size_t num_moves;
+} MoveList;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -127,6 +132,12 @@ extern void tt_clear(void);
 
 /* Completely destroy the transposition table.  */
 extern void tt_destroy(void);
+
+/* Initialize a fresh, empty move list.  */
+extern void move_list_init(MoveList *self);
+
+/* Destroy a MoveList and free all resources.  */
+extern void move_list_destroy(MoveList *self);
 
 /* Initialize a move selector from a search tree TREE.  An optional
  * BESTMOVE is always returned first.
