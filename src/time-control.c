@@ -46,5 +46,9 @@ process_search_params(Tree *tree, SearchParams *params)
 		tree->fixed_time = 0;
 	}
 
+	/* This is ugly. :( */
+	tree->searchmoves.moves = params->searchmoves.moves;
+	tree->searchmoves.num_moves = params->searchmoves.num_moves;
+
 	return 1;
 }

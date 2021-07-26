@@ -282,14 +282,14 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 	memset(&tree, 0, sizeof tree);
 	memset(&params, 0, sizeof params);
 
-	move_list_init(&params.move_list);
+	move_list_init(&params.searchmoves);
 
 	while ((token = next_token(&argptr)) != NULL) {
 		if (strcmp("searchmoves", token) == 0) {
 			// Protect against crashes caused by giving searchmoves
 			// multiple times.
-			move_list_destroy(&params.move_list);
-			move_list_init(&params.move_list);
+			move_list_destroy(&params.searchmoves);
+			move_list_init(&params.searchmoves);
 
 			while ((token = next_token(&argptr))) {
 				// Do a very basic check on the move syntax so that we can
@@ -304,14 +304,14 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 				if (errnum) {
 					fprintf(out, "info illegal move '%s': %s\n",
 					        token, chi_strerror(errnum));
-					move_list_destroy(&params.move_list);
+					move_list_destroy(&params.searchmoves);
 					return 1;
 				}
-				move_list_add(&params.move_list, move);
+				move_list_add(&params.searchmoves, move);
 			}
 
 			// An emtpy move list is ignored.
-			if (!params.move_list.num_moves) {
+			if (!params.searchmoves.num_moves) {
 				fprintf(out, "info 'searchmoves' without moves is ignored.\n");
 			}
 		} else if (strcmp("ponder", token) == 0) {
@@ -462,6 +462,7 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 
 
 	think(&tree);
+	move_list_destroy(&tree.searchmoves);
 
 	if (lisco.bestmove_found) {
 		errnum = chi_coordinate_notation(

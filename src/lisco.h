@@ -48,7 +48,7 @@ typedef struct SearchParams {
 	unsigned long movetime;
 	unsigned long mate;
 	unsigned long depth;
-	MoveList move_list;
+	MoveList searchmoves;
 	unsigned long long nodes;
 } SearchParams;
 
@@ -89,6 +89,8 @@ typedef struct Tree {
 	int max_depth;
 	unsigned long long nodes;
 	unsigned long long evals;
+
+	MoveList searchmoves;
 
 	Line line;
 

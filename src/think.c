@@ -236,6 +236,101 @@ alphabeta(Tree *tree, int depth, int alpha, int beta)
 	return alpha;
 }
 
+// FIXME! This is a really ugly copy of the alphabeta() function.  How
+// to reuse the relevant parts without preprocessor macros. Use inline
+// functions?
+static int
+alphabeta_move_list(Tree *tree, int depth, int alpha, int beta, MoveList *list)
+{
+	chi_pos *position = &tree->position;
+	int value;
+	chi_result result;
+	int ply = tree->depth - depth;
+
+	++tree->nodes;
+	if (--tree->nodes_to_tc <= 0 && !tree->max_depth) {
+		time_control(tree);
+	}
+
+	if (chi_game_over(position, &result)) {
+		if (chi_result_is_white_win(result) || chi_result_is_black_win(result)) {
+			return MATE + (tree->depth - depth);
+		} else {
+			return 0;
+		}
+	}
+
+	if (depth == 0) {
+#if DEBUG_SEARCH
+		fprintf (stderr, "\tstart quiescence search (ply = %d, alpha = %d, beta = %d)\n",
+				ply, alpha, beta);
+#endif
+		int qscore = quiesce(tree, ply, alpha, beta);
+#if DEBUG_SEARCH
+		fprintf (stderr, "\end quiescence score: %d = (ply = %d, alpha = %d, beta = %d\n",
+				qscore, ply, alpha, beta);
+#endif
+		return qscore;
+	}
+
+	++tree->line.num_moves;
+	for (size_t i = 0; i < list->num_moves; ++i) {
+		chi_move move = list->moves[i];
+
+		tree->line.moves[tree->line.num_moves - 1] = move;
+
+#if DEBUG_SEARCH
+		debug_start_search(tree, move);
+#endif
+
+		chi_apply_move(position, move);
+		update_tree(tree, ply, position, move);
+
+		value = -alphabeta(tree, depth - 1, -beta, -alpha);
+
+		/*
+		store_tt_entry(position, tree->signatures[ply + 1], move, depth, value,
+				HASH_EXACT);
+		*/
+
+		chi_unapply_move(position, move);
+
+#if DEBUG_SEARCH
+		debug_end_search(tree, move);
+		fprintf(stderr, "\tvalue: %d (best: %d)\n", value, alpha);
+#endif
+
+		if (value >= beta) {
+			/* Fail high.  */
+#if DEBUG_SEARCH
+			fprintf(stderr, "\tfail high: value(%d) >= beta(%d)\n", value, beta);
+#endif
+			--tree->line.num_moves;
+			return beta;
+		}
+
+		if (value > alpha) {
+			alpha = value;
+#if DEBUG_SEARCH
+			fprintf(stderr, "\tNew best move with best value %d.\n", alpha);
+#endif
+			if (depth == tree->depth) {
+#if DEBUG_SEARCH
+				fprintf(stderr, "\tNew best root move with best value %d.\n", alpha);
+#endif
+				tree->bestmove = move;
+				tree->score =
+					chi_on_move(position) == chi_white ? value : -value;
+				print_pv(tree, depth);
+			}
+		}
+	}
+
+	--tree->line.num_moves;
+
+	return alpha;
+}
+
 static int
 root_search(Tree *tree)
 {
@@ -253,8 +348,14 @@ root_search(Tree *tree)
 		fprintf(stderr, "Deepening search to maximum %d plies.\n", depth);
 #endif
 		tree->depth = depth;
-		score = alphabeta(tree, depth, -INF, +INF);
-		
+
+		if (tree->searchmoves.num_moves) {
+			score = alphabeta_move_list(tree, depth, -INF, +INF,
+					&tree->searchmoves);
+		} else {
+			score = alphabeta(tree, depth, -INF, +INF);
+		}
+
 		forced_mate = score == -MATE -depth;
 
 		if (chi_on_move(&lisco.position) == chi_black)
