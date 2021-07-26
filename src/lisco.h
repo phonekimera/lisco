@@ -34,6 +34,19 @@
 #define INF ((-(MATE)) << 1)
 #define MAX_PLY 512
 
+typedef struct SearchParams {
+	unsigned long mytime;
+	unsigned long hertime;
+	unsigned long myinc;
+	unsigned long herinc;
+	unsigned long movestogo;
+	unsigned long infinite;
+	unsigned long movetime;
+	unsigned long mate;
+	unsigned long depth;
+	unsigned long long nodes;
+} SearchParams;
+
 typedef struct Lisco {
 	// The current UCI options and state.
 	UCIEngineOptions uci;
@@ -97,6 +110,8 @@ extern "C" {
 #endif
 
 extern Lisco lisco;
+
+extern void think(SearchParams *params);
 
 // Main transposition table.
 

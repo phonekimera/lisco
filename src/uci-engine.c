@@ -28,7 +28,6 @@
 #include "uci-engine.h"
 
 #include "lisco.h"
-#include "think.h"
 #include "util.h"
 #include "perft.h"
 
@@ -245,16 +244,141 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 	unsigned long perft_depth = 0;
 	char *endptr;
 
+	SearchParams params;
+
+	memset(&params, 0, sizeof params);
+
 	while ((token = next_token(&argptr)) != NULL) {
-		if (strcmp("perft", token) == 0) {
+		if (strcmp("searchmoves", token) == 0) {
+			fprintf(out, "info go option 'searchmoves' is not supported.\n");
+		} else if (strcmp("ponder", token) == 0) {
+			fprintf(out, "info go option 'ponder' is not supported.\n");
+		} else if (strcmp("wtime", token) == 0) {
+			token = next_token(&argptr);
+			if (!token) {
+				fprintf(out, "info usage: wtime MS.\n");
+				return 1;
+			}
+			unsigned long wtime = strtoul(token, &endptr, 10);
+			if (wtime == 0 || endptr == token) {
+				fprintf(out, "info error: illegal wtime: %s.\n",
+				        token);
+				return 1;
+			}
+			if (chi_on_move(&lisco.position) == chi_white) {
+				params.mytime = wtime;
+			} else {
+				params.hertime = wtime;
+			}
+		} else if (strcmp("btime", token) == 0) {
+			token = next_token(&argptr);
+			if (!token) {
+				fprintf(out, "info usage: btime MS.\n");
+				return 1;
+			}
+			unsigned long btime = strtoul(token, &endptr, 10);
+			if (btime == 0 || endptr == token) {
+				fprintf(out, "info error: illegal btime: %s.\n",
+				        token);
+				return 1;
+			}
+			if (chi_on_move(&lisco.position) == chi_black) {
+				params.mytime = btime;
+			} else {
+				params.hertime = btime;
+			}
+		} else if (strcmp("winc", token) == 0) {
+			token = next_token(&argptr);
+			if (!token) {
+				fprintf(out, "info usage: winc S.\n");
+				return 1;
+			}
+			unsigned long winc = strtoul(token, &endptr, 10);
+			if (winc == 0 || endptr == token) {
+				fprintf(out, "info error: illegal winc: %s.\n",
+				        token);
+				return 1;
+			}
+			if (chi_on_move(&lisco.position) == chi_white) {
+				params.myinc = winc;
+			} else {
+				params.herinc = winc;
+			}
+		} else if (strcmp("binc", token) == 0) {
+			token = next_token(&argptr);
+			if (!token) {
+				fprintf(out, "info usage: binc S.\n");
+				return 1;
+			}
+			unsigned long binc = strtoul(token, &endptr, 10);
+			if (binc == 0 || endptr == token) {
+				fprintf(out, "info error: illegal binc: %s.\n",
+				        token);
+				return 1;
+			}
+			if (chi_on_move(&lisco.position) == chi_black) {
+				params.myinc = binc;
+			} else {
+				params.herinc = binc;
+			}
+		} else if (strcmp("depth", token) == 0) {
+			token = next_token(&argptr);
+			if (!token) {
+				fprintf(out, "info usage: depth PLIES.\n");
+				return 1;
+			}
+			params.depth = strtoul(token, &endptr, 10);
+			if (params.depth == 0 || endptr == token) {
+				fprintf(out, "info error: illegal depth: %s.\n",
+				         token);
+				return 1;
+			}
+		} else if (strcmp("nodes", token) == 0) {
+			token = next_token(&argptr);
+			if (!token) {
+				fprintf(out, "info usage: nodes NODES.\n");
+				return 1;
+			}
+			params.nodes = strtoul(token, &endptr, 10);
+			if (params.depth == 0 || endptr == token) {
+				fprintf(out, "info error: illegal nodes: %s.\n",
+				        token);
+				return 1;
+			}
+		} else if (strcmp("mate", token) == 0) {
+			token = next_token(&argptr);
+			if (!token) {
+				fprintf(out, "info usage: mate MOVES.\n");
+				return 1;
+			}
+			params.mate = strtoul(token, &endptr, 10);
+			if (params.mate == 0 || endptr == token) {
+				fprintf(out, "info error: illegal mate depth: %s.\n",
+				        token);
+				return 1;
+			}
+		} else if (strcmp("movetime", token) == 0) {
+			token = next_token(&argptr);
+			if (!token) {
+				fprintf(out, "info usage: movetime MS.\n");
+				return 1;
+			}
+			params.movetime = strtoul(token, &endptr, 10);
+			if (params.movetime == 0 || endptr == token) {
+				fprintf(out, "info error: illegal movetime: %s.\n",
+				        token);
+				return 1;
+			}
+
+		} else if (strcmp("perft", token) == 0) {
 			token = next_token(&argptr);
 			if (!token) {
 				fprintf(out, "info usage: perft DEPTH.\n");
 				return 1;
 			}
-			perft_depth = strtoul (token, &endptr, 10);
+			perft_depth = strtoul(token, &endptr, 10);
 			if (perft_depth == 0 && endptr == token) {
-				fprintf (out, "info error: illegal perft depth: %s.\n",
+				fprintf(out, "info error: illegal perft depth: %s.\n",
 				         token);
 				return 1;
 			}
@@ -268,7 +392,7 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 		}
 	}
 
-	think();
+	think(&params);
 
 	if (lisco.bestmove_found) {
 		errnum = chi_coordinate_notation(

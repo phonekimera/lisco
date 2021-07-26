@@ -278,7 +278,7 @@ root_search(Tree *tree, int max_depth)
 }
 
 void
-think(void)
+think(SearchParams *params)
 {
 	chi_color_t on_move;
 	Tree tree;
