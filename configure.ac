@@ -31,6 +31,8 @@ gl_EARLY
 gl_INIT
 LT_INIT
 
+AX_PTHREAD([], [AC_MSG_FAILURE("lisco cannot be built without support for POSIX threads.")])
+
 AC_CHECK_PROG([PERL], [perl], [yes], [no])
 AM_CONDITIONAL([HAS_PERL], [test "x$PERL" = "xyes"])
 
@@ -75,6 +77,12 @@ AC_REPLACE_FUNCS([memset strcasecmp strncasecmp])
 if test $am_cv_func_working_getline != yes; then
   AC_CHECK_FUNCS(getdelim)
 fi
+
+LIBS="$PTHREAD_LIBS $LIBS"
+CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
+CC="$PTHREAD_CC"
+CXX="$PTHREAD_CXX"
 
 AC_CONFIG_FILES([Makefile lib/Makefile
                  libchi/libchi.h libchi/Makefile libchi/tests/Makefile \

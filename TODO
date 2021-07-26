@@ -1,0 +1,1 @@
+- bootstrap must check for pkg-config being present
