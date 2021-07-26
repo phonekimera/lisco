@@ -57,6 +57,7 @@ check_lisco_SOURCES = \
 		../util.c \
 		test_move_selector.c \
 		test_perft.c \
+		test_time_control.c \
 		test_transposition_table.c \
 		test_uci_engine.c \
 		check_lisco.c

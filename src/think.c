@@ -106,7 +106,7 @@ time_control(Tree *tree)
 	fprintf(stderr, "elapsed: %ld ms, nodes: %llu, nps: %lld, nodes to next tc: %lld.\n",
 		elapsed, tree->nodes, nps, tree->nodes_to_tc);
 #endif
-	if (elapsed > 1000 * tree->fixed_time - 200) {
+	if (elapsed > tree->fixed_time - 200) {
 		tree->move_now = 1;
 #if DEBUG_TIME_CONTROL
 		fprintf(stderr, "Time's up, move now!\n");
@@ -244,7 +244,7 @@ root_search(Tree *tree, int max_depth)
 
 	tree->start_time = rtime();
 	tree->move_now = 0;
-	tree->fixed_time = 120;
+	tree->fixed_time = 120000;
 	tree->score = 0;
 
 	tree->nodes_to_tc = 10000;

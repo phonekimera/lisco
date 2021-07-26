@@ -20,41 +20,29 @@
 # include <config.h>
 #endif
 
+#include <stdio.h>
+
 #include <check.h>
 
 #include "libchi.h"
+#include "../src/lisco.h"
 
-extern Suite *move_selector_suite();
-extern Suite *time_control_suite();
-extern Suite *tt_suite();
-extern Suite *uci_engine_suite();
-extern Suite *perft_suite();
-
-#ifdef DEBUG_XMALLOC
-# include "../xmalloc-debug.c"
-#endif
-
-int
-main(int argc, char *argv[])
+START_TEST(test_fixed_time)
 {
-	int failed = 0;
-	SRunner *runner;
+}
+END_TEST
 
-#ifdef DEBUG_XMALLOC
-	init_xmalloc_debug();
-#endif
+Suite *
+time_control_suite(void)
+{
+	Suite *suite;
+	TCase *tc_process_search_params;
 
-	chi_mm_init();
+	suite = suite_create("Time Control");
 
-	runner = srunner_create(move_selector_suite());
-	srunner_add_suite(runner, time_control_suite());
-	srunner_add_suite(runner, tt_suite());
-	srunner_add_suite(runner, uci_engine_suite());
-	srunner_add_suite(runner, perft_suite());
+	tc_process_search_params = tcase_create("Process Parameters");
+	tcase_add_test(tc_process_search_params, test_fixed_time);
+	suite_add_tcase(suite, tc_process_search_params);
 
-	srunner_run_all(runner, CK_NORMAL);
-	failed = srunner_ntests_failed(runner);
-	srunner_free(runner);
-
-	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	return suite;
 }
