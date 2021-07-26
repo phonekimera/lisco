@@ -243,8 +243,10 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 	unsigned long perft_depth = 0;
 	char *endptr;
 
+	Tree tree;
 	SearchParams params;
 
+	memset(&tree, 0, sizeof tree);
 	memset(&params, 0, sizeof params);
 
 	while ((token = next_token(&argptr)) != NULL) {
@@ -389,9 +391,15 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 			fprintf(out, "info unknown or unsupported go option '%s'.\n",
 			        token);
 		}
+
+		if (!process_search_params(&tree, &params)) {
+			fprintf(out, "info cannot understand search parameters.\n");
+			return 1;
+		}
 	}
 
-	think(&params);
+
+	think(&tree);
 
 	if (lisco.bestmove_found) {
 		errnum = chi_coordinate_notation(

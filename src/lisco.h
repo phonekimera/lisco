@@ -110,7 +110,9 @@ extern "C" {
 
 extern Lisco lisco;
 
-extern void think(SearchParams *params);
+extern int process_search_params(Tree *tree, SearchParams *params);
+
+extern void think(Tree *tree);
 
 // Main transposition table.
 

@@ -51,6 +51,7 @@ check_lisco_SOURCES = \
 		../rtime.c \
 		../state.c \
 		../think.c \
+		../time-control.c \
 		../transposition-table.c \
 		../uci-engine.c \
 		../util.c \

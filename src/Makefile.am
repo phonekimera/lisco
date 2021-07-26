@@ -36,7 +36,7 @@ noinst_HEADERS = \
 
 lisco_SOURCES = lisco.c uci-engine.c util.c think.c state.c perft.c \
 	rtime.c transposition-table.c move-selector.c evaluate.c ev_hash.c \
-	quiescence.c
+	quiescence.c time-control.c
 
 # FIXME! Remove liscoplay. Can be replaced with cutechess-cli.
 liscoplay_SOURCES = liscoplay.c liscoplay-engine.c log.c liscoplay-game.c \

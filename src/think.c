@@ -277,23 +277,17 @@ root_search(Tree *tree, int max_depth)
 }
 
 void
-think(SearchParams *params)
+think(Tree *tree)
 {
-	chi_color_t on_move;
-	Tree tree;
 	int score;
 
 	if (chi_game_over(&lisco.position, NULL)) return;
 
-	memset(&tree, 0, sizeof tree);
+	chi_copy_pos(&tree->position, &lisco.position);
 
-	chi_copy_pos(&tree.position, &lisco.position);
+	tree->signatures[0] = chi_zk_signature(lisco.zk_handle, &tree->position);
 
-	on_move = chi_on_move(&tree.position);
-
-	tree.signatures[0] = chi_zk_signature(lisco.zk_handle, &tree.position);
-
-	score = root_search(&tree, 110);
+	score = root_search(tree, 110);
 
 	// Only print that to the real output channel.
 	//fprintf(stderr, "score: %d\n", score);
