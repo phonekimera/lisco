@@ -91,34 +91,25 @@ chi_obvious_attackers(const chi_pos *pos, chi_move mv,
 	bitv64 bishop_mask = Bmagic(to, occupancy) & not_from_mask;
 	bitv64 rook_mask = Rmagic(to, occupancy) & not_from_mask;
 	bitv64 queen_mask = bishop_mask | rook_mask;
+	int maybe_promote = to > CHI_A7 || to < CHI_H2;
+	int shifted_pawn_value = (maybe_promote
+		? CHI_SEE_QUEEN_VALUE - CHI_SEE_PAWN_VALUE
+		: CHI_SEE_PAWN_VALUE) << 8;
 
-	/* Pawn captures are a little bit special:
-	 *
-	 * - If the target rank is 8, only white pawn captures can occur and ...
-	 * - ... they collate between rook and queen captures.
-	 * - If the target rank is 1, only black pawn captures can occur and ...
-	 * - ... they collate between rook and queen captures.
-	 * 
-	 * That means that we only generate captures here for target ranks 2 to 7.
-	 * Captures made by quawns (the pawns on the pre-promotion rank) are
-	 * added after the rook and before the queen captures.
-	 */
-	if (to < CHI_H8 && to > CHI_A1) {
-		/* White pawn captures.  */
-		mask = reverse_pawn_attacks[chi_white][to] & pos->w_pawns & not_from_mask;
-		while (mask) {
-			int from = chi_bitv2shift(chi_clear_but_least_set(mask));
-			*white_attackers++ = from | CHI_SEE_PAWN_VALUE << 8;
-			mask = chi_clear_least_set(mask);
-		}
+	/* White pawn captures.  */
+	mask = reverse_pawn_attacks[chi_white][to] & pos->w_pawns & not_from_mask;
+	while (mask) {
+		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
+		*white_attackers++ = from | shifted_pawn_value;
+		mask = chi_clear_least_set(mask);
+	}
 
-		/* Black pawn captures.  */
-		mask = reverse_pawn_attacks[chi_black][to] & pos->b_pawns & not_from_mask;
-		while (mask) {
-			int from = chi_bitv2shift(chi_clear_but_least_set(mask));
-			*black_attackers++ = from | CHI_SEE_PAWN_VALUE << 8;
-			mask = chi_clear_least_set(mask);
-		}
+	/* Black pawn captures.  */
+	mask = reverse_pawn_attacks[chi_black][to] & pos->b_pawns & not_from_mask;
+	while (mask) {
+		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
+		*black_attackers++ = from | shifted_pawn_value;
+		mask = chi_clear_least_set(mask);
 	}
 
 	/* White knight and bishop captures.  */
@@ -153,25 +144,6 @@ chi_obvious_attackers(const chi_pos *pos, chi_move mv,
 		int from = chi_bitv2shift(chi_clear_but_least_set(mask));
 		*black_attackers++ = from | CHI_SEE_ROOK_VALUE << 8;
 		mask = chi_clear_least_set(mask);
-	}
-
-	/* Quawn captures, that are captures made by pawns on the 1st or 8th rank. */
-	if (to >= CHI_H8) {
-		/* White quawn captures.  */
-		mask = reverse_pawn_attacks[chi_white][to] & pos->w_pawns & not_from_mask;
-		while (mask) {
-			int from = chi_bitv2shift(chi_clear_but_least_set(mask));
-			*white_attackers++ = from | CHI_SEE_QUAWN_VALUE << 8;
-			mask = chi_clear_least_set(mask);
-		}
-	} else if (to <= CHI_A1) {
-		/* Black quawn captures.  */
-		mask = reverse_pawn_attacks[chi_black][to] & pos->b_pawns & not_from_mask;
-		while (mask) {
-			int from = chi_bitv2shift(chi_clear_but_least_set(mask));
-			*black_attackers++ = from | CHI_SEE_QUAWN_VALUE << 8;
-			mask = chi_clear_least_set(mask);
-		}
 	}
 
 	/* White queen captures.  */

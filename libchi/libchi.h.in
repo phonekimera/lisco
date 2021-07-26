@@ -268,7 +268,6 @@ typedef enum chi_bool {
 #define CHI_SEE_KNIGHT_VALUE 300
 #define CHI_SEE_BISHOP_VALUE 300
 #define CHI_SEE_ROOK_VALUE   500
-#define CHI_SEE_QUAWN_VALUE  800
 #define CHI_SEE_QUEEN_VALUE  900
 #define CHI_SEE_KING_VALUE   999
 
