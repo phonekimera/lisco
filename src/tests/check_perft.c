@@ -24,10 +24,7 @@
 
 #include "libchi.h"
 
-extern Suite *move_selector_suite();
-extern Suite *time_control_suite();
-extern Suite *tt_suite();
-extern Suite *uci_engine_suite();
+extern Suite *perft_suite();
 
 #ifdef DEBUG_XMALLOC
 # include "../xmalloc-debug.c"
@@ -45,10 +42,7 @@ main(int argc, char *argv[])
 
 	chi_mm_init();
 
-	runner = srunner_create(move_selector_suite());
-	srunner_add_suite(runner, time_control_suite());
-	srunner_add_suite(runner, tt_suite());
-	srunner_add_suite(runner, uci_engine_suite());
+	runner = srunner_create(perft_suite());
 
 	srunner_run_all(runner, CK_NORMAL);
 	failed = srunner_ntests_failed(runner);

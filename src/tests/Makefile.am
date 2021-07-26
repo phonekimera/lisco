@@ -17,7 +17,7 @@
 
 ## Process this file with automake to produce Makefile.in.
 
-noinst_PROGRAMS = check_common check_lisco check_liscoplay
+noinst_PROGRAMS = check_common check_lisco check_perft check_liscoplay
 
 TESTS = ./check_common \
 	./check_lisco \
@@ -25,7 +25,8 @@ TESTS = ./check_common \
 	./check_mates \
 	./check_dm1 \
 	./check_dm2 \
-	./check_dm3
+	./check_dm3 \
+	./check_perft
 
 check_common_SOURCES = \
 		../util.c \
@@ -56,17 +57,25 @@ check_lisco_SOURCES = \
 		../uci-engine.c \
 		../util.c \
 		test_move_selector.c \
-		test_perft.c \
 		test_time_control.c \
 		test_transposition_table.c \
 		test_uci_engine.c \
 		check_lisco.c
+
+check_perft_SOURCES = \
+		../perft.c \
+		../rtime.c \
+		test_perft.c \
+		check_perft.c
 
 check_common_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
 check_common_LDADD = ../../lib/liblisco.la ../../libchi/libchi.la \
 	$(LDFLAGS) $(CHECK_LIBS)
 check_lisco_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
 check_lisco_LDADD = ../../lib/liblisco.la ../../libchi/libchi.la \
+	$(LDFLAGS) $(CHECK_LIBS)
+check_perft_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
+check_perft_LDADD = ../../lib/liblisco.la ../../libchi/libchi.la \
 	$(LDFLAGS) $(CHECK_LIBS)
 check_liscoplay_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
 check_liscoplay_LDADD = ../../lib/liblisco.la ../../libchi/libchi.la \

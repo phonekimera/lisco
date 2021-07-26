@@ -341,7 +341,7 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 				return 1;
 			}
 			params.nodes = strtoul(token, &endptr, 10);
-			if (params.depth == 0 || endptr == token) {
+			if (params.nodes == 0 || endptr == token) {
 				fprintf(out, "info error: illegal nodes: %s.\n",
 				        token);
 				return 1;
