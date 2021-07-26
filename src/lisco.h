@@ -80,6 +80,7 @@ typedef struct Tree {
 	chi_move bestmove;
 	int score;
 	int depth;
+	int max_depth;
 	unsigned long long nodes;
 	unsigned long long evals;
 

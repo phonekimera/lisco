@@ -237,7 +237,7 @@ alphabeta(Tree *tree, int depth, int alpha, int beta)
 }
 
 static int
-root_search(Tree *tree, int max_depth)
+root_search(Tree *tree)
 {
 	int depth, score;
 	chi_bool forced_mate;
@@ -246,6 +246,7 @@ root_search(Tree *tree, int max_depth)
 	tree->move_now = 0;
 	tree->score = 0;
 
+	int max_depth = tree->max_depth ? tree->max_depth : MAX_PLY;
 	// Iterative deepening.
 	for (depth = 1; depth <= max_depth; ++depth) {
 #if DEBUG_SEARCH
@@ -284,7 +285,7 @@ think(Tree *tree)
 
 	tree->signatures[0] = chi_zk_signature(lisco.zk_handle, &tree->position);
 
-	score = root_search(tree, 110);
+	score = root_search(tree);
 
 	// Only print that to the real output channel.
 	//fprintf(stderr, "score: %d\n", score);

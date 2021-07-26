@@ -27,7 +27,7 @@
 #include "libchi.h"
 #include "../src/lisco.h"
 
-START_TEST(test_fixed_time)
+START_TEST(test_movetime)
 {
 	SearchParams params;
 	Tree tree;
@@ -40,6 +40,24 @@ START_TEST(test_fixed_time)
 	process_search_params(&tree, &params);
 
 	ck_assert_uint_eq(tree.fixed_time, 120000);
+	ck_assert(tree.nodes_to_tc > 0);
+}
+END_TEST
+
+START_TEST(test_nodes)
+{
+	SearchParams params;
+	Tree tree;
+
+	memset(&params, 0, sizeof params);
+	memset(&tree, 0, sizeof tree);
+
+	params.nodes = 2304;
+
+	process_search_params(&tree, &params);
+
+	ck_assert_uint_eq(tree.fixed_time, 0);
+	ck_assert_uint_eq(tree.nodes_to_tc, 2304);
 }
 END_TEST
 
@@ -52,7 +70,8 @@ time_control_suite(void)
 	suite = suite_create("Time Control");
 
 	tc_process_search_params = tcase_create("Process Parameters");
-	tcase_add_test(tc_process_search_params, test_fixed_time);
+	tcase_add_test(tc_process_search_params, test_movetime);
+	tcase_add_test(tc_process_search_params, test_nodes);
 	suite_add_tcase(suite, tc_process_search_params);
 
 	return suite;
