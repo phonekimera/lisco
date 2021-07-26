@@ -123,7 +123,7 @@ alphabeta(Tree *tree, int depth, int alpha, int beta)
 	int ply = tree->depth - depth;
 
 	++tree->nodes;
-	if (--tree->nodes_to_tc <= 0) {
+	if (--tree->nodes_to_tc <= 0 && !tree->max_depth) {
 		time_control(tree);
 	}
 

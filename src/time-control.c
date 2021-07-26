@@ -25,6 +25,13 @@
 int
 process_search_params(Tree *tree, SearchParams *params)
 {
+	if (params->depth) {
+		tree->max_depth = params->depth;
+	} else {
+		/* If no other hint given, use 30 seconds per move.  */
+		tree->fixed_time = 30000;
+	}
+
 	/* Initial value for calibration.  */
 	tree->nodes_to_tc = 10000;
 
@@ -32,6 +39,7 @@ process_search_params(Tree *tree, SearchParams *params)
 		tree->fixed_time = params->movetime;
 	} else if (params->nodes) {
 		tree->nodes_to_tc = params->nodes;
+		tree->fixed_time = 0;
 	}
 
 	return 1;
