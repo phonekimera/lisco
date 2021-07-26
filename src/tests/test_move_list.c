@@ -48,6 +48,35 @@ START_TEST(test_basic)
 }	
 END_TEST
 
+START_TEST(test_contains)
+{
+	MoveList list;
+
+	move_list_init(&list);
+	ck_assert_uint_eq(list.num_moves, 0);
+	ck_assert(list.moves == NULL);
+
+	move_list_add(&list, 1303);
+	ck_assert_uint_eq(list.num_moves, 1);
+	ck_assert(list.moves != NULL);
+	ck_assert(move_list_contains(&list, 1303));
+	ck_assert(!move_list_contains(&list, 2304));
+
+	move_list_add(&list, 2304);
+	ck_assert_uint_eq(list.num_moves, 2);
+	ck_assert(list.moves != NULL);
+	ck_assert(move_list_contains(&list, 2304));
+
+	ck_assert(!move_list_contains(&list, 9999));
+
+	/* Check that irrelevant bits are ignored.  */
+	ck_assert(move_list_contains(&list, 1303 | 1ULL << CHI_MOVE_RELEVANT_BITS));
+	ck_assert(move_list_contains(&list, 2304 | 0xffffffffULL << 32));
+
+	move_list_destroy(&list);
+}	
+END_TEST
+
 Suite *
 move_list_suite(void)
 {
@@ -58,6 +87,7 @@ move_list_suite(void)
 
 	tc_basic = tcase_create("Basic");
 	tcase_add_test(tc_basic, test_basic);
+	tcase_add_test(tc_basic, test_contains);
 	suite_add_tcase(suite, tc_basic);
 
 	return suite;

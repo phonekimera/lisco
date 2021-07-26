@@ -454,6 +454,8 @@ typedef struct {
 
 typedef unsigned long long chi_move;
 
+#define CHI_MOVE_RELEVANT_BITS 28
+
 /* Macros that extract a particular value of interest from a move.
    En-passant is treat as a flag rather than a value and therefore
    not shifted to the right.  */

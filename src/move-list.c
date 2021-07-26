@@ -48,3 +48,16 @@ move_list_add(MoveList *self, chi_move move)
 	self->moves = xrealloc((void *) self->moves, ++self->num_moves);
 	self->moves[self->num_moves - 1] = move;
 }
+
+int
+move_list_contains(MoveList *self, chi_move move)
+{
+	bitv64 mask = (1ULL << CHI_MOVE_RELEVANT_BITS) - 1;
+	for (size_t i = 0; i < self->num_moves; ++i) {
+		if ((self->moves[i] & mask) == (move & mask)) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
