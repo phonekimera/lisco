@@ -106,7 +106,7 @@ typedef struct MoveSelector {
 } MoveSelector;
 
 typedef struct MoveList {
-	const chi_move *moves;
+	chi_move *moves;
 	size_t num_moves;
 } MoveList;
 
@@ -138,6 +138,12 @@ extern void move_list_init(MoveList *self);
 
 /* Destroy a MoveList and free all resources.  */
 extern void move_list_destroy(MoveList *self);
+
+/* Add one move to a move list.  */
+extern void move_list_add(MoveList *self, chi_move move);
+
+/* Check whether a move list contains a certain move.  */
+extern int move_list_contains(MoveList *self, chi_move move);
 
 /* Initialize a move selector from a search tree TREE.  An optional
  * BESTMOVE is always returned first.

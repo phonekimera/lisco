@@ -22,6 +22,8 @@
 
 #include <sys/types.h>
 
+#include <xalloc.h>
+
 #include <libchi.h>
 
 #include "lisco.h"
@@ -31,4 +33,18 @@ move_list_init(MoveList *self)
 {
 	self->num_moves = 0;
 	self->moves = NULL;
+}
+
+void
+move_list_destroy(MoveList *self)
+{
+	if (self->moves)
+		free((void *) self->moves);
+}
+
+void
+move_list_add(MoveList *self, chi_move move)
+{
+	self->moves = xrealloc((void *) self->moves, ++self->num_moves);
+	self->moves[self->num_moves - 1] = move;
 }

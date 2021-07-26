@@ -31,7 +31,21 @@ START_TEST(test_basic)
 	move_list_init(&list);
 	ck_assert_uint_eq(list.num_moves, 0);
 	ck_assert(list.moves == NULL);
-}
+
+	move_list_add(&list, 123);
+	ck_assert_uint_eq(list.num_moves, 1);
+	ck_assert(list.moves != NULL);
+
+	move_list_add(&list, 234);
+	ck_assert_uint_eq(list.num_moves, 2);
+	ck_assert(list.moves != NULL);
+
+	move_list_add(&list, 567);
+	ck_assert_uint_eq(list.num_moves, 3);
+	ck_assert(list.moves != NULL);
+
+	move_list_destroy(&list);
+}	
 END_TEST
 
 Suite *
