@@ -25,6 +25,10 @@
 int
 process_search_params(Tree *tree, SearchParams *params)
 {
+	if (params->mate) {
+		params->depth = 2 * params->mate - 1;
+	}
+
 	if (params->depth) {
 		tree->max_depth = params->depth;
 	} else {

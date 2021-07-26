@@ -77,6 +77,22 @@ START_TEST(test_depth)
 }
 END_TEST
 
+START_TEST(test_mate)
+{
+	SearchParams params;
+	Tree tree;
+
+	memset(&params, 0, sizeof params);
+	memset(&tree, 0, sizeof tree);
+
+	params.mate = 2;
+
+	process_search_params(&tree, &params);
+
+	ck_assert_uint_eq(tree.max_depth, 3);
+}
+END_TEST
+
 Suite *
 time_control_suite(void)
 {
@@ -89,6 +105,7 @@ time_control_suite(void)
 	tcase_add_test(tc_process_search_params, test_movetime);
 	tcase_add_test(tc_process_search_params, test_nodes);
 	tcase_add_test(tc_process_search_params, test_depth);
+	tcase_add_test(tc_process_search_params, test_mate);
 	suite_add_tcase(suite, tc_process_search_params);
 
 	return suite;
