@@ -29,7 +29,6 @@
 
 #include "lisco.h"
 #include "util.h"
-#include "perft.h"
 
 #define DELIM " \n\t\v\f\r"
 

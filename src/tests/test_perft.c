@@ -20,10 +20,12 @@
 # include <config.h>
 #endif
 
+#include <stdio.h>
+
 #include <check.h>
 
 #include "libchi.h"
-#include "../src/perft.h"
+#include "../src/lisco.h"
 #include "../src/rtime.h"
 
 typedef struct PerftTest {

@@ -26,7 +26,6 @@
 #include <libchi.h>
 
 #include "lisco.h"
-#include "perft.h"
 #include "rtime.h"
 
 static unsigned long long do_perft(chi_pos *pos, unsigned int depth);

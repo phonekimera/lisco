@@ -153,6 +153,9 @@ extern void clear_ev_hash(void);
 extern int probe_ev (chi_pos *pos, bitv64 signature, int *score);
 extern void store_ev_entry (chi_pos *pos, bitv64 signature, int score);
 
+extern unsigned long long perft(chi_pos *position, unsigned int depth,
+        unsigned long long *counts, FILE *out);
+
 #ifdef __cplusplus
 extern }
 #endif

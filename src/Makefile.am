@@ -22,10 +22,7 @@ bin_PROGRAMS = lisco liscoplay
 noinst_HEADERS = \
 	basename.h \
 	board.h \
-	book.h \
-	brain.h \
 	log.h \
-	perft.h \
 	rtime.h \
 	search.h \
 	lisco.h \
