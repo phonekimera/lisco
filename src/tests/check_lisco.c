@@ -22,7 +22,9 @@
 
 #include <check.h>
 
-#include "libchi.h"
+#include <libchi.h>
+
+#include "../lisco.h"
 
 extern Suite *move_selector_suite();
 extern Suite *time_control_suite();
@@ -43,7 +45,7 @@ main(int argc, char *argv[])
 	init_xmalloc_debug();
 #endif
 
-	chi_mm_init();
+	lisco_initialize(argv[0]);
 
 	runner = srunner_create(move_selector_suite());
 	srunner_add_suite(runner, time_control_suite());

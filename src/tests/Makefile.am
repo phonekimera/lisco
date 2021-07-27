@@ -30,6 +30,19 @@ TESTS = ./check_common \
 	./check_liscoplay \
 	./check_perft
 
+LISCO_BASE_SOURCES = \
+		../ev_hash.c \
+		../initialize.c \
+		../move-list.c \
+		../move-selector.c \
+		../perft.c \
+		../rtime.c \
+		../think.c \
+		../time-control.c \
+		../transposition-table.c \
+		../uci-engine.c \
+		../util.c
+
 check_common_SOURCES = \
 		../util.c \
 		test_util.c \
@@ -45,31 +58,16 @@ check_liscoplay_SOURCES = \
 		test_uci.c \
 		check_liscoplay.c
 
-check_lisco_SOURCES = \
-		../ev_hash.c \
+check_lisco_SOURCES = $(LISCO_BASE_SOURCES) \
 		../evaluate.c \
-		../move-list.c \
-		../move-selector.c \
-		../perft.c \
-		../quiescence.c \
-		../rtime.c \
-		../state.c \
-		../think.c \
-		../time-control.c \
-		../transposition-table.c \
-		../uci-engine.c \
-		../util.c \
 		test_move_selector.c \
 		test_time_control.c \
 		test_transposition_table.c \
 		test_uci_engine.c \
 		check_lisco.c
 
-
-check_search_SOURCES = \
-		../move-selector.c \
+check_search_SOURCES = $(LISCO_BASE_SOURCES) \
 		../quiescence.c \
-		../state.c \
 		evaluate-material-only.c \
 		test_quiescence.c \
 		check_search.c

@@ -44,14 +44,7 @@ main(int argc, char *argv[])
 	init_xmalloc_debug();
 #endif
 
-	chi_mm_init();
-	int errnum = chi_zk_init(&lisco.zk_handle);
-	if (errnum)
-		error (EXIT_FAILURE,
-		       0,
-		       "Cannot initialize Zobrist key array: %s",
-		       chi_strerror (errnum));
-	memset(&lisco, 0, sizeof lisco);
+	lisco_initialize(argv[0]);
 
 	runner = srunner_create(quiescence_suite());
 

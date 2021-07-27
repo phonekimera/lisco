@@ -23,13 +23,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <libchi.h>
+#include <basename.h>
+#include <closeout.h>
+#include <progname.h>
 
-#include "basename.h"
-#include "closeout.h"
-#include "error.h"
-#include "progname.h"
-#include "xalloc.h"
+#include <libchi.h>
 
 #include "lisco.h"
 #include "uci-engine.h"
@@ -43,13 +41,9 @@ static void greeting();
 int
 main (int argc, char *argv[])
 {
-	int errnum;
-
 #ifdef DEBUG_XMALLOC
 	init_xmalloc_debug();
 #endif
-
-	set_program_name(argv[0]);
 
 	atexit(close_stdout);
 
@@ -59,23 +53,7 @@ main (int argc, char *argv[])
 
 	greeting();
 
-	// FIXME! All this initialization should go into a function
-	// lisco_initialize() that can be called from tests.
-	memset(&lisco, 0, sizeof lisco);
-
-	chi_init_position (&lisco.position);
-
-	uci_init(&lisco.uci, stdin, "[standard input]",
-			stdout, "[standard output]");
-	chi_mm_init();
-	tt_init(LISCO_DEFAULT_TT_SIZE * 1 << 20);
-	init_ev_hash(1024 * 1024 * 100);
-	errnum = chi_zk_init(&lisco.zk_handle);
-	if (errnum)
-		error (EXIT_FAILURE,
-		       0,
-		       "Cannot initialize Zobrist key array: %s",
-		       chi_strerror (errnum));
+	lisco_initialize(argv[0]);
 
 	uci_main(&lisco.uci);
 

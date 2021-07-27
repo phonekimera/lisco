@@ -20,6 +20,43 @@
 # include <config.h>
 #endif
 
+#include <stdlib.h>
+#include <stdio.h>
+
+#include <error.h>
+#include <progname.h>
+
+#include <libchi.h>
+
 #include "lisco.h"
+#include "uci-engine.h"
+
+#ifdef DEBUG_XMALLOC
+# include "xmalloc-debug.c"
+#endif
 
 Lisco lisco;
+
+void
+lisco_initialize(const char *program_name)
+{
+	int errnum;
+
+	set_program_name(program_name);
+
+	memset(&lisco, 0, sizeof lisco);
+
+	chi_init_position (&lisco.position);
+
+	uci_init(&lisco.uci, stdin, "[standard input]",
+			stdout, "[standard output]");
+	chi_mm_init();
+	tt_init(LISCO_DEFAULT_TT_SIZE * 1 << 20);
+	init_ev_hash(1024 * 1024 * 100);
+	errnum = chi_zk_init(&lisco.zk_handle);
+	if (errnum) {
+		error (EXIT_FAILURE, 0,
+		       "Cannot initialize Zobrist key array: %s",
+		       chi_strerror (errnum));
+	}
+}

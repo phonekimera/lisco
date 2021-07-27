@@ -120,6 +120,8 @@ extern "C" {
 
 extern Lisco lisco;
 
+extern void lisco_initialize(const char *progname);
+
 extern int process_search_params(Tree *tree, SearchParams *params);
 
 extern void think(Tree *tree);
