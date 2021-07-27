@@ -17,8 +17,8 @@
 
 ## Process this file with automake to produce Makefile.in.
 
-noinst_PROGRAMS = check_common check_move_list check_lisco check_perft \
-		check_liscoplay
+noinst_PROGRAMS = check_common check_move_list check_lisco check_search \
+		check_perft check_liscoplay
 
 TESTS = ./check_common \
 	./check_lisco \
@@ -65,6 +65,15 @@ check_lisco_SOURCES = \
 		test_uci_engine.c \
 		check_lisco.c
 
+
+check_search_SOURCES = \
+		../move-selector.c \
+		../quiescence.c \
+		../state.c \
+		evaluate-material-only.c \
+		test_quiescence.c \
+		check_search.c
+
 check_move_list_SOURCES = \
 		../move-list.c \
 		test_move_list.c \
@@ -84,6 +93,9 @@ check_move_list_LDADD = ../../lib/liblisco.la ../../libchi/libchi.la \
 	$(LDFLAGS) $(CHECK_LIBS)
 check_lisco_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
 check_lisco_LDADD = ../../lib/liblisco.la ../../libchi/libchi.la \
+	$(LDFLAGS) $(CHECK_LIBS)
+check_search_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
+check_search_LDADD = ../../lib/liblisco.la ../../libchi/libchi.la \
 	$(LDFLAGS) $(CHECK_LIBS)
 check_perft_CFLAGS = $(CFLAGS) $(CHECK_CFLAGS)
 check_perft_LDADD = ../../lib/liblisco.la ../../libchi/libchi.la \

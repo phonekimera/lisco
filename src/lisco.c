@@ -59,6 +59,8 @@ main (int argc, char *argv[])
 
 	greeting();
 
+	// FIXME! All this initialization should go into a function
+	// lisco_initialize() that can be called from tests.
 	memset(&lisco, 0, sizeof lisco);
 
 	chi_init_position (&lisco.position);
