@@ -385,6 +385,18 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 			} else {
 				params.herinc = binc;
 			}
+		} else if (strcmp("movestogo", token) == 0) {
+			token = next_token(&argptr);
+			if (!token) {
+				fprintf(out, "info usage: depth PLIES.\n");
+				return 1;
+			}
+			params.movestogo = strtoul(token, &endptr, 10);
+			if (endptr == token) {
+				fprintf(out, "info error: illegal movestogo: %s.\n",
+				         token);
+				return 1;
+			}
 		} else if (strcmp("depth", token) == 0) {
 			token = next_token(&argptr);
 			if (!token) {
