@@ -97,16 +97,93 @@ START_TEST(test_sudden_death)
 {
 	SearchParams params;
 	Tree tree;
+	int errnum;
 
 	memset(&params, 0, sizeof params);
 	memset(&tree, 0, sizeof tree);
 
-	params.mytime = 40000;
-	params.hertime = 40000;
+	chi_init_position(&tree.position);
+	params.mytime = 60000;
+	params.hertime = 60000;
 
+	/* Instead of making exact assumptions about the time allocated for a
+	 * move we should just make rough estimates and check tendencies.
+	 */
+
+	/* In the initial position we should should assume that we have the maximum
+	 * number of moves to go which is 60.
+	 */
 	process_search_params(&tree, &params);
+	ck_assert_uint_eq(tree.fixed_time, 1000);
 
-	ck_assert_uint_eq(tree.fixed_time, 3);
+	const char *fen;
+
+	/* 13 pieces for each side, material imbalance is 0.  The material
+	 * balance (weight 0.25) should still indicate 60 moves to go.
+	 * The popcount has dropped by 3 of 15.  With a weight of 0.75
+	 * that should give us now 0.8 * 0.75 * 60 = 36 moves to go.
+	 * 60000 / 36 = 1666.667.
+	 */
+	fen = "r1bqk2r/ppppbppp/8/1N2R3/8/8/PPPP1PPP/R1BQ2K1 b kq - 0 9";
+	/*
+	     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 | r |   | b | q | k |   |   | r | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 | p | p | p | p | b | p | p | p | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: yes.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: yes.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   | N |   |   | R |   |   |   | Half moves: 17.
+   +---+---+---+---+---+---+---+---+ Next move: black.
+ 4 |   |   |   |   |   |   |   |   | Material: +0.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 | P | P | P | P |   | P | P | P |
+   +---+---+---+---+---+---+---+---+
+ 1 | R |   | B | Q |   |   | K |   |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+	*/
+	errnum = chi_set_position(&tree.position, fen);
+	ck_assert_int_eq(errnum, 0);
+	process_search_params(&tree, &params);
+	ck_assert_uint_eq(tree.fixed_time, 1111);
+
+	/* 13 pieces for each side, material imbalance is 0.  The material
+	 * balance (weight 0.25) should still indicate 60 moves to go.
+	 * The popcount has dropped by 3 of 15.  With a weight of 0.75
+	 * that should give us now 0.8 * 0.75 * 60 = 36 moves to go.
+	 * 60000 / 36 = 1666.667.
+	 */
+	fen = "7k/8/8/8/3RR3/8/8/7K w - - 0 1";
+	/*
+     a   b   c   d   e   f   g   h
+   +---+---+---+---+---+---+---+---+
+ 8 |   |   |   |   |   |   |   | k | En passant not possible.
+   +---+---+---+---+---+---+---+---+ White king castle: no.
+ 7 |   |   |   |   |   |   |   |   | White queen castle: no.
+   +---+---+---+---+---+---+---+---+ Black king castle: no.
+ 6 |   |   |   |   |   |   |   |   | Black queen castle: no.
+   +---+---+---+---+---+---+---+---+ Half move clock (50 moves): 0.
+ 5 |   |   |   |   |   |   |   |   | Half moves: 0.
+   +---+---+---+---+---+---+---+---+ Next move: white.
+ 4 |   |   |   | R | R |   |   |   | Material: +10.
+   +---+---+---+---+---+---+---+---+ Black has castled: no.
+ 3 |   |   |   |   |   |   |   |   | White has castled: no.
+   +---+---+---+---+---+---+---+---+
+ 2 |   |   |   |   |   |   |   |   |
+   +---+---+---+---+---+---+---+---+
+ 1 |   |   |   |   |   |   |   | K |
+   +---+---+---+---+---+---+---+---+
+     a   b   c   d   e   f   g   h
+	*/
+	errnum = chi_set_position(&tree.position, fen);
+	ck_assert_int_eq(errnum, 0);
+	process_search_params(&tree, &params);
+	ck_assert_uint_eq(tree.fixed_time, 3000);
+
 }
 END_TEST
 

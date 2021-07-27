@@ -66,13 +66,13 @@ static void
 allocate_time(Tree *tree, SearchParams *params)
 {
 	// First get a rough estimate of the moves to go.
-	float mtg = moves_to_go(&tree->position);
+	double mtg = moves_to_go(&tree->position);
 
-	if (params->movestogo < mtg) {
+	if (params->movestogo && params->movestogo < mtg) {
 		mtg = params->movestogo;
 	}
 
-	float time_left = params->mytime + params->movestogo * params->myinc;
+	double time_left = params->mytime + params->movestogo * params->myinc;
 
 	// FIXME! This should not be fixed_time but have a better name.
 	// FIXME! Depending on the volatility of the position, there should be
@@ -93,9 +93,10 @@ moves_to_go(chi_pos *position)
 	// should be tuned!
 	unsigned min_moves_remaining = 20;
 	unsigned max_moves_remaining = 60;
+	int moves_range = max_moves_remaining - min_moves_remaining;
 
 	// We make two very simple assumptions.  The popcount of the weaker
-	// party decreases in the course of the game from 20 to 1.  That
+	// party decreases in the course of the game from 16 to 1.  That
 	// allows us a linear interpolation for the number of moves to go.
 	// On the other hand, the material imbalance may change from 0
 	// to 9 queens (81 for our purposes).  But an imbalance of 10
@@ -106,19 +107,18 @@ moves_to_go(chi_pos *position)
 	// summing up to 1.0.
 	double popcount_weight = 0.75;
 	double material_weight = (1 - popcount_weight);
-	int moves_range = max_moves_remaining - min_moves_remaining;
 
 	int wpopcount = chi_popcount(position->w_pieces);
 	int bpopcount = chi_popcount(position->b_pieces);
 	int popcount = wpopcount < bpopcount ? wpopcount : bpopcount;
 
 	// Popcount slope and constant offset.
-	double mpc = moves_range / (20 - 1);
+	double mpc = (double) moves_range / (16 - 1);
 	double cpc = min_moves_remaining - mpc;
 
 	// Material imbalance slope and constant offset.
-	double mmc = moves_range / 10 - 0;
-	double cmc = min_moves_remaining;
+	double mmc = (double) -moves_range / 10 - 0;
+	double cmc = max_moves_remaining;
 
 	// FIXME! Since this is only done once per ply, a full evaluation of
 	// the position should be done instead of just looking at the material
