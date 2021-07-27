@@ -93,11 +93,29 @@ START_TEST(test_mate)
 }
 END_TEST
 
+START_TEST(test_sudden_death)
+{
+	SearchParams params;
+	Tree tree;
+
+	memset(&params, 0, sizeof params);
+	memset(&tree, 0, sizeof tree);
+
+	params.mytime = 40000;
+	params.hertime = 40000;
+
+	process_search_params(&tree, &params);
+
+	ck_assert_uint_eq(tree.fixed_time, 3);
+}
+END_TEST
+
 Suite *
 time_control_suite(void)
 {
 	Suite *suite;
 	TCase *tc_process_search_params;
+	TCase *tc_time_allocation;
 
 	suite = suite_create("Time Control");
 
@@ -107,6 +125,10 @@ time_control_suite(void)
 	tcase_add_test(tc_process_search_params, test_depth);
 	tcase_add_test(tc_process_search_params, test_mate);
 	suite_add_tcase(suite, tc_process_search_params);
+
+	tc_time_allocation = tcase_create("Time Allocation");
+	tcase_add_test(tc_time_allocation, test_sudden_death);
+	suite_add_tcase(suite, tc_time_allocation);
 
 	return suite;
 }

@@ -382,6 +382,7 @@ typedef struct {
 	unsigned int lost_bk_castle;
 	unsigned int lost_bq_castle;
 
+	/* FIXME! All these macros should start with chi_pos.  */
 #define chi_flags(p) ((p)->union_flags.flags)
 #define chi_wk_castle(p) ((p)->flags.wk_castle)
 #define chi_wq_castle(p) ((p)->flags.wq_castle)
@@ -560,6 +561,8 @@ typedef struct {
 
 /* Clear only the least significant bit.  */
 #define chi_clear_least_set(b) ((b) & ((b) - 1))
+CHI_BEGIN_DECLS
+
 
 /* Clear all but the most significant bit.  */
 #if defined(__GNUC__)  // GCC, Clang, ICC
@@ -578,7 +581,21 @@ chi_clear_but_most_set(@BITV64@ b)
 }
 #endif
 
-CHI_BEGIN_DECLS
+#if defined(__GNUC__)  // GCC, Clang, ICC
+# define chi_popcount(b) (__builtin_popcountll(b))
+#else
+inline @BITV64@
+int chi_popcount(@BITV64 b)
+{
+    int c = 0;
+
+    for (; b; ++c) {
+        b &= b - 1;
+	}
+
+    return c;
+}
+#endif
 
 /* Return a descriptive (English!) error message for the given error.  */
 extern const char* chi_strerror(int chi_arg_errnum);

@@ -434,8 +434,7 @@ uci_handle_go(UCIEngineOptions *options, char *args, FILE *out)
 				return 1;
 			}
 		} else if (strcmp("infinite", token) == 0) {
-			fprintf(out, "info error: 'infinite' is not yet supported.\n",
-					token);
+			fprintf(out, "info error: 'infinite' is not yet supported.\n");
 			return 1;
 		} else if (strcmp("perft", token) == 0) {
 			token = next_token(&argptr);
