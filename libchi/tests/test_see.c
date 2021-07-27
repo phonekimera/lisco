@@ -479,9 +479,9 @@ START_TEST(test_obvious_attackers_promotion)
 
 	chi_obvious_attackers(&position, move, white_attackers, black_attackers);
 
-	ck_assert_int_eq(white_attackers[0], CHI_E1 | CHI_SEE_ROOK_VALUE << 8);
-	ck_assert_int_eq(white_attackers[1], CHI_D7
+	ck_assert_int_eq(white_attackers[0], CHI_D7
 			| (-CHI_SEE_PAWN_VALUE + CHI_SEE_QUEEN_VALUE) << 8);
+	ck_assert_int_eq(white_attackers[1], CHI_E1 | CHI_SEE_ROOK_VALUE << 8);
 	ck_assert_int_eq(white_attackers[2], CHI_F7 | CHI_SEE_QUEEN_VALUE << 8);
 	ck_assert_int_eq(white_attackers[3], 0);
 
@@ -519,9 +519,9 @@ START_TEST(test_obvious_attackers_promotion)
 
 	chi_obvious_attackers(&position, move, white_attackers, black_attackers);
 
-	ck_assert_int_eq(black_attackers[0], CHI_E8 | CHI_SEE_ROOK_VALUE << 8);
-	ck_assert_int_eq(black_attackers[1], CHI_D2
+	ck_assert_int_eq(black_attackers[0], CHI_D2
 			| (-CHI_SEE_PAWN_VALUE + CHI_SEE_QUEEN_VALUE) << 8);
+	ck_assert_int_eq(black_attackers[1], CHI_E8 | CHI_SEE_ROOK_VALUE << 8);
 	ck_assert_int_eq(black_attackers[2], CHI_F2 | CHI_SEE_QUEEN_VALUE << 8);
 	ck_assert_int_eq(black_attackers[3], 0);
 
