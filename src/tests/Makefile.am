@@ -60,6 +60,7 @@ check_liscoplay_SOURCES = \
 
 check_lisco_SOURCES = $(LISCO_BASE_SOURCES) \
 		../evaluate.c \
+		../quiescence.c \
 		test_move_selector.c \
 		test_time_control.c \
 		test_transposition_table.c \
