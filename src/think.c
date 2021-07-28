@@ -77,12 +77,13 @@ print_pv(Tree *tree, int depth)
 	char *buf = NULL;
 	unsigned int bufsize;
 
+	chi_pos position;
+	chi_copy_pos(&position, &tree->position);
+
 	fprintf(out, "info depth %d multipv 1 score cp %d nodes %llu nps %ld"
 			" tbhits %llu time %ld pv",
 			tree->depth, tree->score, tree->nodes, nps, tree->tt_hits, elapsed);
 
-	chi_pos position;
-	chi_copy_pos(&position, &tree->position);
 	Line *line = &tree->line;
 	for (int i = 0; i < line->num_moves; ++i) {
 		chi_move move = line->moves[i];
@@ -224,8 +225,7 @@ alphabeta(Tree *tree, int depth, int alpha, int beta)
 				fprintf(stderr, "\tNew best root move with best value %d.\n", alpha);
 #endif
 				tree->bestmove = move;
-				tree->score =
-					chi_on_move(position) == chi_white ? value : -value;
+				tree->score = value;
 				print_pv(tree, depth);
 			}
 		}
