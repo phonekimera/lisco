@@ -36,6 +36,7 @@ quiesce(Tree *tree, int ply, int alpha, int beta)
 	if (value >= beta) {
 		return beta;
 	}
+
 	if (value > alpha) {
 		alpha = value;
 	}
@@ -63,6 +64,13 @@ quiesce(Tree *tree, int ply, int alpha, int beta)
 		*/
 
 		chi_unapply_move(position, move);
+
+		if (value >= beta) {
+			return beta;
+		}
+		if (value > alpha) {
+			alpha = value;
+		}
 	}
 
 	return alpha;
